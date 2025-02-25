@@ -1,23 +1,65 @@
-// Fichier src/screens/HomeScreen.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({ navigation }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          navigation.replace('Login');
+          return;
+        }
+
+        const response = await fetch('http://192.168.1.93:3000/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setUser(data);
+        } else {
+          alert(data.message);
+          navigation.replace('Login');
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération du profil :", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    navigation.replace('Login'); // Redirige vers l’écran de connexion
+  };
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
         <Image source={require('../../assets/logo.png')} style={styles.logo} />
         <Text style={styles.title}>CityConnect</Text>
         <Text style={styles.subtitle}>DÉCOUVRE LA VILLE AVEC UN HABITANT</Text>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.buttonText}>Inscription</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.buttonText}>Connexion</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.googleButton}>
-          <Image source={require('../../assets/google-icon.png')} style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Sign up with Google</Text>
+
+        {user ? (
+          <>
+            <Text style={styles.welcomeText}>Bienvenue, {user.username} !</Text>
+            <Text style={styles.emailText}>{user.email}</Text>
+          </>
+        ) : (
+          <Text style={styles.loadingText}>Chargement du profil...</Text>
+        )}
+
+        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+          <Text style={styles.buttonText}>Déconnexion</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -52,6 +94,22 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: 'center',
   },
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D2A6E',
+    marginBottom: 10,
+  },
+  emailText: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#999',
+    marginBottom: 20,
+  },
   button: {
     backgroundColor: '#2D2A6E',
     padding: 15,
@@ -64,27 +122,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 12,
-    width: '100%',
-    marginTop: 20,
-    backgroundColor: '#fff',
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    color: '#000',
   },
 });
 

@@ -1,8 +1,39 @@
-// Fichier src/screens/RegisterScreen.js
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RegisterScreen = ({ navigation }) => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      alert("Les mots de passe ne correspondent pas !");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://192.168.1.93:3000/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+      console.log("Réponse du backend :", data);
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        navigation.replace('Dashboard');
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l’inscription:', error);
+    }
+  };
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.header}>
@@ -14,11 +45,38 @@ const RegisterScreen = ({ navigation }) => {
       
       <View style={styles.container}>
         <Text style={styles.subtitle}>Inscription</Text>
-        <TextInput placeholder="Nom d'utilisateur" style={styles.input} />
-        <TextInput placeholder="Mot de passe" style={styles.input} secureTextEntry />
-        <TextInput placeholder="Confirmer le mot de passe" style={styles.input} secureTextEntry />
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Création</Text>
+        <TextInput 
+          placeholder="Nom d'utilisateur" 
+          style={styles.input} 
+          value={username} 
+          onChangeText={setUsername} 
+        />
+        <TextInput 
+          placeholder="Email" 
+          style={styles.input} 
+          value={email} 
+          onChangeText={setEmail} 
+        />
+        <TextInput 
+          placeholder="Mot de passe" 
+          style={styles.input} 
+          secureTextEntry 
+          value={password} 
+          onChangeText={setPassword} 
+        />
+        <TextInput 
+          placeholder="Confirmer le mot de passe" 
+          style={styles.input} 
+          secureTextEntry 
+          value={confirmPassword} 
+          onChangeText={setConfirmPassword} 
+        />
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>S'inscrire</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.linkText}>Déjà un compte ? Connecte-toi</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -39,15 +97,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 40,
-  },
-  backButtonContainer: {
-    position: 'absolute',
-    left: 10,
-    top: 40,
-  },
-  backButton: {
-    fontSize: 24,
-    color: '#2D2A6E',
   },
   headerCenter: {
     flex: 1,
@@ -100,6 +149,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  linkText: {
+    marginTop: 15,
+    color: '#2D2A6E',
     fontWeight: 'bold',
   },
 });

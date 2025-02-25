@@ -1,21 +1,62 @@
-// Fichier src/screens/LoginScreen.js
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://192.168.1.93:3000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        navigation.replace('Dashboard');;
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+    }
+  };
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
         <Image source={require('../../assets/logo.png')} style={styles.logo} />
         <Text style={styles.title}>CityConnect</Text>
         <Text style={styles.subtitle}>DÉCOUVRE LA VILLE AVEC UN HABITANT</Text>
-        <TextInput placeholder="Nom d'utilisateur" style={styles.input} />
-        <TextInput placeholder="Mot de passe" style={styles.input} secureTextEntry />
-        <TouchableOpacity style={styles.button}>
+
+        <TextInput 
+          placeholder="Email" 
+          style={styles.input} 
+          value={email} 
+          onChangeText={setEmail} 
+        />
+        <TextInput 
+          placeholder="Mot de passe" 
+          style={styles.input} 
+          secureTextEntry 
+          value={password} 
+          onChangeText={setPassword} 
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Se connecter</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.googleButton}>
           <Text style={styles.googleButtonText}>Sign up with Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.linkText}>Pas encore de compte ? Inscris-toi</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -84,14 +125,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: '#fff',
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
   googleButtonText: {
     fontSize: 16,
     color: '#000',
+  },
+  linkText: {
+    marginTop: 15,
+    color: '#2D2A6E',
+    fontWeight: 'bold',
   },
 });
 
