@@ -9,8 +9,11 @@ const HomeScreen = ({ navigation }) => {
     const fetchUserProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+        console.log("Token récupéré dans HomeScreen :", token);
+        
         if (!token) {
-          navigation.replace('Login');
+          console.log("Aucun token trouvé, redirection vers Login...");
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           return;
         }
 
@@ -23,11 +26,16 @@ const HomeScreen = ({ navigation }) => {
         });
 
         const data = await response.json();
+        console.log("Réponse de /auth/profile :", data);
+
         if (response.ok) {
           setUser(data);
+          console.log("Redirection vers Dashboard...");
+          navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] }); // Redirection après connexion
         } else {
-          alert(data.message);
-          navigation.replace('Login');
+          console.log("Token invalide, suppression et redirection...");
+          await AsyncStorage.removeItem('token');
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         }
       } catch (error) {
         console.error("Erreur lors de la récupération du profil :", error);
@@ -39,7 +47,7 @@ const HomeScreen = ({ navigation }) => {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.replace('Login'); // Redirige vers l’écran de connexion
+    navigation.navigate('Login');
   };
 
   return (

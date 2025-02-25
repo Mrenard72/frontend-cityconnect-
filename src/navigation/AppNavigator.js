@@ -14,21 +14,47 @@ const AppNavigator = () => {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const token = await AsyncStorage.getItem('token');
-      setIsLoggedIn(!!token);
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          setIsLoggedIn(false);
+          return;
+        }
+
+        // Vérifier si le token est valide
+        const response = await fetch('http://192.168.1.93:3000/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          setIsLoggedIn(true);
+        } else {
+          await AsyncStorage.removeItem('token');
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification du token:", error);
+        setIsLoggedIn(false);
+      }
     };
+    
     checkLoginStatus();
   }, []);
 
   if (isLoggedIn === null) {
-    return null; // Charge en attendant la vérification
+    return null; // Affiche un écran blanc le temps de la vérification
   }
 
   return (
     <Stack.Navigator>
-      {isLoggedIn ? (
-        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
-      ) : (
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
+
+      {!isLoggedIn && (
         <>
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />

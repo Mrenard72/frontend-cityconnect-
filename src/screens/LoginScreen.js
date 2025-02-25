@@ -8,23 +8,30 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://192.168.1.93:3000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+        const response = await fetch('http://192.168.1.93:3000/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
 
-      const data = await response.json();
-      if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        navigation.replace('Dashboard');;
-      } else {
-        alert(data.message);
-      }
+        const data = await response.json();
+        console.log("Réponse du backend :", data); // Affiche la réponse complète du serveur
+
+        if (response.ok) {
+            await AsyncStorage.setItem('token', data.token);
+            console.log("Token stocké :", await AsyncStorage.getItem('token')); // Vérifie le stockage
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
+        } else {
+            alert(data.message);
+        }
     } catch (error) {
-      console.error('Erreur lors de la connexion:', error);
+        console.error('Erreur lors de la connexion:', error);
     }
-  };
+};
+
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
