@@ -6,9 +6,10 @@ const DashboardScreen = ({ navigation }) => {
   
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token'); // Supprime le token
+    console.log("Utilisateur déconnecté, redirection vers HomeScreen...");
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }], // Redirige vers l'écran de connexion
+      routes: [{ name: 'Home' }], // Envoie à Home après logout
     });
   };
 
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   logoutButton: {
-    backgroundColor: '#E53935', // Rouge
+    backgroundColor: '#E53935',
     padding: 15,
     borderRadius: 10,
     width: '100%',
