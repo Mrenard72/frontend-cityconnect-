@@ -22,7 +22,7 @@ const AppNavigator = () => {
         }
 
         // Vérifier si le token est valide
-        const response = await fetch('http://192.168.1.93:3000/auth/profile', {
+        const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
