@@ -5,11 +5,6 @@ import { CommonActions } from '@react-navigation/native';
 const DashboardScreen = ({ navigation }) => {
   
 
-  
-  
-  
-  
-
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
