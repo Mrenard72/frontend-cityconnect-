@@ -113,7 +113,6 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator>
-<<<<<<< HEAD
   {isLoggedIn ? (
     <>
       <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
@@ -128,20 +127,6 @@ const AppNavigator = () => {
   )}
 </Stack.Navigator>
 
-=======
-      {isLoggedIn ? (
-        <>
-          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-        </>
-      )}
-    </Stack.Navigator>
->>>>>>> 1be9ad2c1f6fe2dd06aac37dcd9a3cb4611037e0
   );
 };
 
