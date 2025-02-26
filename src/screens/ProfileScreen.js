@@ -1,29 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-<<<<<<< HEAD
 import Header from '../components/Header';
-=======
-import { CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const handleLogout = async (navigation) => {
-  try {
-    await AsyncStorage.removeItem('token');
-    console.log("Token supprimé :", await AsyncStorage.getItem('token'));
-
-    // 🔹 Redirection vers l'écran d'accueil après déconnexion
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      })
-    );
-  } catch (error) {
-    console.error("Erreur lors de la déconnexion :", error);
-  }
-};
->>>>>>> 56108ad1e63c0e292628c11690ccb7aa55b0fd95
 
 const ProfileScreen = ({ navigation }) => {
   const [ProfileImage, setProfileImage] = useState(null);
@@ -152,6 +131,11 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
   },
+  textButton: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'FredokaOne',
+  },
   logoutButton: {
     backgroundColor: '#E53935',
     padding: 15,
@@ -161,8 +145,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#FFFFFF',
-<<<<<<< HEAD
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'FredokaOne',
   },
   logoutButton: {
@@ -174,10 +157,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     bottom: 20,
-=======
-    fontSize: 16,
-    fontFamily: 'FredokaOne',
->>>>>>> 56108ad1e63c0e292628c11690ccb7aa55b0fd95
   },
 });
 
