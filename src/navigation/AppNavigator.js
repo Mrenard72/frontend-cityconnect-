@@ -11,6 +11,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import MapScreen from '../screens/MapScreen';
 
 // Import des icônes
 import { Ionicons } from '@expo/vector-icons';
@@ -55,7 +56,7 @@ const BottomTabs = () => {
       })}
     >
       <Tab.Screen name="Accueil" component={DashboardStack} />
-      <Tab.Screen name="Carte" component={DashboardScreen} />
+      <Tab.Screen name="Carte" component={MapScreen} />
       <Tab.Screen name="Messagerie" component={DashboardScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>
