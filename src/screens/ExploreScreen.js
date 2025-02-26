@@ -68,7 +68,7 @@ const ExploreScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* 🎭 Par activité */}
-        <TouchableOpacity style={styles.filterButton} onPress={() => navigation.navigate('ActivitySelection')}>
+        <TouchableOpacity style={styles.filterButton} onPress={() => navigation.navigate('Activity')}>
           <Text style={styles.buttonText}>Par activité</Text>
         </TouchableOpacity>
 

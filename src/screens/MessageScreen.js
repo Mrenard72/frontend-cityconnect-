@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
     marginBottom: 20,
     textAlign: 'center',
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
 });
 

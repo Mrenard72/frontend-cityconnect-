@@ -1,79 +1,89 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import Header from '../components/Header';
+import { 
+  View, Text, Image, TouchableOpacity, StyleSheet, 
+  Alert, ImageBackground 
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker'; // 📌 Permet de choisir une image depuis la galerie
+import Header from '../components/Header'; // 📌 Composant d'en-tête (Header)
 
-
+// 📌 Écran du profil utilisateur
 const ProfileScreen = ({ navigation }) => {
+  // ✅ État pour stocker l'image de profil choisie par l'utilisateur
   const [ProfileImage, setProfileImage] = useState(null);
 
+  // 📷 Fonction pour ouvrir la galerie et choisir une photo
   const handleChoosePhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1], // Carré
-      quality: 1,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // 📌 Accepte uniquement les images
+      allowsEditing: true, // ✂️ Autorise le recadrage de l'image
+      aspect: [1, 1], // 📏 Format carré
+      quality: 1, // 🖼️ Qualité maximale
     });
 
-if (!result.canceled) {
-  setProfileImage(result.assets[0].uri);
-}
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri); // ✅ Stocke l'image sélectionnée
+    }
   };
 
+  // 📸 Fonction pour afficher une alerte et changer la photo de profil
   const handleProfileImagePress = () => {
     Alert.alert(
-      'Changer de photo de profil',
-      '',
+      'Changer de photo de profil', // 🖼️ Titre de l'alerte
+      '', // 📝 Aucun message supplémentaire
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Changer', onPress: handleChoosePhoto },
+        { text: 'Annuler', style: 'cancel' }, // ❌ Option d'annulation
+        { text: 'Changer', onPress: handleChoosePhoto }, // ✅ Ouvre la galerie d'images
       ]
     );
   };
 
   return (
     <ImageBackground
-      source={require('../../assets/background.png')} // Chemin vers l'image de fond
+      source={require('../../assets/background.png')} // 🌆 Image de fond
       style={styles.background}
     >
-        <Header/>
+      <Header /> {/* 📌 Affiche le composant d'en-tête */}
+      
       <View style={styles.container}>
+        {/* 📸 Section de la photo de profil */}
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
             {ProfileImage ? (
-              <Image source={{ uri: ProfileImage }} style={styles.profileImage} />
+              <Image source={{ uri: ProfileImage }} style={styles.profileImage} /> // ✅ Affiche l'image choisie
             ) : (
-              <Text style={styles.addPhotoText}>Changer de photo</Text>
+              <Text style={styles.addPhotoText}>Changer de photo</Text> // 📌 Texte par défaut si aucune image
             )}
           </TouchableOpacity>
         </View>
+
+        {/* 👤 Nom de l'utilisateur (à récupérer dynamiquement si possible) */}
         <Text style={styles.userName}>Votre Nom</Text>
 
-    {/* Bouton Mes services */}
-    <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-      <Text style={styles.textButton}>Mes services</Text>
-    </TouchableOpacity>
+        {/* 📌 Bouton "Mes services" */}
+        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+          <Text style={styles.textButton}>Mes services</Text>
+        </TouchableOpacity>
 
-    {/* Bouton Mes sorties */}
-    <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-      <Text style={styles.textButton}>Mes sorties</Text>
-    </TouchableOpacity>
+        {/* 📌 Bouton "Mes sorties" */}
+        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+          <Text style={styles.textButton}>Mes sorties</Text>
+        </TouchableOpacity>
 
-    {/* Bouton Mes infos */}
-    <TouchableOpacity
-      onPress={() => navigation.navigate('Info')} // Naviguer vers InfoScreen
-      style={styles.button}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.textButton}>Mes infos</Text>
-    </TouchableOpacity>
+        {/* 📌 Bouton "Mes infos" */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Info')} // 🚀 Redirection vers l'écran Info
+          style={styles.button}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.textButton}>Mes infos</Text>
+        </TouchableOpacity>
 
-    {/* Bouton Se déconnecter */}
-    <TouchableOpacity style={styles.logoutButton} onPress={() => handleLogout(navigation)}>
-      <Text style={styles.logoutButtonText}>Déconnexion</Text>
-    </TouchableOpacity>
-  </View>
-</ImageBackground>
+        {/* 🔴 Bouton de déconnexion */}
+        <TouchableOpacity style={styles.logoutButton} onPress={() => handleLogout(navigation)}>
+          <Text style={styles.logoutButtonText}>Déconnexion</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 
@@ -134,7 +144,7 @@ const styles = StyleSheet.create({
   textButton: {
     color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: 'FredokaOne',
+    fontFamily: 'FredokaOne',
   },
   logoutButton: {
     backgroundColor: '#E53935',
@@ -146,10 +156,10 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: 'FredokaOne',
+    fontFamily: 'FredokaOne',
   },
   logoutButton: {
-    backgroundColor: '#20135B',
+    backgroundColor: '#E53935',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
