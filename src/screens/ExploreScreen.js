@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
-
+import Header from '../components/Header';
 const ExploreScreen = ({ navigation }) => {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+   <Header/>
       <View style={styles.container}>
         <Text style={styles.title}>Explorer la ville</Text>
 
