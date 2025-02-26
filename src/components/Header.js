@@ -41,8 +41,8 @@ const styles = StyleSheet.create({
     marginRight: 1, // Espacement entre le logo et le texte
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: 'FredokaOne',
     color: '#333',
   },
 });

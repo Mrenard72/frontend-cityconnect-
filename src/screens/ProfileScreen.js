@@ -37,8 +37,8 @@ if (!result.canceled) {
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            {ProfileImage ? (
+              <Image source={{ uri: ProfileImage }} style={styles.profileImage} />
             ) : (
               <Text style={styles.addPhotoText}>Changer de photo</Text>
             )}
