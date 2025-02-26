@@ -10,6 +10,8 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import MessageScreen from '../screens/MessageScreen';
 
 // Import des icônes
 import { Ionicons } from '@expo/vector-icons';
@@ -55,8 +57,8 @@ const BottomTabs = () => {
     >
       <Tab.Screen name="Accueil" component={DashboardStack} />
       <Tab.Screen name="Carte" component={DashboardScreen} />
-      <Tab.Screen name="Messagerie" component={DashboardScreen} />
-      <Tab.Screen name="Profil" component={DashboardScreen} />
+      <Tab.Screen name="Messagerie" component={MessageScreen} />
+      <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>
   );
 };
@@ -117,8 +119,6 @@ const AppNavigator = () => {
           <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
-          <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
         </>
       )}
     </Stack.Navigator>
