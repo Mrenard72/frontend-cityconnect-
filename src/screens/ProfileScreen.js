@@ -10,17 +10,28 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import MessageScreen from '../screens/MessageScreen';
 
 // Import des icônes
 import { Ionicons } from '@expo/vector-icons';
-// import des ecrans de la nav barre
-import ProfileScreen from '../screens/ProfileScreen';
-import MessageScreen from '../screens/MessageScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ✅ Barre de navigation en bas (Seulement après connexion)
+// :white_check_mark: Stack interne pour inclure Explore dans les Tabs
+const DashboardStack = () => {
+  const DashboardStackNav = createStackNavigator();
+
+  return (
+    <DashboardStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <DashboardStackNav.Screen name="DashboardMain" component={DashboardScreen} />
+      <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
+    </DashboardStackNav.Navigator>
+  );
+};
+
+// :white_check_mark: Barre de navigation en bas
 const BottomTabs = () => {
   return (
     <Tab.Navigator
@@ -44,7 +55,7 @@ const BottomTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Accueil" component={DashboardScreen} />
+      <Tab.Screen name="Accueil" component={DashboardStack} />
       <Tab.Screen name="Carte" component={DashboardScreen} />
       <Tab.Screen name="Messagerie" component={MessageScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
@@ -52,7 +63,7 @@ const BottomTabs = () => {
   );
 };
 
-// ✅ Stack principal avec gestion de l'authentification
+// :white_check_mark: Stack principal avec gestion de l'authentification
 const AppNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
 
@@ -65,28 +76,28 @@ const AppNavigator = () => {
           return;
         }
 
-        // Vérifier si le token est valide
-        const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+    // Vérifier si le token est valide
+    const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-        if (response.ok) {
-          setIsLoggedIn(true);
-        } else {
-          await AsyncStorage.removeItem('token');
-          setIsLoggedIn(false);
-        }
-      } catch (error) {
-        console.error("Erreur lors de la vérification du token:", error);
-        setIsLoggedIn(false);
-      }
-    };
-    
-    checkLoginStatus();
+    if (response.ok) {
+      setIsLoggedIn(true);
+    } else {
+      await AsyncStorage.removeItem('token');
+      setIsLoggedIn(false);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la vérification du token:", error);
+    setIsLoggedIn(false);
+  }
+};
+
+checkLoginStatus();
   }, []);
 
   if (isLoggedIn === null) {
@@ -99,20 +110,18 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator>
-  {isLoggedIn ? (
-    <>
-      <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
-      <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} /> 
-    </>
-  ) : (
-    <>
-      <Stack.Screen name="Profil" component={ProfileScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-    </>
-  )}
-</Stack.Navigator>
-
+      {isLoggedIn ? (
+        <>
+          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        </>
+      )}
+    </Stack.Navigator>
   );
 };
 
