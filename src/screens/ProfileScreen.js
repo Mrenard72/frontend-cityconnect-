@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import Header from '../components/Header';
 
 const ProfileScreen = ({ navigation }) => {
   const [ProfileImage, setProfileImage] = useState(null);
@@ -34,6 +35,7 @@ if (!result.canceled) {
       source={require('../../assets/background.png')} // Chemin vers l'image de fond
       style={styles.background}
     >
+        <Header/>
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
@@ -85,12 +87,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 60,
+    paddingTop:180,
   },
   imageContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 150,
+    height: 150,
+    borderRadius: 80,
     backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
@@ -130,8 +132,8 @@ const styles = StyleSheet.create({
   },
   textButton: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: 'FredokaOne',
   },
   logoutButton: {
     backgroundColor: '#20135B',
