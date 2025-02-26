@@ -25,7 +25,10 @@ const RegisterScreen = ({ navigation }) => {
       console.log("Réponse du backend :", data);
       if (response.ok) {
         await AsyncStorage.setItem('token', data.token);
-        navigation.replace('Dashboard');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        });
       } else {
         alert(data.message);
       }
@@ -111,7 +114,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
   },
   container: {
@@ -121,7 +124,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
     marginBottom: 20,
   },
@@ -149,12 +152,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
   linkText: {
     marginTop: 15,
     color: '#2D2A6E',
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
 });
 
