@@ -1,128 +1,148 @@
-import React, { useEffect, useState } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
-// Import des écrans
-import HomeScreen from '../screens/HomeScreen';
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import DashboardScreen from '../screens/DashboardScreen';
-import ExploreScreen from '../screens/ExploreScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import MessageScreen from '../screens/MessageScreen';
+const ProfileScreen = ({ navigation }) => {
+  const [ProfileImage, setProfileImage] = useState(null);
 
-// Import des icônes
-import { Ionicons } from '@expo/vector-icons';
-
-const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
-
-// :white_check_mark: Stack interne pour inclure Explore dans les Tabs
-const DashboardStack = () => {
-  const DashboardStackNav = createStackNavigator();
-
-  return (
-    <DashboardStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <DashboardStackNav.Screen name="DashboardMain" component={DashboardScreen} />
-      <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
-    </DashboardStackNav.Navigator>
-  );
-};
-
-// :white_check_mark: Barre de navigation en bas
-const BottomTabs = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: { backgroundColor: '#FFFFFF', height: 60 },
-        tabBarActiveTintColor: '#2D2A6E',
-        tabBarInactiveTintColor: 'gray',
-        tabBarIcon: ({ color, size }) => {
-          let iconName;
-          if (route.name === 'Accueil') {
-            iconName = 'home-outline';
-          } else if (route.name === 'Carte') {
-            iconName = 'map-outline';
-          } else if (route.name === 'Messagerie') {
-            iconName = 'chatbubble-outline';
-          } else if (route.name === 'Profil') {
-            iconName = 'person-outline';
-          }
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen name="Accueil" component={DashboardStack} />
-      <Tab.Screen name="Carte" component={DashboardScreen} />
-      <Tab.Screen name="Messagerie" component={MessageScreen} />
-      <Tab.Screen name="Profil" component={ProfileScreen} />
-    </Tab.Navigator>
-  );
-};
-
-// :white_check_mark: Stack principal avec gestion de l'authentification
-const AppNavigator = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(null);
-
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          setIsLoggedIn(false);
-          return;
-        }
-
-    // Vérifier si le token est valide
-    const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+  const handleChoosePhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // Carré
+      quality: 1,
     });
 
-    if (response.ok) {
-      setIsLoggedIn(true);
-    } else {
-      await AsyncStorage.removeItem('token');
-      setIsLoggedIn(false);
-    }
-  } catch (error) {
-    console.error("Erreur lors de la vérification du token:", error);
-    setIsLoggedIn(false);
-  }
-};
+if (!result.canceled) {
+  setProfileImage(result.assets[0].uri);
+}
+  };
 
-checkLoginStatus();
-  }, []);
-
-  if (isLoggedIn === null) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#2D2A6E" />
-      </View>
+  const handleProfileImagePress = () => {
+    Alert.alert(
+      'Changer de photo de profil',
+      '',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Changer', onPress: handleChoosePhoto },
+      ]
     );
-  }
+  };
 
   return (
-    <Stack.Navigator>
-      {isLoggedIn ? (
-        <>
-          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-        </>
-      )}
-    </Stack.Navigator>
+    <ImageBackground
+      source={require('../../assets/background.png')} // Chemin vers l'image de fond
+      style={styles.background}
+    >
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
+          <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+              <Text style={styles.addPhotoText}>Changer de photo</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.userName}>Votre Nom</Text>
+
+    {/* Bouton Mes services */}
+    <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+      <Text style={styles.textButton}>Mes services</Text>
+    </TouchableOpacity>
+
+    {/* Bouton Mes sorties */}
+    <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+      <Text style={styles.textButton}>Mes sorties</Text>
+    </TouchableOpacity>
+
+    {/* Bouton Mes infos */}
+    <TouchableOpacity
+      onPress={() => navigation.navigate('Info')} // Naviguer vers InfoScreen
+      style={styles.button}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.textButton}>Mes infos</Text>
+    </TouchableOpacity>
+
+    {/* Bouton Se déconnecter */}
+    <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
+      <Text style={styles.textButton}>Se déconnecter</Text>
+    </TouchableOpacity>
+  </View>
+</ImageBackground>
   );
 };
 
-export default AppNavigator;
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%', // S'assure que l'image couvre tout l'écran
+    resizeMode: 'cover',
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 60,
+  },
+  imageContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 4, // Épaisseur de la bordure
+    borderColor: '#20135B',
+  },
+  touchable: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  addPhotoText: {
+    color: '#888',
+    fontSize: 16,
+  },
+  userName: {
+    fontSize: 18,
+    color: '#555',
+    marginTop: 10,
+  },
+  button: {
+    backgroundColor: '#20135B',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginVertical: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  textButton: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#20135B',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    width: '80%',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 20,
+  },
+});
+
+export default ProfileScreen;
