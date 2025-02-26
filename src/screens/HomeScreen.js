@@ -28,15 +28,12 @@ const HomeScreen = ({ navigation }) => {
         const data = await response.json();
         console.log("Réponse de /auth/profile :", data);
 
-        if (response.ok) {
-          setUser(data);
-          console.log("Redirection vers Dashboard...");
-          navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] }); // Redirection après connexion
-        } else {
+        if (!response.ok) {
           console.log("Token invalide, suppression et redirection...");
           await AsyncStorage.removeItem('token');
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         }
+        
       } catch (error) {
         console.error("Erreur lors de la récupération du profil :", error);
       }
@@ -93,7 +90,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
   },
   subtitle: {
@@ -104,17 +101,19 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
     marginBottom: 10,
   },
   emailText: {
     fontSize: 16,
+    fontFamily: 'FredokaOne',
     color: '#555',
     marginBottom: 20,
   },
   loadingText: {
     fontSize: 16,
+    fontFamily: 'FredokaOne',
     color: '#999',
     marginBottom: 20,
   },
@@ -129,7 +128,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
 });
 

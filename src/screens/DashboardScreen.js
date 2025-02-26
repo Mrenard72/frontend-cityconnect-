@@ -1,17 +1,25 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { CommonActions } from '@react-navigation/native';
 const DashboardScreen = ({ navigation }) => {
   
+  // Fonction de déconnexion
+
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('token'); // Supprime le token
-    console.log("Utilisateur déconnecté, redirection vers HomeScreen...");
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Home' }], // Envoie à Home après logout
-    });
+    await AsyncStorage.removeItem('token');
+console.log("Token supprimé :", await AsyncStorage.getItem('token'));
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      })
+    );
   };
+  
+  
+  
+  
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
@@ -21,8 +29,11 @@ const DashboardScreen = ({ navigation }) => {
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Explore')}>
           <Image source={require('../../assets/explore.jpg')} style={styles.cardImage} />
+          <View style={styles.overlay}>
           <Text style={styles.cardText}>J'explore</Text>
-        </TouchableOpacity>
+          </View>
+          </TouchableOpacity>
+
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Discover')}>
           <Image source={require('../../assets/discover.jpg')} style={styles.cardImage} />
@@ -51,19 +62,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     marginBottom: 20,
   },
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
     marginBottom: 20,
   },
   card: {
     width: '100%',
-    height: 120,
+    height: 150,
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 20,
@@ -75,12 +86,11 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: 'white',
     textAlign: 'center',
     marginTop: 'auto',
     marginBottom: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     paddingVertical: 5,
   },
   logoutButton: {
@@ -94,7 +104,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
 });
 

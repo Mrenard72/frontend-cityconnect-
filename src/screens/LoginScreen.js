@@ -22,7 +22,7 @@ const LoginScreen = ({ navigation }) => {
             console.log("Token stocké :", await AsyncStorage.getItem('token')); // Vérifie le stockage
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Home' }],
+                routes: [{ name: 'Dashboard' }],
             });
         } else {
             alert(data.message);
@@ -83,18 +83,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 150,
+    height: 150,
     marginBottom: 20,
   },
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E',
   },
   subtitle: {
     fontSize: 14,
     color: '#666',
+    fontFamily: 'FredokaOne',
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -109,6 +110,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#2D2A6E',
+    fontFamily: 'FredokaOne',
     padding: 15,
     borderRadius: 10,
     width: '100%',
@@ -117,8 +119,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#FFFFFF',
+    fontFamily: 'FredokaOne',
     fontSize: 16,
-    fontWeight: 'bold',
   },
   googleButton: {
     flexDirection: 'row',
@@ -133,13 +135,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   googleButtonText: {
+    fontFamily: 'FredokaOne',
     fontSize: 16,
     color: '#000',
   },
   linkText: {
     marginTop: 15,
     color: '#2D2A6E',
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
 });
 

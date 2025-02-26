@@ -827,7 +827,7 @@
 
 "@expo-google-fonts/fredoka-one@^0.2.3":
   version "0.2.3"
-  resolved "https://registry.npmjs.org/@expo-google-fonts/fredoka-one/-/fredoka-one-0.2.3.tgz"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/fredoka-one/-/fredoka-one-0.2.3.tgz#6603767ed45bf9a02bea7894715e01e8dc6d9476"
   integrity sha512-Wx/i/kUjpdMln1NYza1YFpOXiLc38N8ARjptiHZYsqC7sc4PdVNNuh876auxjJnPgWEtDpui4pIgUEuK17ZocA==
 
 "@expo/bunyan@^4.0.0":
@@ -1491,6 +1491,14 @@
   dependencies:
     invariant "^2.2.4"
     nullthrows "^1.1.1"
+
+"@react-navigation/bottom-tabs@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.2.0.tgz#5b336b823226647a263b4fe743655462796b6aaf"
+  integrity sha512-1LxjgnbPyFINyf9Qr5d1YE0pYhuJayg5TCIIFQmbcX4PRhX7FKUXV7cX8OzrKXEdZi/UE/VNXugtozPAR9zgvA==
+  dependencies:
+    "@react-navigation/elements" "^2.2.5"
+    color "^4.2.3"
 
 "@react-navigation/core@^7.3.1":
   version "7.3.1"
@@ -2753,7 +2761,14 @@ expo-file-system@~18.0.11:
   dependencies:
     web-streams-polyfill "^3.3.2"
 
-expo-font@^13.0.4, expo-font@~13.0.4:
+expo-font@^13.0.4:
+  version "13.0.4"
+  resolved "https://registry.yarnpkg.com/expo-font/-/expo-font-13.0.4.tgz#c60771446598ddfa98ac1d25244c916a089a99c9"
+  integrity sha512-eAP5hyBgC8gafFtprsz0HMaB795qZfgJWqTmU0NfbSin1wUuVySFMEPMOrTkTgmazU73v4Cb4x7p86jY1XXYUw==
+  dependencies:
+    fontfaceobserver "^2.1.0"
+
+expo-font@~13.0.4:
   version "13.0.4"
   resolved "https://registry.npmjs.org/expo-font/-/expo-font-13.0.4.tgz"
   integrity sha512-eAP5hyBgC8gafFtprsz0HMaB795qZfgJWqTmU0NfbSin1wUuVySFMEPMOrTkTgmazU73v4Cb4x7p86jY1XXYUw==
@@ -4786,7 +4801,7 @@ react-native-screens@^4.9.0:
 
 react-native-vector-icons@^10.2.0:
   version "10.2.0"
-  resolved "https://registry.npmjs.org/react-native-vector-icons/-/react-native-vector-icons-10.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-10.2.0.tgz#f438f2ca16f7d6be658fd6ec8f0d2b7e2132b91c"
   integrity sha512-n5HGcxUuVaTf9QJPs/W22xQpC2Z9u0nb0KgLPnVltP8vdUvOp6+R26gF55kilP/fV4eL4vsAHUqUjewppJMBOQ==
   dependencies:
     prop-types "^15.7.2"
