@@ -10,6 +10,8 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import MessageScreen from '../screens/MessageScreen';
 
 // Import des icônes
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +22,19 @@ import MessageScreen from '../screens/MessageScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ✅ Barre de navigation en bas (Seulement après connexion)
+// ✅ Stack interne pour inclure Explore dans les Tabs
+const DashboardStack = () => {
+  const DashboardStackNav = createStackNavigator();
+
+  return (
+    <DashboardStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <DashboardStackNav.Screen name="DashboardMain" component={DashboardScreen} />
+      <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
+    </DashboardStackNav.Navigator>
+  );
+};
+
+// ✅ Barre de navigation en bas
 const BottomTabs = () => {
   return (
     <Tab.Navigator
@@ -44,7 +58,7 @@ const BottomTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Accueil" component={DashboardScreen} />
+      <Tab.Screen name="Accueil" component={DashboardStack} />
       <Tab.Screen name="Carte" component={DashboardScreen} />
       <Tab.Screen name="Messagerie" component={MessageScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
@@ -99,6 +113,7 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator>
+<<<<<<< HEAD
   {isLoggedIn ? (
     <>
       <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
@@ -113,6 +128,20 @@ const AppNavigator = () => {
   )}
 </Stack.Navigator>
 
+=======
+      {isLoggedIn ? (
+        <>
+          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        </>
+      )}
+    </Stack.Navigator>
+>>>>>>> 1be9ad2c1f6fe2dd06aac37dcd9a3cb4611037e0
   );
 };
 

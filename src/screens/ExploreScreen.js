@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 
 const ExploreScreen = ({ navigation }) => {
   return (
@@ -26,6 +27,7 @@ const ExploreScreen = ({ navigation }) => {
     </ImageBackground>
   );
 };
+
 
 const styles = StyleSheet.create({
   background: {
