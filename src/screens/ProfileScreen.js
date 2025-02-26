@@ -1,25 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
 
-const handleLogout = async (navigation) => {
-  try {
-    await AsyncStorage.removeItem('token');
-    console.log("Token supprimé :", await AsyncStorage.getItem('token'));
-
-    // 🔹 Redirection vers l'écran d'accueil après déconnexion
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      })
-    );
-  } catch (error) {
-    console.error("Erreur lors de la déconnexion :", error);
-  }
-};
 
 const ProfileScreen = ({ navigation }) => {
   const [ProfileImage, setProfileImage] = useState(null);
@@ -53,6 +36,7 @@ if (!result.canceled) {
       source={require('../../assets/background.png')} // Chemin vers l'image de fond
       style={styles.background}
     >
+        <Header/>
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
@@ -104,12 +88,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 60,
+    paddingTop:180,
   },
   imageContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 150,
+    height: 150,
+    borderRadius: 80,
     backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
@@ -147,6 +131,11 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
   },
+  textButton: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'FredokaOne',
+  },
   logoutButton: {
     backgroundColor: '#E53935',
     padding: 15,
@@ -156,8 +145,18 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'FredokaOne',
+    fontSize: 20,
+    fontWeight: 'FredokaOne',
+  },
+  logoutButton: {
+    backgroundColor: '#20135B',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    width: '80%',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 20,
   },
 });
 
