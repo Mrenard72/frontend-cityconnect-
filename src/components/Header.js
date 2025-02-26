@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: 'FredokaOne',
-    color: '#333',
+    fontFamily: 'FredokaOne',
+    color: '#20135B',
   },
 });
 
