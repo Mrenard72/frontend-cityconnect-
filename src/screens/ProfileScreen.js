@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { CommonActions } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const handleLogout = async (navigation) => {
+  try {
+    await AsyncStorage.removeItem('token');
+    console.log("Token supprimé :", await AsyncStorage.getItem('token'));
+
+    // 🔹 Redirection vers l'écran d'accueil après déconnexion
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      })
+    );
+  } catch (error) {
+    console.error("Erreur lors de la déconnexion :", error);
+  }
+};
 
 const ProfileScreen = ({ navigation }) => {
   const [ProfileImage, setProfileImage] = useState(null);
@@ -37,8 +56,8 @@ if (!result.canceled) {
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            {ProfileImage ? (
+              <Image source={{ uri: ProfileImage }} style={styles.profileImage} />
             ) : (
               <Text style={styles.addPhotoText}>Changer de photo</Text>
             )}
@@ -66,8 +85,8 @@ if (!result.canceled) {
     </TouchableOpacity>
 
     {/* Bouton Se déconnecter */}
-    <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
-      <Text style={styles.textButton}>Se déconnecter</Text>
+    <TouchableOpacity style={styles.logoutButton} onPress={() => handleLogout(navigation)}>
+      <Text style={styles.logoutButtonText}>Déconnexion</Text>
     </TouchableOpacity>
   </View>
 </ImageBackground>
@@ -128,20 +147,17 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
   },
-  textButton: {
+  logoutButton: {
+    backgroundColor: '#E53935',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  logoutButton: {
-    backgroundColor: '#20135B',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    width: '80%',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
+    fontFamily: 'FredokaOne',
   },
 });
 
