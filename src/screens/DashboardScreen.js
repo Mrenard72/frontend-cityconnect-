@@ -4,22 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
 const DashboardScreen = ({ navigation }) => {
   
-  // Fonction de déconnexion
-
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('token');
-console.log("Token supprimé :", await AsyncStorage.getItem('token'));
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      })
-    );
-  };
-  
-  
-  
-  
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
@@ -40,10 +24,7 @@ console.log("Token supprimé :", await AsyncStorage.getItem('token'));
           <Text style={styles.cardText}>Je fais découvrir</Text>
         </TouchableOpacity>
 
-        {/* Bouton Déconnexion */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Déconnexion</Text>
-        </TouchableOpacity>
+      
       </View>
     </ImageBackground>
   );
