@@ -20,7 +20,7 @@ const handleLogout = async (navigation) => {
 
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }], // 🚀 Redirection vers l'écran de connexion
+      routes: [{ name: 'Home' }], // 🚀 Redirection vers l'écran de connexion
     });
 
   } catch (error) {
