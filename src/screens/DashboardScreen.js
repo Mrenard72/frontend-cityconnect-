@@ -1,30 +1,32 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CommonActions } from '@react-navigation/native';
-const DashboardScreen = ({ navigation }) => {
-  
+import { 
+  View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground 
+} from 'react-native';
 
+// 📌 Écran du tableau de bord (DashboardScreen)
+const DashboardScreen = ({ navigation }) => {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
+        {/* 🏙️ Logo de l'application */}
         <Image source={require('../../assets/logo.png')} style={styles.logo} />
         <Text style={styles.title}>Tableau de bord</Text>
 
+        {/* 📌 Carte "J'explore" → Navigue vers `ExploreScreen` */}
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Explore')}>
           <Image source={require('../../assets/explore.jpg')} style={styles.cardImage} />
           <View style={styles.overlay}>
-          <Text style={styles.cardText}>J'explore</Text>
+            <Text style={styles.cardText}>J'explore</Text>
           </View>
-          </TouchableOpacity>
-
-
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Discover')}>
-          <Image source={require('../../assets/discover.jpg')} style={styles.cardImage} />
-          <Text style={styles.cardText}>Je fais découvrir</Text>
         </TouchableOpacity>
 
-      
+        {/* 📌 Carte "Je fais découvrir" → Navigue vers `DiscoverScreen` */}
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Discover')}>
+          <Image source={require('../../assets/discover.jpg')} style={styles.cardImage} />
+          <View style={styles.overlay}>
+            <Text style={styles.cardText}>Je fais découvrir</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );

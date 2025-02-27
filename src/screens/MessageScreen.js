@@ -1,52 +1,67 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import Header from '../components/Header'
+import React from 'react';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
+import Header from '../components/Header';
 
 const MessageScreen = ({ navigation }) => {
-  const [ProfileImage, setProfileImage] = useState(null);
-
-  const handleChoosePhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1], // Carré
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
-  };
-
+  const conversations = [
+    { id: 1, title: 'sortie 1', content: 'Conversation 1: Lorem ipsum dolor sit amet...' },
+    { id: 2, title: 'sortie 2', content: 'Conversation 2: Consectetur adipiscing elit...' },
+    { id: 3, title: 'sortie 3', content: 'Conversation 3: Sed do eiusmod tempor incididunt...' },
+  ];
 
   return (
-   
-        <Header>
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header />
       <View style={styles.container}>
-        <View style={styles.imageContainer}>
-        </View>
-        <Text style={styles.title}>Messagerie</Text>
+        <Text style={styles.title}>Mes messages</Text>
+        {conversations.map((conversation) => (
+          <TouchableOpacity
+            key={conversation.id}
+            style={styles.filterButton}
+            onPress={() =>
+              navigation.navigate('Conversation', { conversation })
+            }
+          >
+            <Text style={styles.buttonText}>{conversation.title}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
-      </Header>
-    
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-//   background: {
-//     flex: 1,
-//     width: '100%',
-//     height: '100%', // S'assure que l'image couvre tout l'écran
-//     resizeMode: 'cover',
-//   },
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+  },
   title: {
-    color: 'black',
+    fontSize: 26,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  filterButton: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
-
-  }
- 
+    fontFamily: 'FredokaOne',
+  },
 });
 
 export default MessageScreen;
