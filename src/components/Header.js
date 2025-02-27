@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40, // Ajustement pour Android
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    zIndex: 1000, // Assurez que le header est au-dessus des autres éléments
+    zIndex: 1, // Assurez que le header est au-dessus des autres éléments
   },
   innerContainer: {
     flexDirection: 'row',

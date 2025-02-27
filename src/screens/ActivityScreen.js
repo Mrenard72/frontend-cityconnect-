@@ -18,7 +18,7 @@ const ActivityScreen = ({ navigation }) => {
       <Header /> {/* 📌 Ajoute le composant d'en-tête */}
 
       {/* 🔹 Ajout d'un `View` avec `marginTop` pour éviter le chevauchement du Header */}
-      <View style={{ marginTop: 20 }} />
+      <View style={{ marginTop: 60 }} />
 
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Activité</Text> {/* 📌 Titre principal */}
