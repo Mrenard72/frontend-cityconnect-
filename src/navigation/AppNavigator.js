@@ -62,7 +62,7 @@ const BottomTabs = () => {
     {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
       <Tab.Screen name="Accueil" component={DashboardStack} />
         {/* Onglet Carte */}
-      <Tab.Screen name="Carte" component={DashboardScreen} />
+      <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
       <Tab.Screen name="Messagerie" component={MessageScreen} />
       {/* 👤 Onglet Profil */}

@@ -38,8 +38,24 @@ export default function MapScreen({ route }) {
         setShowInput(false); // Cacher l'input
       }
       else if (filter === 'byLocality') {
-        resetToParis();      // Revenir à Paris
-        setShowInput(true);  // Afficher l'input (Latitude/Longitude)
+        // Si une région a été transmise, on l'utilise
+        if (route.params && route.params.region) {
+          console.log("🔎 Setting region from params:", route.params.region);
+          setRegion(route.params.region);
+        }
+        // Sinon, si latitude et longitude sont fournis, on les utilise
+        else if (route.params && route.params.latitude && route.params.longitude) {
+          console.log("🔎 Setting region from lat/lon:", route.params.latitude, route.params.longitude);
+          setRegion({
+            latitude: route.params.latitude,
+            longitude: route.params.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
+        } else {
+          resetToParis(); // Sinon, on réinitialise à Paris
+        }
+        setShowInput(true);  // Afficher l'input pour permettre une recherche ultérieure
       }
       else if (filter === 'activity') {
         fetchActivities();   // Charger les activités
@@ -146,7 +162,7 @@ export default function MapScreen({ route }) {
       <MapView
         style={styles.map}
         region={region}   // ⚠️ On utilise region (mode contrôlé)
-        // onRegionChangeComplete={setRegion} // ← On COMmente pour éviter d'écraser la région
+        // onRegionChangeComplete={setRegion} // ← Commenté pour éviter d'écraser la région
       >
         {/* Affiche les marqueurs si on est en mode "activity" */}
         {filter === 'activity' && activities.map((activity) => (

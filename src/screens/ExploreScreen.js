@@ -12,43 +12,75 @@ const ExploreScreen = ({ navigation }) => {
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
 
-  // 📍 Fonction pour obtenir la localisation et rediriger vers MapScreen
+  // 📍 Obtenir la position actuelle et naviguer vers MapScreen avec le filtre 'aroundMe'
   const handleLocationSearch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert("Permission refusée", "L'accès à la localisation est nécessaire pour cette fonctionnalité.");
       return;
     }
-
-    let userLocation = await Location.getCurrentPositionAsync({});
-    const { latitude, longitude } = userLocation.coords;
-
-    // 🔹 Rediriger vers `MapScreen` avec les coordonnées GPS
-    navigation.navigate('Map', { filter: 'aroundMe', latitude, longitude });
+    try {
+      let userLocation = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = userLocation.coords;
+      navigation.navigate('Carte', { 
+        filter: 'aroundMe', 
+        latitude, 
+        longitude,
+        region: { latitude, longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+      });
+    } catch (error) {
+      Alert.alert("Erreur", "Impossible d’obtenir votre position.");
+    }
   };
 
-  // 🔎 Afficher une boîte de dialogue pour rechercher une ville
+  // 🔎 Ouvrir la modale pour saisir une ville dès l'appui sur "Par localisation"
   const handleCitySearch = () => {
     setShowModal(true);
   };
 
-  // 📅 Ouvrir le modal pour entrer une date
+  // 🔎 Valider la saisie d'une ville grâce au géocodage et naviguer vers MapScreen
+  const handleCitySearchSubmit = async () => {
+    if (searchQuery.trim() === '') {
+      Alert.alert("Erreur", "Veuillez entrer un nom de ville.");
+      return;
+    }
+    try {
+      const geocodeResults = await Location.geocodeAsync(searchQuery);
+      if (geocodeResults && geocodeResults.length > 0) {
+        const { latitude, longitude } = geocodeResults[0];
+        console.log("Ville trouvée :", searchQuery, "Coordonnées :", latitude, longitude);
+        setShowModal(false);
+        // Transmettre à MapScreen la région calculée ainsi que les coordonnées individuelles
+        navigation.navigate('Carte', { 
+          filter: 'byLocality', 
+          city: searchQuery, 
+          latitude, 
+          longitude,
+          region: { latitude, longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+        });
+      } else {
+        Alert.alert("Erreur", "Aucune ville trouvée pour ce nom.");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erreur", "Impossible de géocoder cette ville.");
+    }
+  };
+
+  // 📅 Ouvrir la modale pour entrer une date
   const handleDateSearch = () => {
     setShowDateModal(true);
   };
 
-  // 📅 Valider la date et rediriger vers MapScreen
+  // 📅 Valider la date et naviguer vers MapScreen avec le filtre 'date'
   const validateDateAndNavigate = () => {
-    // Vérifier si la date est au format YYYY-MM-DD
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) {
       Alert.alert("Format incorrect", "Veuillez entrer une date au format YYYY-MM-DD");
       return;
     }
-
-    // Fermer le modal et naviguer
     setShowDateModal(false);
-    navigation.navigate('Map', { filter: 'date', selectedDate });
+    navigation.navigate('Carte', { filter: 'date', selectedDate });
   };
 
   return (
@@ -62,7 +94,7 @@ const ExploreScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Autour de moi</Text>
         </TouchableOpacity>
 
-        {/* 🔎 Par localisation (recherche ville) */}
+        {/* 🔎 Par localisation */}
         <TouchableOpacity style={styles.filterButton} onPress={handleCitySearch}>
           <Text style={styles.buttonText}>Par localisation</Text>
         </TouchableOpacity>
@@ -91,15 +123,7 @@ const ExploreScreen = ({ navigation }) => {
             />
             <View style={styles.modalButtons}>
               <Button title="Annuler" onPress={() => setShowModal(false)} />
-              <Button title="Rechercher" onPress={() => {
-                setShowModal(false);
-                if (searchQuery.trim() === '') {
-                  Alert.alert("Erreur", "Veuillez entrer un nom de ville.");
-                  return;
-                }
-                // 🔹 Rediriger vers MapScreen avec la ville choisie
-                navigation.navigate('Map', { filter: 'location', city: searchQuery });
-              }} />
+              <Button title="Rechercher" onPress={handleCitySearchSubmit} />
             </View>
           </View>
         </View>
@@ -124,7 +148,6 @@ const ExploreScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-
     </ImageBackground>
   );
 };
@@ -181,6 +204,7 @@ const styles = StyleSheet.create({
     fontFamily: 'FredokaOne',
     color: '#2D2A6E',
     marginBottom: 10,
+    textAlign: 'center',
   },
   searchInput: {
     width: '100%',
