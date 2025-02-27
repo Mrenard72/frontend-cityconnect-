@@ -5,11 +5,28 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; // 📌 Permet de choisir une image depuis la galerie
 import Header from '../components/Header'; // 📌 Composant d'en-tête (Header)
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Import de AsyncStorage
 
 // 📌 Écran du profil utilisateur
 const ProfileScreen = ({ navigation }) => {
   // ✅ État pour stocker l'image de profil choisie par l'utilisateur
   const [ProfileImage, setProfileImage] = useState(null);
+
+  // 🚀 Fonction pour gérer la déconnexion
+const handleLogout = async (navigation) => {
+  try {
+    await AsyncStorage.removeItem('token'); // ✅ Supprime le token de l'utilisateur
+    console.log("Token supprimé :", await AsyncStorage.getItem('token')); // 🔍 Vérifie que le token est bien supprimé
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }], // 🚀 Redirection vers l'écran de connexion
+    });
+
+  } catch (error) {
+    console.error("Erreur lors de la déconnexion :", error);
+  }
+};
 
   // 📷 Fonction pour ouvrir la galerie et choisir une photo
   const handleChoosePhoto = async () => {
