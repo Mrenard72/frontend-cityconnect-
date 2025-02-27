@@ -62,7 +62,7 @@ const BottomTabs = () => {
     {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
       <Tab.Screen name="Accueil" component={DashboardStack} />
         {/* Onglet Carte */}
-      <Tab.Screen name="Carte" component={DashboardScreen} />
+      <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
       <Tab.Screen name="Messagerie" component={MessageScreen} />
       {/* 👤 Onglet Profil */}
@@ -135,6 +135,8 @@ const AppNavigator = () => {
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
           
         </>
       )}
