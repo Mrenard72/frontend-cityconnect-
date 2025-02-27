@@ -13,7 +13,7 @@ import ExploreScreen from '../screens/ExploreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MapScreen from '../screens/MapScreen';
 import MessageScreen from '../screens/MessageScreen';
-import ConversationScreen from '../screens/ConversationScreen';
+import MessageBoxScreen from '../screens/MessageBoxScreen';
 import ActivityScreen from '../screens/ActivityScreen';
 
 // 📌 Import des icônes pour la barre de navigation
@@ -21,6 +21,21 @@ import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// ✅ Nouvelle stack pour la gestion des messages
+const MessageStack = () => {
+  const MessageStackNav = createStackNavigator();
+
+  return (
+    <MessageStackNav.Navigator screenOptions={{ headerShown: false }}>
+      {/* Liste des conversations */}
+      <MessageStackNav.Screen name="MessageBox" component={MessageBoxScreen} />
+      {/* Écran individuel pour une conversation */}
+      <MessageStackNav.Screen name="Messaging" component={MessageScreen} />
+    </MessageStackNav.Navigator>
+  );
+};
+
 
 // ✅ Stack interne pour inclure `ExploreScreen` dans les onglets (et garder la navigation intacte)
 const DashboardStack = () => {
@@ -64,7 +79,7 @@ const BottomTabs = () => {
         {/* Onglet Carte */}
       <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
-      <Tab.Screen name="Messagerie" component={MessageScreen} />
+      <Tab.Screen name="Messagerie" component={MessageStack} />
       {/* 👤 Onglet Profil */}
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>
@@ -139,6 +154,8 @@ const AppNavigator = () => {
         </>
       )}
     </Stack.Navigator>
+
+    
   );
 };
 
