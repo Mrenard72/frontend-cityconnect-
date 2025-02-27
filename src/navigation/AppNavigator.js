@@ -56,7 +56,7 @@ const BottomTabs = () => {
       })}
     >
       <Tab.Screen name="Accueil" component={DashboardStack} />
-      <Tab.Screen name="Carte" component={MapScreen} />
+      <Tab.Screen name="Map" component={MapScreen} />
       <Tab.Screen name="Messagerie" component={DashboardScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>
