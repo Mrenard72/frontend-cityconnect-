@@ -11,6 +11,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import MapScreen from '../screens/MapScreen';
 import MessageScreen from '../screens/MessageScreen';
 import MessageBoxScreen from '../screens/MessageBoxScreen';
 import ActivityScreen from '../screens/ActivityScreen';
