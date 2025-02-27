@@ -1,102 +1,126 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, Text, Image, TouchableOpacity, StyleSheet, 
   Alert, ImageBackground 
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker'; // 📌 Permet de choisir une image depuis la galerie
-import Header from '../components/Header'; // 📌 Composant d'en-tête (Header)
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Import de AsyncStorage
+import * as ImagePicker from 'expo-image-picker';
+import Header from '../components/Header';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 // 📌 Écran du profil utilisateur
 const ProfileScreen = ({ navigation }) => {
-  // ✅ État pour stocker l'image de profil choisie par l'utilisateur
-  const [ProfileImage, setProfileImage] = useState(null);
+  // ✅ États pour stocker les données utilisateur
+  const [profileImage, setProfileImage] = useState(null);
+  const [userName, setUserName] = useState(''); // 🔹 Stocke le nom de l'utilisateur
+
+  // 🚀 Fonction pour récupérer le profil utilisateur
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token'); // ✅ Récupère le token stocké
+        if (!token) {
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); // 🔄 Redirection si pas de token
+          return;
+        }
+
+        const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setUserName(data.username); // ✅ Met à jour le nom de l'utilisateur
+        } else {
+          console.log("Erreur récupération profil :", data.message);
+          await AsyncStorage.removeItem('token'); // ❌ Supprime le token si erreur
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération du profil :", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   // 🚀 Fonction pour gérer la déconnexion
-const handleLogout = async (navigation) => {
-  try {
-    await AsyncStorage.removeItem('token'); // ✅ Supprime le token de l'utilisateur
-    console.log("Token supprimé :", await AsyncStorage.getItem('token')); // 🔍 Vérifie que le token est bien supprimé
-
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Home' }], // 🚀 Redirection vers l'écran de connexion
-    });
-
-  } catch (error) {
-    console.error("Erreur lors de la déconnexion :", error);
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token'); // ✅ Supprime le token
+      console.log("Déconnexion réussie !");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion :", error);
+    }
+  };
 
   // 📷 Fonction pour ouvrir la galerie et choisir une photo
   const handleChoosePhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images, // 📌 Accepte uniquement les images
-      allowsEditing: true, // ✂️ Autorise le recadrage de l'image
-      aspect: [1, 1], // 📏 Format carré
-      quality: 1, // 🖼️ Qualité maximale
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, 
+      allowsEditing: true,
+      aspect: [1, 1], 
+      quality: 1, 
     });
 
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri); // ✅ Stocke l'image sélectionnée
+      setProfileImage(result.assets[0].uri);
     }
   };
 
   // 📸 Fonction pour afficher une alerte et changer la photo de profil
   const handleProfileImagePress = () => {
     Alert.alert(
-      'Changer de photo de profil', // 🖼️ Titre de l'alerte
-      '', // 📝 Aucun message supplémentaire
+      'Changer de photo de profil',
+      '',
       [
-        { text: 'Annuler', style: 'cancel' }, // ❌ Option d'annulation
-        { text: 'Changer', onPress: handleChoosePhoto }, // ✅ Ouvre la galerie d'images
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Changer', onPress: handleChoosePhoto },
       ]
     );
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/background.png')} // 🌆 Image de fond
-      style={styles.background}
-    >
-      <Header /> {/* 📌 Affiche le composant d'en-tête */}
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header />
       
       <View style={styles.container}>
         {/* 📸 Section de la photo de profil */}
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
-            {ProfileImage ? (
-              <Image source={{ uri: ProfileImage }} style={styles.profileImage} /> // ✅ Affiche l'image choisie
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
-              <Text style={styles.addPhotoText}>Changer de photo</Text> // 📌 Texte par défaut si aucune image
+              <Text style={styles.addPhotoText}>Changer de photo</Text>
             )}
           </TouchableOpacity>
         </View>
 
-        {/* 👤 Nom de l'utilisateur (à récupérer dynamiquement si possible) */}
-        <Text style={styles.userName}>Votre Nom</Text>
+        {/* ✅ Affichage dynamique du nom utilisateur */}
+        <Text style={styles.userName}>{userName ? userName : "Chargement..."}</Text>
 
-        {/* 📌 Bouton "Mes services" */}
+        {/* 📌 Boutons des différentes sections */}
         <TouchableOpacity style={styles.button} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes services</Text>
         </TouchableOpacity>
 
-        {/* 📌 Bouton "Mes sorties" */}
         <TouchableOpacity style={styles.button} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes sorties</Text>
         </TouchableOpacity>
 
-        {/* 📌 Bouton "Mes infos" */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Info')} // 🚀 Redirection vers l'écran Info
-          style={styles.button}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate('Info')} style={styles.button} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes infos</Text>
         </TouchableOpacity>
 
         {/* 🔴 Bouton de déconnexion */}
-        <TouchableOpacity style={styles.logoutButton} onPress={() => handleLogout(navigation)}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </TouchableOpacity>
       </View>
@@ -108,14 +132,14 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     width: '100%',
-    height: '100%', // S'assure que l'image couvre tout l'écran
+    height: '100%',
     resizeMode: 'cover',
   },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop:180,
+    paddingTop: 180,
   },
   imageContainer: {
     width: 150,
@@ -126,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     marginBottom: 20,
-    borderWidth: 4, // Épaisseur de la bordure
+    borderWidth: 4,
     borderColor: '#20135B',
   },
   touchable: {
@@ -145,9 +169,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   userName: {
-    fontSize: 18,
-    color: '#555',
-    marginTop: 10,
+    fontSize: 22, // 📌 Augmenté pour plus de lisibilité
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 15,
   },
   button: {
     backgroundColor: '#20135B',
@@ -165,18 +190,6 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     backgroundColor: '#E53935',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 30,
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontFamily: 'FredokaOne',
-  },
-  logoutButton: {
-    backgroundColor: '#E53935',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -184,6 +197,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     bottom: 20,
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontFamily: 'FredokaOne',
   },
 });
 
