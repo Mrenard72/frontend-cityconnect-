@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView 
+  View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert 
 } from 'react-native';
-import Header from '../components/Header'; // 📌 Composant d'en-tête (Header)
+import Header from '../components/Header';
+import * as Location from 'expo-location';
 
-// ✅ Liste des activités avec titre et image associée
 const activities = [
   { id: 1, title: 'Sport', image: require('../../assets/sport.jpg') },
   { id: 2, title: 'Culturel', image: require('../../assets/culturel.jpg') },
@@ -13,70 +13,90 @@ const activities = [
 ];
 
 const ActivityScreen = ({ navigation }) => {
+  const [userLocation, setUserLocation] = useState(null);
+
+  // Récupérer la localisation dès le montage de l'écran
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'La localisation est nécessaire pour cette fonctionnalité.');
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location.coords);
+    })();
+  }, []);
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
-      <Header /> {/* 📌 Ajoute le composant d'en-tête */}
-
-      {/* 🔹 Ajout d'un `View` avec `marginTop` pour éviter le chevauchement du Header */}
+      <Header />
+      {/* Pour éviter le chevauchement avec le Header */}
       <View style={{ marginTop: 60 }} />
-
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Activité</Text> {/* 📌 Titre principal */}
-
-        {/* 🔄 Génération dynamique des catégories */}
-        {activities.map((activity) => (
+        <Text style={styles.title}>Activité</Text>
+        {activities.map(activity => (
           <TouchableOpacity
-            key={activity.id} // 🔑 Clé unique pour chaque élément
-            style={styles.activityCard} // 🎨 Style de la carte
-            onPress={() => navigation.navigate('Map', { filter: 'activity', type: activity.title })} // 🚀 Navigation avec le type d'activité
+            key={activity.id}
+            style={styles.activityCard}
+            onPress={() =>
+              navigation.navigate('Carte', {
+                filter: 'activity', 
+                category: activity.title, 
+                userLocation,
+              })
+            }
           >
-            <ImageBackground source={activity.image} style={styles.image} imageStyle={{ borderRadius: 10 }}>
+            <ImageBackground 
+              source={activity.image} 
+              style={styles.image} 
+              imageStyle={{ borderRadius: 10 }}
+            >
               <View style={styles.overlay}>
-                {/* 📌 Entourer le titre dans un <Text> pour éviter l'erreur */}
                 <Text style={styles.activityText}>{activity.title}</Text>
               </View>
             </ImageBackground>
           </TouchableOpacity>
         ))}
+        
       </ScrollView>
     </ImageBackground>
   );
 };
 
-// ✅ Styles de l'interface utilisateur
 const styles = StyleSheet.create({
   background: {
-    flex: 1, // 🖼️ Prend toute la hauteur de l'écran
+    flex: 1,
     width: '100%',
     height: '100%',
   },
   container: {
-    flexGrow: 1, // 📌 Permet d'ajouter du scroll si besoin
-    alignItems: 'center', // 📌 Centre tous les éléments horizontalement
-    paddingTop: 20, // ✅ Ajoute un espace sous le Header
-    paddingBottom: 30, // 📏 Espacement en bas pour éviter que ça colle à la navigation
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 30,
     width: '100%',
   },
   title: {
-    fontSize: 28, // 📏 Taille du titre principal
-    fontFamily: 'FredokaOne', // 🖋️ Police personnalisée
-    color: '#2D2A6E', // 🎨 Bleu foncé
-    marginBottom: 20, // 📏 Espacement sous le titre
-    textAlign: 'center', // 📌 Centre le texte
+    fontSize: 28,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   activityCard: {
-    width: '90%', // 📏 Ajuste la largeur pour un affichage propre
-    height: 150, // 📏 Hauteur de chaque carte
-    borderRadius: 10, // 🔵 Coins arrondis
-    overflow: 'hidden', // 📌 Cache les débordements
-    marginBottom: 15, // 📏 Espacement entre les cartes
-    alignSelf: 'center', // ✅ Assure que chaque carte est centrée
+    width: '90%',
+    height: 150,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 15,
+    alignSelf: 'center',
   },
   image: {
     width: '100%', 
     height: '100%',
-    justifyContent: 'flex-end', 
-    alignItems: 'center', 
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   overlay: {
     width: '100%',
@@ -89,6 +109,18 @@ const styles = StyleSheet.create({
     fontFamily: 'FredokaOne',
     color: 'white',
     textAlign: 'center',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
   },
 });
 
