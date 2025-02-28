@@ -1,81 +1,96 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, TouchableOpacity, FlatList, StyleSheet 
+  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Header from '../components/Header';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MessageBoxScreen = () => {
   const navigation = useNavigation();
+  const [conversations, setConversations] = useState([]); // Stocke les conversations de l'utilisateur
+  const [loading, setLoading] = useState(true); // État pour afficher un indicateur de chargement
 
-  // Liste des conversations (données statiques pour l'exemple)
-  // a changer a la creation des routes 
-  const conversations = [
-    { 
-      id: '1', 
-      name: 'Sortie au Louvre', 
-      lastMessage: 'À bientôt !', 
-      time: '10:30',
-      exampleMessages: [
-        { id: '1', text: 'Bonjour, prêts pour la sortie ?', sender: 'other', senderName: 'Alice', time: '09:00' },
-        { id: '2', text: 'Oui, à quelle heure on se rejoint ?', sender: 'me', senderName: 'Moi', time: '09:10' },
-        { id: '3', text: 'Disons 14h devant l\'entrée principale.', sender: 'other', senderName: 'Alice', time: '09:15' },
-      ],
-    },
-    { 
-      id: '2', 
-      name: 'Bar le 13', 
-      lastMessage: 'D\'accord, merci.', 
-      time: '09:45',
-      exampleMessages: [
-        { id: '1', text: 'Salut, c\'est toujours bon pour ce soir ?', sender: 'other', senderName: 'Tom', time: '18:00' },
-        { id: '2', text: 'Oui, à quelle heure ?', sender: 'me', senderName: 'Moi', time: '18:05' },
-        { id: '3', text: '20h au Bar le 13.', sender: 'other', senderName: 'Tom', time: '18:10' },
-      ],
-    },
-  ];
+  // 📌 Récupérer les conversations depuis l’API au chargement du composant
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token'); // 🔑 Récupération du token utilisateur
+        if (!token) {
+          console.error("Token manquant !");
+          return;
+        }
 
-  // Fonction pour naviguer vers la conversation
+        // 🔗 Requête GET pour récupérer les conversations de l’utilisateur
+        const response = await fetch('https://backend-city-connect.vercel.app/conversations/my-conversations', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setConversations(data); // ✅ Met à jour la liste des conversations
+        } else {
+          console.error("Erreur API :", data.message);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des conversations :", error);
+      } finally {
+        setLoading(false); // ❌ Désactive l’indicateur de chargement
+      }
+    };
+
+    fetchConversations();
+  }, []);
+
+  // 📌 Fonction appelée lorsqu'un utilisateur clique sur une conversation
   const handleOpenConversation = (conversation) => {
     navigation.navigate('Messaging', { 
-      conversationId: conversation.id, 
-      conversationName: conversation.name, 
-      exampleMessages: conversation.exampleMessages,
+      conversationId: conversation._id, // 🔗 Passe l'ID de la conversation
+      conversationName: conversation.participants.map(p => p.username).join(', '), // 📌 Affiche les noms des participants
     });
   };
 
+  // 🎡 Affiche un indicateur de chargement si les données ne sont pas encore récupérées
+  if (loading) {
+    return <ActivityIndicator size="large" color="#20135B" style={{ marginTop: 20 }} />;
+  }
+
   return (
     <View style={styles.container}>
-      <Header />
       <FlatList
         data={conversations}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.conversationItem} 
             onPress={() => handleOpenConversation(item)}
           >
             <View style={styles.conversationContent}>
-              <Text style={styles.conversationName}>{item.name}</Text>
-              <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+              <Text style={styles.conversationName}>
+                {item.participants.map(p => p.username).join(', ')}
+              </Text>
+              <Text style={styles.lastMessage}>
+                {item.messages.length > 0 ? item.messages[item.messages.length - 1].content : "Aucun message"}
+              </Text>
             </View>
-            <Text style={styles.time}>{item.time}</Text>
+            <Text style={styles.time}>
+              {item.messages.length > 0 ? new Date(item.messages[item.messages.length - 1].timestamp).toLocaleTimeString() : ''}
+            </Text>
           </TouchableOpacity>
         )}
-        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
 };
 
+// 🎨 Styles pour la mise en page
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  listContainer: {
     padding: 10,
-    paddingTop: 140,
   },
   conversationItem: {
     flexDirection: 'row',
@@ -86,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     marginBottom: 10,
-    elevation: 2, // Pour une légère ombre
+    elevation: 2,
   },
   conversationContent: {
     flex: 1,
