@@ -6,6 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import Header from '../components/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 // 📌 Écran du profil utilisateur
 const ProfileScreen = ({ navigation }) => {
@@ -109,14 +110,17 @@ const ProfileScreen = ({ navigation }) => {
         {/* 📌 Boutons des différentes sections */}
         <TouchableOpacity style={styles.button} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes services</Text>
+          <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes sorties</Text>
+          <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Info')} style={styles.button} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes infos</Text>
+          <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
         {/* 🔴 Bouton de déconnexion */}
@@ -175,12 +179,15 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   button: {
+    flexDirection: "row", // Aligner le texte et l'icône en ligne
+    justifyContent: "center", // Pousse le texte à gauche et l'icône à droite
+    alignItems: "center", // Centre verticalement le texte et l'icône
     backgroundColor: '#20135B',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginVertical: 10,
-    width: '80%',
+    width: '70%',
     alignItems: 'center',
   },
   textButton: {
@@ -188,15 +195,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'FredokaOne',
   },
+  icon: {
+    marginLeft: 10,
+},
   logoutButton: {
     backgroundColor: '#E53935',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    width: '80%',
+    width: '50%',
     alignItems: 'center',
     position: 'absolute',
     bottom: 20,
+    opacity: 0.8,
   },
   logoutButtonText: {
     color: '#FFFFFF',

@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   messageText: {
     color: '#20135B',
     fontFamily: 'FredokaOne',
-    fontSize: '16'
+    fontSize: 16,
   },
   inputContainer: {
     flexDirection: 'row',

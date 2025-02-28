@@ -9,6 +9,7 @@ const MessageBoxScreen = () => {
   const navigation = useNavigation();
 
   // Liste des conversations (données statiques pour l'exemple)
+  // a changer a la creation des routes 
   const conversations = [
     { 
       id: '1', 
