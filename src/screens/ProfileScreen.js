@@ -13,6 +13,7 @@ const ProfileScreen = ({ navigation }) => {
   // ✅ États pour stocker les données utilisateur
   const [profileImage, setProfileImage] = useState(null);
   const [userName, setUserName] = useState(''); // 🔹 Stocke le nom de l'utilisateur
+  const [userToken, setUserToken] = useState(null);
 
   // 🚀 Fonction pour récupérer le profil utilisateur
   useEffect(() => {
@@ -89,6 +90,37 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
+// 🚀 Fonction pour uploader l'image sur Cloudinary via le backend
+const uploadImage = async (uri) => {
+  let formData = new FormData();
+  formData.append('profilePic', {
+    uri,
+    name: 'profile.jpg',
+    type: 'image/jpeg'
+  });
+
+  try {
+    const response = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${userToken}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      setProfileImage(data.profilePicture); // ✅ Mettre à jour la photo de profil affichée
+      Alert.alert('Succès', 'Photo mise à jour !');
+    } else {
+      Alert.alert('Erreur', data.message);
+    }
+  } catch (error) {
+    Alert.alert('Erreur', 'Impossible d\'uploader l\'image');
+  }
+};
+
+
   // 📸 Fonction pour afficher une alerte et changer la photo de profil
   const handleProfileImagePress = () => {
     Alert.alert(
@@ -112,7 +144,7 @@ const ProfileScreen = ({ navigation }) => {
             {profileImage ? (
               <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
-              <Text style={styles.addPhotoText}>Changer de photo</Text>
+              <Text style={styles.addPhotoText}>Add profil photo</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -162,7 +194,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 80,
-    backgroundColor: '#ddd',
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -184,6 +216,7 @@ const styles = StyleSheet.create({
   addPhotoText: {
     color: '#888',
     fontSize: 16,
+    justifyContent: 'center',
   },
   userName: {
     fontSize: 22, // 📌 Augmenté pour plus de lisibilité
