@@ -96,52 +96,55 @@ const handleChoosePhoto = async () => {
 const uploadImage = async (uri) => {
   const token = await AsyncStorage.getItem('token');
   if (!token) {
-    console.log("🔴 Aucun token disponible pour uploader l'image.");
-    console.log("🟢 Token utilisé pour l'upload :", token);
-
     Alert.alert("Erreur", "Vous devez être connecté pour mettre à jour votre photo.");
     return;
   }
 
-  let formData = new FormData();
-  formData.append('profilePic', {
-    uri,
-    name: 'profile.jpg',
-    type: 'image/jpeg',
-  });
+  console.log("📤 Début de l'upload sur Cloudinary");
 
   try {
-    console.log("📤 Envoi de l'image à Cloudinary :", uri);
+    let formData = new FormData();
+    formData.append('file', {
+      uri,
+      name: 'profile.jpg',
+      type: 'image/jpeg'
+    });
+    formData.append('upload_preset', 'default_preset'); // Assure-toi que l'upload preset existe
 
-    const response = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
+    // 🚀 Envoie l'image sur Cloudinary
+    const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/dasntwyhd/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const cloudinaryData = await cloudinaryResponse.json();
+    if (!cloudinaryData.secure_url) {
+      throw new Error("Cloudinary n'a pas renvoyé d'URL.");
+    }
+
+    console.log("✅ Upload Cloudinary réussi :", cloudinaryData.secure_url);
+
+    // 🚀 Maintenant, envoie l’URL au backend
+    const backendResponse = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: formData
+      body: JSON.stringify({ photoUrl: cloudinaryData.secure_url }),
     });
 
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      console.error("📄 Réponse brute du serveur :", text);
-      Alert.alert("Erreur", "Le serveur a renvoyé une réponse inattendue.");
-      return;
+    const backendData = await backendResponse.json();
+    if (!backendResponse.ok) {
+      throw new Error(backendData.message || "Erreur serveur");
     }
 
-    console.log("🔍 Réponse de l'upload :", data);
+    console.log("✅ Backend mis à jour avec succès :", backendData);
 
-    if (response.ok && data.photo) {
-      setProfileImage(data.photo);
-      await AsyncStorage.setItem('profileImage', data.photo);
-      Alert.alert('Succès', 'Photo mise à jour !');
-    } else {
-      Alert.alert('Erreur', data.message || 'Problème lors de la mise à jour de la photo.');
-    }
+    setProfileImage(backendData.photo);
+    await AsyncStorage.setItem('profileImage', backendData.photo);
+    Alert.alert('Succès', 'Photo mise à jour !');
+
   } catch (error) {
     console.error("❌ Erreur lors de l'upload :", error);
     Alert.alert('Erreur', 'Impossible d\'uploader l\'image');
