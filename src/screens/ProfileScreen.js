@@ -35,7 +35,7 @@ const ProfileScreen = ({ navigation }) => {
 
         const data = await response.json();
         if (response.ok) {
-          setUserName(data.username); // ✅ Met à jour le nom de l'utilisateur
+          setUserName(data.username); // ✅ Met à jour le nom de l'utilisateur !
           setProfileImage(data.photo); // ✅ Ajout de la mise à jour de l'image
         } else {
           console.log("Erreur récupération profil :", data.message);
