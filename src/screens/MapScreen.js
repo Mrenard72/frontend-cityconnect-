@@ -6,9 +6,20 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Ajustez l'URL de votre backend
+// URL de votre backend
 const BASE_URL = 'https://backend-city-connect.vercel.app';
+
+// Fonction pour convertir une chaîne "latitude, longitude" en objet { latitude, longitude }
+const parseLocation = (locationStr) => {
+  const parts = locationStr.split(',');
+  if (parts.length !== 2) return null;
+  return {
+    latitude: parseFloat(parts[0].trim()),
+    longitude: parseFloat(parts[1].trim()),
+  };
+};
 
 export default function MapScreen({ route }) {
   const { 
@@ -16,7 +27,6 @@ export default function MapScreen({ route }) {
     userLocation, // pour aroundMe, activity, createActivity
     locality,     // pour byLocality { name, latitude, longitude }
     category,     // pour activity
-    // Ou lat/ lon / region si vous les transmettez en plus
   } = route.params || {};
 
   // Région par défaut (Paris)
@@ -30,50 +40,107 @@ export default function MapScreen({ route }) {
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
 
-  // -- ACTIVITY MODE --
+  // -- ACTIVITÉS --
   const [activities, setActivities] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(
     filter === 'activity' ? category : null
   );
 
-  // -- BY LOCALITY MODE --
-  // On affiche un champ de saisie pour taper d'autres coordonnées
+  // -- BY LOCALITY --
   const [showInput, setShowInput] = useState(false);
   const [latitudeInput, setLatitudeInput] = useState('');
   const [longitudeInput, setLongitudeInput] = useState('');
 
-  // -- CREATE ACTIVITY MODE --
+  // -- CREATE ACTIVITY --
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [newActivityTitle, setNewActivityTitle] = useState('');
   const [newActivityDescription, setNewActivityDescription] = useState('');
-  const [activitiesCreated, setActivitiesCreated] = useState([]); 
-  // vous pouvez les mélanger dans 'activities' si vous voulez tout afficher ensemble
+  const [newActivityDate, setNewActivityDate] = useState('');
+  const [newActivityCategory, setNewActivityCategory] = useState('');
+  const [newActivityMaxParticipants, setNewActivityMaxParticipants] = useState('');
+  const [activitiesCreated, setActivitiesCreated] = useState([]);
 
-  /** 
-   * On utilise useFocusEffect pour exécuter la logique
-   * chaque fois que l'écran redevient actif,
-   * selon la valeur de "filter".
-   */
+  // Fonction pour récupérer le token depuis AsyncStorage
+  const getToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      return token;
+    } catch (error) {
+      console.error("Erreur lors de la récupération du token", error);
+      return null;
+    }
+  };
+
+  // Fonction pour réserver une activité (join)
+  const handleJoinEvent = async (eventId) => {
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Veuillez vous reconnecter.");
+      return;
+    }
+    try {
+      const response = await fetch(`${BASE_URL}/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
+      } else {
+        Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
+      }
+    } catch (error) {
+      console.log("Erreur lors de la réservation :", error);
+      Alert.alert("Erreur", "Impossible de réserver l'activité.");
+    }
+  };
+
+  // --------------------------
+  // FETCH DES ACTIVITÉS (optionnel : sans filtre ou par catégorie)
+  // --------------------------
+  const fetchActivities = async (cat) => {
+    try {
+      setLoading(true);
+      let url = `${BASE_URL}/events`;
+      if (cat) {
+        url += `?category=${cat}`;
+      }
+      const response = await fetch(url);
+      const data = await response.json();
+      setActivities(data);
+      setLoading(false);
+    } catch (error) {
+      console.log("Erreur lors du chargement des activités :", error);
+      setLoading(false);
+    }
+  };
+
+  // --------------------------
+  // LOGIQUE SELON LE MODE (filter)
+  // --------------------------
   useFocusEffect(
     useCallback(() => {
       if (filter === 'aroundMe') {
-        // Récupérer la position de l'utilisateur
         getUserLocation();
         setShowInput(false);
-      }
-      else if (filter === 'byLocality') {
-        // Afficher les inputs, et centrer la carte selon route.params
+        fetchActivities(); // récupère toutes les activités
+      } else if (filter === 'byLocality') {
         handleByLocality();
         setShowInput(true);
-      }
-      else if (filter === 'activity') {
-        // Centrer sur userLocation si dispo, sinon getUserLocation
+        fetchActivities(); // récupère toutes les activités
+      } else if (filter === 'activity') {
         handleActivityMode();
         setShowInput(false);
-      }
-      else if (filter === 'createActivity') {
-        // On se centre sur userLocation ou getUserLocation
+        if (selectedCategory) {
+          fetchActivities(selectedCategory);
+        } else {
+          fetchActivities();
+        }
+      } else if (filter === 'createActivity') {
         handleCreateActivityMode();
         setShowInput(false);
       }
@@ -83,8 +150,6 @@ export default function MapScreen({ route }) {
   // --------------------------
   // FONCTIONS PAR MODE
   // --------------------------
-
-  /** aroundMe / fallback */
   const getUserLocation = async () => {
     setLoading(true);
     try {
@@ -108,42 +173,32 @@ export default function MapScreen({ route }) {
     setLoading(false);
   };
 
-  /** byLocality */
   const handleByLocality = () => {
     if (locality && locality.latitude && locality.longitude) {
-      // On se centre sur la localité
       setRegion({
         latitude: locality.latitude,
         longitude: locality.longitude,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
       });
-    }
-    else if (route.params?.region) {
-      // S'il y a un paramètre region
+    } else if (route.params?.region) {
       setRegion(route.params.region);
-    }
-    else if (route.params?.latitude && route.params?.longitude) {
-      // S'il y a lat / lon
+    } else if (route.params?.latitude && route.params?.longitude) {
       setRegion({
         latitude: route.params.latitude,
         longitude: route.params.longitude,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
       });
-    }
-    else {
-      // Sinon on reset à Paris
+    } else {
       setRegion(defaultRegion);
       setLatitudeInput('');
       setLongitudeInput('');
     }
   };
 
-  /** activity */
   const handleActivityMode = async () => {
     if (userLocation) {
-      // On se centre sur la localisation transmise
       setRegion({
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
@@ -151,16 +206,10 @@ export default function MapScreen({ route }) {
         longitudeDelta: 0.01,
       });
     } else {
-      // Sinon, fallback
       await getUserLocation();
-    }
-    // Charger la catégorie initiale si existante
-    if (selectedCategory) {
-      fetchActivities(selectedCategory);
     }
   };
 
-  /** createActivity */
   const handleCreateActivityMode = async () => {
     if (userLocation) {
       setRegion({
@@ -171,22 +220,6 @@ export default function MapScreen({ route }) {
       });
     } else {
       await getUserLocation();
-    }
-  };
-
-  // --------------------------
-  // GESTION DES ACTIVITES
-  // --------------------------
-  const fetchActivities = async (cat) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${BASE_URL}/activities?category=${cat}`);
-      const data = await response.json();
-      setActivities(data);
-      setLoading(false);
-    } catch (error) {
-      console.log("Erreur lors du chargement des activités :", error);
-      setLoading(false);
     }
   };
 
@@ -209,7 +242,7 @@ export default function MapScreen({ route }) {
   };
 
   // --------------------------
-  // CREATE ACTIVITY
+  // GESTION DE LA CRÉATION D'ACTIVITÉ
   // --------------------------
   const handleMapPress = (event) => {
     if (filter === 'createActivity') {
@@ -220,21 +253,52 @@ export default function MapScreen({ route }) {
   };
 
   const handleCreateActivity = async () => {
-    if (!newActivityCoords || !newActivityTitle.trim()) {
-      Alert.alert("Champs manquants", "Veuillez saisir un titre et cliquer sur la carte.");
+    // Vérification de tous les champs requis
+    if (
+      !newActivityCoords ||
+      !newActivityTitle.trim() ||
+      !newActivityDescription.trim() ||
+      !newActivityDate.trim() ||
+      !newActivityCategory.trim() ||
+      !newActivityMaxParticipants.trim()
+    ) {
+      Alert.alert("Champs manquants", "Veuillez remplir tous les champs et cliquer sur la carte pour définir la localisation.");
       return;
     }
+    
+    // Récupération du token depuis AsyncStorage
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Aucun token trouvé. Veuillez vous reconnecter.");
+      return;
+    }
+    
+    // Conversion de la date saisie en format ISO
+    const isoDate = new Date(newActivityDate).toISOString();
+    
+    console.log("newActivityCoords:", newActivityCoords);
+    
+    // Construction du payload attendu par le backend
+    const payload = {
+      title: newActivityTitle,
+      description: newActivityDescription,
+      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
+      date: isoDate,
+      category: newActivityCategory,
+      maxParticipants: parseInt(newActivityMaxParticipants, 10),
+      photos: [] // Tableau vide par défaut
+    };
+
+    console.log("Payload envoyé:", payload);
+
     try {
-      const resp = await fetch(`${BASE_URL}/activities`, {
+      const resp = await fetch(`${BASE_URL}/events`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newActivityTitle,
-          description: newActivityDescription,
-          latitude: newActivityCoords.latitude,
-          longitude: newActivityCoords.longitude,
-          // Ajoutez un "creator" si besoin (ex: userId)
-        }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!resp.ok) {
@@ -243,15 +307,15 @@ export default function MapScreen({ route }) {
         return;
       }
       const created = await resp.json();
-      // On l'ajoute à la liste
-      setActivitiesCreated([...activitiesCreated, created]);
-      // Optionnel : vous pouvez aussi l'ajouter à 'activities' si vous voulez la voir en même temps
-      // setActivities([...activities, created]);
-
+      // Ajout de l'événement créé à la liste
+      setActivitiesCreated([...activitiesCreated, created.event]);
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
       setNewActivityTitle('');
       setNewActivityDescription('');
+      setNewActivityDate('');
+      setNewActivityCategory('');
+      setNewActivityMaxParticipants('');
       Alert.alert("Activité créée", "Votre activité a bien été créée !");
     } catch (err) {
       console.log("Erreur création activité:", err);
@@ -266,13 +330,9 @@ export default function MapScreen({ route }) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={styles.loader} />;
   }
 
-  // On combine "activities" et "activitiesCreated" pour l'affichage des marqueurs,
-  // si vous le souhaitez.
-  const allMarkers = [...activities, ...activitiesCreated];
-
   return (
     <View style={styles.container}>
-      {/* Champs de saisie si mode byLocality */}
+      {/* Saisie manuelle (byLocality) */}
       {showInput && (
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
@@ -301,40 +361,54 @@ export default function MapScreen({ route }) {
       <MapView
         style={styles.map}
         region={region}
-        onPress={handleMapPress} // Si mode createActivity => ouvre la modale
+        onPress={handleMapPress} 
       >
-        {/* Marqueurs pour "activity" ou d'autres modes si on veut afficher tout */}
-        {filter === 'activity' && activities.map((act) => (
-          <Marker
-            key={act._id}
-            coordinate={{ latitude: act.latitude, longitude: act.longitude }}
-            title={act.title}
-            description={act.description}
-          />
-        ))}
+        {/* Marqueurs pour les modes d'exploration */}
+        {(filter === 'activity' || filter === 'aroundMe' || filter === 'byLocality') && activities.map((act) => {
+          const coords = parseLocation(act.location);
+          if (!coords) return null;
+          return (
+            <Marker
+              key={act._id}
+              coordinate={coords}
+              title={act.title}
+              description={act.description}
+              onCalloutPress={() => {
+                Alert.alert(
+                  "Réserver l'activité",
+                  "Voulez-vous vous inscrire à cette activité ?",
+                  [
+                    { text: "Annuler", style: "cancel" },
+                    { text: "Réserver", onPress: () => handleJoinEvent(act._id) }
+                  ]
+                );
+              }}
+            />
+          );
+        })}
 
-        {/* Marqueurs des activités créées en mode "createActivity" */}
-        {filter === 'createActivity' && activitiesCreated.map((act) => (
-          <Marker
-            key={act._id}
-            coordinate={{ latitude: act.latitude, longitude: act.longitude }}
-            title={act.title}
-            description={act.description}
-          />
-        ))}
+        {/* Marqueurs pour les activités créées (mode createActivity) */}
+        {filter === 'createActivity' && activitiesCreated.map((act) => {
+          const coords = parseLocation(act.location);
+          if (!coords) return null;
+          return (
+            <Marker
+              key={act._id}
+              coordinate={coords}
+              title={act.title}
+              description={act.description}
+            />
+          );
+        })}
 
-        {/* Marqueur principal : position "courante" ou localité */}
+        {/* Marqueur principal : position actuelle ou localité */}
         <Marker
           coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-          title={
-            filter === 'byLocality' && locality
-              ? locality.name
-              : 'Position actuelle'
-          }
+          title={filter === 'byLocality' && locality ? locality.name : 'Position actuelle'}
         />
       </MapView>
 
-      {/* Barre de catégories si mode "activity" */}
+      {/* Barre de catégories en mode "activity" */}
       {filter === 'activity' && (
         <View style={styles.categoryBar}>
           {['Sport', 'Culturel', 'Sorties', 'Culinaire'].map((cat) => (
@@ -355,7 +429,7 @@ export default function MapScreen({ route }) {
         </View>
       )}
 
-      {/* Modale pour création d'activité si mode "createActivity" */}
+      {/* Modale de création d'activité en mode "createActivity" */}
       <Modal
         transparent={true}
         visible={isCreateModalVisible}
@@ -377,7 +451,25 @@ export default function MapScreen({ route }) {
               value={newActivityDescription}
               onChangeText={setNewActivityDescription}
             />
-
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Date (YYYY-MM-DD)"
+              value={newActivityDate}
+              onChangeText={setNewActivityDate}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Catégorie"
+              value={newActivityCategory}
+              onChangeText={setNewActivityCategory}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Max. Participants"
+              value={newActivityMaxParticipants}
+              onChangeText={setNewActivityMaxParticipants}
+              keyboardType="numeric"
+            />
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]}
@@ -386,11 +478,13 @@ export default function MapScreen({ route }) {
                   setNewActivityCoords(null);
                   setNewActivityTitle('');
                   setNewActivityDescription('');
+                  setNewActivityDate('');
+                  setNewActivityCategory('');
+                  setNewActivityMaxParticipants('');
                 }}
               >
                 <Text style={styles.buttonText}>Annuler</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#2D2A6E' }]}
                 onPress={handleCreateActivity}
@@ -410,7 +504,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  // Saisie byLocality
+  // Saisie manuelle (byLocality)
   inputContainer: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 80 : 60,
@@ -447,7 +541,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     textAlign: 'center',
   },
-  // Barre des catégories
+  // Barre de catégories
   categoryBar: {
     position: 'absolute',
     bottom: 20,
@@ -470,7 +564,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  // Modal création
+  // Styles de la modale de création
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
