@@ -111,7 +111,7 @@ const uploadImage = async (uri) => {
 
     const data = await response.json();
     if (response.ok) {
-      setProfileImage(data.profilePicture); // ✅ Mettre à jour la photo de profil affichée
+      setProfileImage(data.photo); // ✅ Mettre à jour la photo de profil affichée
       Alert.alert('Succès', 'Photo mise à jour !');
     } else {
       Alert.alert('Erreur', data.message);
