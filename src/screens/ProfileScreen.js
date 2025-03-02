@@ -4,6 +4,7 @@ import {
   Alert, ImageBackground 
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import Header from '../components/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 
@@ -11,21 +12,18 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 const ProfileScreen = ({ navigation }) => {
   // ✅ États pour stocker les données utilisateur
   const [profileImage, setProfileImage] = useState(null);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(''); // 🔹 Stocke le nom de l'utilisateur
   const [userToken, setUserToken] = useState(null);
 
   // 🚀 Fonction pour récupérer le profil utilisateur
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = await AsyncStorage.getItem('token'); // ✅ Récupération du token
+        const token = await AsyncStorage.getItem('token'); // ✅ Récupère le token stocké
         if (!token) {
-          console.log("🔴 Aucun token trouvé, redirection vers la connexion.");
-          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); // 🔄 Redirection si pas de token
           return;
         }
-
-        setUserToken(token); // ✅ Stocker le token pour l’upload d’image
 
         const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
           method: 'GET',
@@ -36,18 +34,16 @@ const ProfileScreen = ({ navigation }) => {
         });
 
         const data = await response.json();
-        console.log("🔍 Profil reçu :", data); // ✅ Vérification du profil
-
         if (response.ok) {
-          setUserName(data.username);
-          setProfileImage(data.photo); // ✅ Mettre à jour l’image de profil
+          setUserName(data.username); // ✅ Met à jour le nom de l'utilisateur
+          setProfileImage(data.photo); // ✅ Ajout de la mise à jour de l'image
         } else {
-          console.log("❌ Erreur récupération profil :", data.message);
-          await AsyncStorage.removeItem('token');
+          console.log("Erreur récupération profil :", data.message);
+          await AsyncStorage.removeItem('token'); // ❌ Supprime le token si erreur
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         }
       } catch (error) {
-        console.error("❌ Erreur lors de la récupération du profil :", error);
+        console.error("Erreur lors de la récupération du profil :", error);
       }
     };
 
@@ -57,70 +53,111 @@ const ProfileScreen = ({ navigation }) => {
   // 🚀 Fonction pour gérer la déconnexion
   const handleLogout = async () => {
     try {
-      console.log("🚪 Déconnexion en cours...");
+      console.log("Tentative de déconnexion...");
+      
       await AsyncStorage.removeItem('token'); // ✅ Suppression du token
-
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!token) {
+        console.log("✅ Déconnexion réussie, token supprimé !");
+      } else {
+        console.log("❌ Token toujours présent :", token);
+      }
+  
+      // 🔄 Redirection forcée vers la page de connexion
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+  
     } catch (error) {
       console.error("❌ Erreur lors de la déconnexion :", error);
       Alert.alert("Erreur", "Impossible de se déconnecter.");
     }
   };
+  
 
-  // 📷 Fonction pour ouvrir la galerie et choisir une photo
-  const handleChoosePhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
+  // 📷 Fonction pour ouvrir la galerie et choisir une photo, puis l’uploader
+const handleChoosePhoto = async () => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    const selectedImageUri = result.assets[0].uri;
+    setProfileImage(selectedImageUri); // ✅ Mise à jour immédiate de l’affichage
+    await uploadImage(selectedImageUri); // ✅ Envoi de l’image après sélection
+  }
+};
+
+const uploadImage = async (uri) => {
+  const token = await AsyncStorage.getItem('token');
+  if (!token) {
+    console.log("🔴 Aucun token disponible pour uploader l'image.");
+    console.log("🟢 Token utilisé pour l'upload :", token);
+
+    Alert.alert("Erreur", "Vous devez être connecté pour mettre à jour votre photo.");
+    return;
+  }
+
+  let formData = new FormData();
+  formData.append('profilePic', {
+    uri,
+    name: 'profile.jpg',
+    type: 'image/jpeg',
+  });
+
+  try {
+    console.log("📤 Envoi de l'image à Cloudinary :", uri);
+
+    const response = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData
     });
 
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri); // ✅ Mise à jour immédiate pour effet visuel
-      uploadImage(result.assets[0].uri);
-    }
-  };
+    const contentType = response.headers.get("content-type");
+    let data;
 
-  // 🚀 Fonction pour uploader l'image sur Cloudinary via le backend
-  const uploadImage = async (uri) => {
-    if (!userToken) {
-      console.log("🔴 Aucun token disponible pour uploader l'image.");
-      Alert.alert("Erreur", "Vous devez être connecté pour mettre à jour votre photo.");
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      console.error("📄 Réponse brute du serveur :", text);
+      Alert.alert("Erreur", "Le serveur a renvoyé une réponse inattendue.");
       return;
     }
 
-    let formData = new FormData();
-    formData.append('profilePic', {
-      uri,
-      name: 'profile.jpg',
-      type: 'image/jpeg',
-    });
+    console.log("🔍 Réponse de l'upload :", data);
 
-    try {
-      console.log("📤 Envoi de l'image :", uri); // ✅ Vérification
-      const response = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${userToken}`
-        },
-        body: formData
-      });
-
-      const data = await response.json();
-      console.log("🔍 Réponse de l'upload :", data);
-
-      if (response.ok) {
-        setProfileImage(data.photo); // ✅ Mise à jour de la photo affichée
-        Alert.alert('Succès', 'Photo mise à jour !');
-      } else {
-        console.log("❌ Erreur lors de l'upload :", data.message);
-        Alert.alert('Erreur', data.message);
-      }
-    } catch (error) {
-      console.error("❌ Erreur lors de l'upload :", error);
-      Alert.alert('Erreur', 'Impossible d\'uploader l\'image');
+    if (response.ok && data.photo) {
+      setProfileImage(data.photo);
+      await AsyncStorage.setItem('profileImage', data.photo);
+      Alert.alert('Succès', 'Photo mise à jour !');
+    } else {
+      Alert.alert('Erreur', data.message || 'Problème lors de la mise à jour de la photo.');
     }
+  } catch (error) {
+    console.error("❌ Erreur lors de l'upload :", error);
+    Alert.alert('Erreur', 'Impossible d\'uploader l\'image');
+  }
+};
+
+  // 📸 Fonction pour afficher une alerte et changer la photo de profil
+  const handleProfileImagePress = () => {
+    Alert.alert(
+      'Changer de photo de profil',
+      '',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Changer', onPress: handleChoosePhoto },
+      ]
+    );
   };
 
   return (
@@ -130,17 +167,33 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.container}>
         {/* 📸 Section de la photo de profil */}
         <View style={styles.imageContainer}>
-          <TouchableOpacity onPress={handleChoosePhoto} style={styles.touchable}>
+          <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
             {profileImage ? (
               <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
-              <Text style={styles.addPhotoText}>Ajouter une photo</Text>
+              <Text style={styles.addPhotoText}>Add profil photo</Text>
             )}
           </TouchableOpacity>
         </View>
 
         {/* ✅ Affichage dynamique du nom utilisateur */}
         <Text style={styles.userName}>{userName ? userName : "Chargement..."}</Text>
+
+        {/* 📌 Boutons des différentes sections */}
+        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+          <Text style={styles.textButton}>Mes services</Text>
+          <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+          <Text style={styles.textButton}>Mes sorties</Text>
+          <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Info')} style={styles.button} activeOpacity={0.8}>
+          <Text style={styles.textButton}>Mes infos</Text>
+          <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
 
         {/* 🔴 Bouton de déconnexion */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -150,8 +203,6 @@ const ProfileScreen = ({ navigation }) => {
     </ImageBackground>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   background: {
