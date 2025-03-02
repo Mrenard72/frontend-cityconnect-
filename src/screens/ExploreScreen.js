@@ -33,7 +33,7 @@ const ExploreScreen = ({ navigation }) => {
     }
   };
 
-  // 🔎 Ouvrir la modale pour saisir une ville dès l'appui sur "Par localisation"
+  // 🔎 Ouvrir la modale pour saisir une ville dès l'appui sur "Par localisation" !
   const handleCitySearch = () => {
     setShowModal(true);
   };
