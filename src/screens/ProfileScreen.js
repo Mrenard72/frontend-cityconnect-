@@ -169,7 +169,9 @@ formData.append('file', {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <Header />
-      
+      <View>
+        <Text style={styles.title}>Mes infos</Text>
+      </View>
       <View style={styles.container}>
         {/* 📸 Section de la photo de profil */}
         <View style={styles.imageContainer}>
@@ -197,7 +199,7 @@ formData.append('file', {
         </TouchableOpacity>
 
           {/* 📌 Bouton section "Mes infos" */}
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('InfosScreen')} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('InfosScreen')} >
           <Text style={styles.textButton}>Mes infos</Text>
           <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
