@@ -9,7 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-// URL du backend
+// URL du backend en const
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
 
@@ -25,9 +25,7 @@ const parseLocation = (locationStr) => {
   };
 };
 
-export default function MapScreen({ route }) {
-
-  
+export default function MapScreen({ route, navigation }) {
   const { 
     filter,
     userLocation, // pour aroundMe, activity, createActivity
@@ -47,7 +45,7 @@ export default function MapScreen({ route }) {
   const [loading, setLoading] = useState(false);
  
 
-  // -- ACTIVITÉS --
+  // -- ACTIVITÉS -- !
   const [activities, setActivities] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(
     filter === 'activity' ? category : null
@@ -91,40 +89,42 @@ const [categories, setCategories] = useState([
 
   // Fonction pour réserver une activité (join)
   const handleJoinEvent = async (eventId) => {
-    const token = await getToken();
+    const token = await AsyncStorage.getItem('token');
     if (!token) {
-        Alert.alert("Erreur", "Veuillez vous reconnecter.");
-        return;
+      Alert.alert("Erreur", "Veuillez vous reconnecter.");
+      return;
     }
     try {
-        const response = await fetch(`${BASE_URL}/events/${eventId}/join`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
-        } else {
-            Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
-            
-            // 🔹 Rediriger l'utilisateur vers la conversation
-            if (data.conversation) {
-                navigation.navigate('Messaging', { 
-                    conversationId: data.conversation._id, 
-                    conversationName: data.event.title 
-                });
-            }
+      const response = await fetch(`${BASE_URL}/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
+      } else {
+        // Après inscription, naviguer vers l'écran de messagerie en passant l'ID de la conversation
+        if (data.conversation) {
+          navigation.navigate('Messagerie', {
+            screen: 'Messaging',
+            params: { 
+              conversationId: data.conversation._id,
+              conversationName: data.conversation.eventId?.title || "Conversation"
+            }
+          });
+        } else {
+          Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
+        }
+      }
     } catch (error) {
-        console.log("Erreur lors de la réservation :", error);
-        Alert.alert("Erreur", "Impossible de réserver l'activité.");
+      console.log("Erreur lors de l'inscription :", error);
+      Alert.alert("Erreur", "Impossible de réserver l'activité.");
     }
   };
-
-
+  
   // --------------------------
   // FETCH DES ACTIVITÉS (optionnel : sans filtre ou par catégorie)
   // --------------------------

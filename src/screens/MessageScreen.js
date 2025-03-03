@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform 
+  SafeAreaView,
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  FlatList, 
+  StyleSheet, 
+  KeyboardAvoidingView, 
+  Platform 
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,27 +17,24 @@ const MessageScreen = () => {
   const route = useRoute();
   const { conversationId, conversationName } = route.params;
 
-  const [messages, setMessages] = useState([]); // Stocke les messages de la conversation
-  const [newMessage, setNewMessage] = useState(''); // Stocke le message en cours de saisie
-  
-  // 📌 Charger les messages au démarrage
+  const [messages, setMessages] = useState([]); // Messages de la conversation
+  const [newMessage, setNewMessage] = useState(''); // Message en cours
+
+  // Charger les messages au démarrage
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         if (!token) return;
-        
-        // 🔗 Requête GET pour récupérer les messages de la conversation
         const response = await fetch(`https://backend-city-connect.vercel.app/conversations/${conversationId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
-
         const data = await response.json();
         if (response.ok) {
-          setMessages(data.messages); // ✅ Mise à jour des messages
+          setMessages(data.messages);
         } else {
           console.error("Erreur API :", data.message);
         }
@@ -39,17 +44,17 @@ const MessageScreen = () => {
     };
 
     fetchMessages();
-  }, []);
+  }, [conversationId]);
 
-  // 📌 Fonction pour envoyer un message
+  // Fonction pour envoyer un message
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
-
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-
-      // 🔗 Requête POST pour envoyer un message
+      if (!token) {
+        alert("Vous devez être connecté pour envoyer un message.");
+        return;
+      }
       const response = await fetch(`https://backend-city-connect.vercel.app/conversations/${conversationId}/message`, {
         method: 'POST',
         headers: {
@@ -58,11 +63,10 @@ const MessageScreen = () => {
         },
         body: JSON.stringify({ content: newMessage }),
       });
-
       const data = await response.json();
       if (response.ok) {
-        setMessages(prev => [...prev, data]); // ✅ Ajoute le message à la liste
-        setNewMessage(''); // Réinitialise l’input
+        setMessages(prev => [...prev, data]); // Ajouter le nouveau message
+        setNewMessage('');
       } else {
         console.error("Erreur envoi message :", data.message);
       }
@@ -72,52 +76,54 @@ const MessageScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <Text style={styles.title}>{conversationName}</Text>
-
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={[styles.messageBubble, item.sender === 'me' ? styles.myMessage : styles.otherMessage]}>
-            <Text style={styles.messageText}>{item.content}</Text>
-          </View>
-        )}
-      />
-
-      <View style={styles.inputContainer}>
-        <TextInput style={styles.textInput} placeholder="Écrire un message..." value={newMessage} onChangeText={setNewMessage} />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Text style={styles.sendButtonText}>Envoyer</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <Text style={styles.title}>{conversationName}</Text>
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item._id.toString()}
+          renderItem={({ item }) => (
+            <View style={[styles.messageBubble, item.sender === 'me' ? styles.myMessage : styles.otherMessage]}>
+              <Text style={styles.messageText}>{item.content}</Text>
+            </View>
+          )}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+        <View style={styles.inputContainer}>
+          <TextInput 
+            style={styles.textInput} 
+            placeholder="Écrire un message..." 
+            value={newMessage} 
+            onChangeText={setNewMessage} 
+          />
+          <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+            <Text style={styles.sendButtonText}>Envoyer</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
-
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  messagesContainer: {
+  container: {
+    flex: 1,
     padding: 10,
-    paddingTop: 140,
+    backgroundColor: '#f5f5f5',
   },
-  backButton: {
-    position: 'absolute',
-    top: 70,
-    left: 20,
-    zIndex: 21,
-    padding: 5,
-    
-  },
-  senderName: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 2,
-    marginLeft: 5,
+  title: {
+    fontSize: 20,
+    fontFamily: 'FredokaOne',
+    textAlign: 'center',
+    marginVertical: 10,
   },
   messageBubble: {
     maxWidth: '80%',
@@ -170,14 +176,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'FredokaOne',
   },
-  timeText: {
-    fontSize: 10,
-    color: '#888',
-    alignSelf: 'flex-end',
-    marginTop: 5,
-  },
-  
-  
 });
 
 export default MessageScreen;
