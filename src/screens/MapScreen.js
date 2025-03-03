@@ -8,50 +8,40 @@ import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// URL du backend en const
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
-// Fonction pour convertir une chaîne "latitude, longitude" en objet { latitude, longitude }
-const parseLocation = (locationStr) => {
+function parseLocation(locationStr) {
   const parts = locationStr.split(',');
   if (parts.length !== 2) return null;
   return {
-    latitude: parseFloat(parts[0].trim()),
-    longitude: parseFloat(parts[1].trim()),
+    latitude: parseFloat(parts[0]),
+    longitude: parseFloat(parts[1]),
   };
-};
+}
 
 export default function MapScreen({ route, navigation }) {
-  const { 
-    filter,
-    userLocation, // pour aroundMe, activity, createActivity
-    locality,     // pour byLocality { name, latitude, longitude }
-    category,     // pour activity
-  } = route.params || {};
+  const { filter, userLocation, category, locality } = route.params || {};
 
   // Région par défaut (Paris)
   const defaultRegion = {
-    latitude: 48.8566,
-    longitude: 2.3522,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitude: 48.8566, longitude: 2.3522,
+    latitudeDelta: 0.01, longitudeDelta: 0.01,
   };
-
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
 
-  // -- ACTIVITÉS -- !
   const [activities, setActivities] = useState([]);
+  const [activitiesCreated, setActivitiesCreated] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(
     filter === 'activity' ? category : null
   );
 
-  // -- BY LOCALITY --
+  // --- Champs pour "byLocality"
   const [showInput, setShowInput] = useState(false);
   const [latitudeInput, setLatitudeInput] = useState('');
   const [longitudeInput, setLongitudeInput] = useState('');
 
-  // -- CREATE ACTIVITY --
+  // --- Modale de création
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [newActivityTitle, setNewActivityTitle] = useState('');
@@ -59,156 +49,135 @@ export default function MapScreen({ route, navigation }) {
   const [newActivityDate, setNewActivityDate] = useState('');
   const [newActivityCategory, setNewActivityCategory] = useState('');
   const [newActivityMaxParticipants, setNewActivityMaxParticipants] = useState('');
-  const [activitiesCreated, setActivitiesCreated] = useState([]);
 
-  // Fonction pour récupérer le token depuis AsyncStorage
-  const getToken = async () => {
+  // 1. Récupère le token
+  async function getToken() {
     try {
-      const token = await AsyncStorage.getItem('token');
-      return token;
-    } catch (error) {
-      console.error("Erreur lors de la récupération du token", error);
+      return await AsyncStorage.getItem('token');
+    } catch {
       return null;
     }
-  };
+  }
 
-  // Fonction pour réserver une activité (join)
-  const handleJoinEvent = async (eventId) => {
-    const token = await AsyncStorage.getItem('token');
+  // 2. Rejoindre un event
+  async function handleJoinEvent(eventId) {
+    const token = await getToken();
     if (!token) {
-      Alert.alert("Erreur", "Veuillez vous reconnecter.");
+      Alert.alert("Erreur", "Token manquant, reconnectez-vous.");
       return;
     }
     try {
-      const response = await fetch(`${BASE_URL}/events/${eventId}/join`, {
+      const res = await fetch(`${BASE_URL}/events/${eventId}/join`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (!response.ok) {
-        Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
-      } else {
-        // Après inscription, naviguer vers l'écran de messagerie en passant l'ID de la conversation
-        if (data.conversation) {
-          navigation.navigate('Messagerie', {
-            screen: 'Messaging',
-            params: { 
-              conversationId: data.conversation._id,
-              conversationName: data.conversation.eventId?.title || "Conversation"
-            }
-          });
-        } else {
-          Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
-        }
+      const data = await res.json();
+      if (!res.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de réserver");
+        return;
       }
-    } catch (error) {
-      console.log("Erreur lors de l'inscription :", error);
-      Alert.alert("Erreur", "Impossible de réserver l'activité.");
+      // On a data.conversation => on redirige vers la messagerie
+      if (data.conversation) {
+        navigation.navigate('Messagerie', {
+          screen: 'Messaging',
+          params: {
+            conversationId: data.conversation._id,
+            conversationName: data.conversation.eventId?.title || "Conversation",
+          }
+        });
+      } else {
+        Alert.alert("Réservation", "Vous êtes inscrit à l'événement !");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erreur", "Impossible de réserver.");
     }
-  };
-  
-  // --------------------------
-  // FETCH DES ACTIVITÉS (optionnel : sans filtre ou par catégorie)
-  // --------------------------
-  const fetchActivities = async (cat) => {
+  }
+
+  // 3. Charger la liste des events
+  async function fetchActivities(cat) {
     try {
       setLoading(true);
       let url = `${BASE_URL}/events`;
-      if (cat) {
-        url += `?category=${cat}`;
-      }
-      const response = await fetch(url);
-      const data = await response.json();
+      if (cat) url += `?category=${cat}`;
+      const res = await fetch(url);
+      const data = await res.json();
       setActivities(data);
-      setLoading(false);
-    } catch (error) {
-      console.log("Erreur lors du chargement des activités :", error);
+    } catch (err) {
+      console.log("Erreur fetchEvents:", err);
+    } finally {
       setLoading(false);
     }
-  };
+  }
 
-  // --------------------------
-  // LOGIQUE SELON LE MODE (filter)
-  // --------------------------
+  // 4. useFocusEffect -> switch sur filter
   useFocusEffect(
     useCallback(() => {
       if (filter === 'aroundMe') {
         getUserLocation();
         setShowInput(false);
-        fetchActivities(); // récupère toutes les activités
+        fetchActivities(); // tout
       } else if (filter === 'byLocality') {
-        handleByLocality();
         setShowInput(true);
-        fetchActivities(); // récupère toutes les activités
+        handleByLocality();
+        fetchActivities(); // tout
       } else if (filter === 'activity') {
-        handleActivityMode();
         setShowInput(false);
+        handleActivityMode();
         if (selectedCategory) {
           fetchActivities(selectedCategory);
         } else {
           fetchActivities();
         }
       } else if (filter === 'createActivity') {
-        handleCreateActivityMode();
         setShowInput(false);
+        handleCreateActivityMode();
       }
     }, [filter])
   );
 
-  // --------------------------
-  // FONCTIONS PAR MODE
-  // --------------------------
-  const getUserLocation = async () => {
+  // Fonctions par mode
+  async function getUserLocation() {
     setLoading(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Activez la localisation pour voir votre position.');
-        setLoading(false);
+        Alert.alert("Permission refusée", "Activez la localisation");
         return;
       }
-      const location = await Location.getCurrentPositionAsync({});
+      const loc = await Location.getCurrentPositionAsync({});
       setRegion({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       });
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible d’obtenir votre position.');
-      console.log(error);
+    } catch (err) {
+      console.error(err);
     }
     setLoading(false);
-  };
+  }
 
-  const handleByLocality = () => {
-    if (locality && locality.latitude && locality.longitude) {
+  function handleByLocality() {
+    if (locality?.latitude && locality?.longitude) {
       setRegion({
         latitude: locality.latitude,
         longitude: locality.longitude,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
       });
-    } else if (route.params?.region) {
-      setRegion(route.params.region);
-    } else if (route.params?.latitude && route.params?.longitude) {
-      setRegion({
-        latitude: route.params.latitude,
-        longitude: route.params.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
     } else {
+      // fallback sur Paris
       setRegion(defaultRegion);
       setLatitudeInput('');
       setLongitudeInput('');
     }
-  };
+  }
 
-  const handleActivityMode = async () => {
+  async function handleActivityMode() {
     if (userLocation) {
       setRegion({
         latitude: userLocation.latitude,
@@ -219,9 +188,9 @@ export default function MapScreen({ route, navigation }) {
     } else {
       await getUserLocation();
     }
-  };
+  }
 
-  const handleCreateActivityMode = async () => {
+  async function handleCreateActivityMode() {
     if (userLocation) {
       setRegion({
         latitude: userLocation.latitude,
@@ -232,16 +201,14 @@ export default function MapScreen({ route, navigation }) {
     } else {
       await getUserLocation();
     }
-  };
+  }
 
-  // --------------------------
-  // Saisie manuelle (byLocality)
-  // --------------------------
-  const handleRecenterMap = () => {
+  // 5. Recentrage manuel (byLocality)
+  function handleRecenterMap() {
     const lat = parseFloat(latitudeInput);
     const lon = parseFloat(longitudeInput);
     if (isNaN(lat) || isNaN(lon)) {
-      Alert.alert('Coordonnées invalides', 'Veuillez saisir des valeurs numériques.');
+      Alert.alert("Erreur", "Coordonnées invalides");
       return;
     }
     setRegion({
@@ -250,46 +217,34 @@ export default function MapScreen({ route, navigation }) {
       latitudeDelta: 0.05,
       longitudeDelta: 0.05,
     });
-  };
+  }
 
-  // --------------------------
-  // GESTION DE LA CRÉATION D'ACTIVITÉ
-  // --------------------------
-  const handleMapPress = (event) => {
+  // 6. handleMapPress -> ouvre modale
+  function handleMapPress(e) {
     if (filter === 'createActivity') {
-      const coords = event.nativeEvent.coordinate;
-      setNewActivityCoords(coords);
+      const { coordinate } = e.nativeEvent;
+      setNewActivityCoords(coordinate);
       setIsCreateModalVisible(true);
     }
-  };
+  }
 
-  const handleCreateActivity = async () => {
-    // Vérification de tous les champs requis
-    if (
-      !newActivityCoords ||
-      !newActivityTitle.trim() ||
-      !newActivityDescription.trim() ||
-      !newActivityDate.trim() ||
-      !newActivityCategory.trim() ||
-      !newActivityMaxParticipants.trim()
-    ) {
-      Alert.alert("Champs manquants", "Veuillez remplir tous les champs et cliquer sur la carte pour définir la localisation.");
+  // 7. Créer une activité
+  async function handleCreateActivity() {
+    if (!newActivityCoords ||
+        !newActivityTitle ||
+        !newActivityDescription ||
+        !newActivityDate ||
+        !newActivityCategory ||
+        !newActivityMaxParticipants) {
+      Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
       return;
     }
-    
-    // Récupération du token depuis AsyncStorage
     const token = await getToken();
     if (!token) {
-      Alert.alert("Erreur", "Aucun token trouvé. Veuillez vous reconnecter.");
+      Alert.alert("Erreur", "Vous devez être connecté");
       return;
     }
-    
-    // Conversion de la date saisie en format ISO
     const isoDate = new Date(newActivityDate).toISOString();
-    
-    console.log("newActivityCoords:", newActivityCoords);
-    
-    // Construction du payload attendu par le backend
     const payload = {
       title: newActivityTitle,
       description: newActivityDescription,
@@ -297,56 +252,63 @@ export default function MapScreen({ route, navigation }) {
       date: isoDate,
       category: newActivityCategory,
       maxParticipants: parseInt(newActivityMaxParticipants, 10),
-      photos: [] // Tableau vide par défaut
+      photos: []
     };
-
-    console.log("Payload envoyé:", payload);
-
     try {
-      const resp = await fetch(`${BASE_URL}/events`, {
+      const res = await fetch(`${BASE_URL}/events`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
-
-      if (!resp.ok) {
-        const errorData = await resp.json();
-        Alert.alert("Erreur création", errorData.message || "Impossible de créer l'activité");
+      const data = await res.json();
+      if (!res.ok) {
+        Alert.alert("Erreur création", data.message || "Impossible de créer");
         return;
       }
-      const created = await resp.json();
-      // Ajout de l'événement créé à la liste
-      setActivitiesCreated([...activitiesCreated, created.event]);
+      // data.event => on l'ajoute dans activitiesCreated
+      setActivitiesCreated(prev => [...prev, data.event]);
       setIsCreateModalVisible(false);
+      // Reset
       setNewActivityCoords(null);
       setNewActivityTitle('');
       setNewActivityDescription('');
       setNewActivityDate('');
       setNewActivityCategory('');
       setNewActivityMaxParticipants('');
-      Alert.alert("Activité créée", "Votre activité a bien été créée !");
+      Alert.alert("Succès", "Activité créée !");
     } catch (err) {
-      console.log("Erreur création activité:", err);
-      Alert.alert("Erreur", "Impossible de créer l'activité.");
+      console.error(err);
+      Alert.alert("Erreur", "Impossible de créer");
     }
-  };
+  }
 
-  // --------------------------
-  // RENDER
-  // --------------------------
+  // 8. Unifier l’affichage des marqueurs
+  // Si on est en createActivity, on veut voir *aussi* ceux existants + ceux créés
+  let allMarkers = [];
+  if (filter === 'createActivity') {
+    // Fusionne en évitant les doublons : 
+    allMarkers = [
+      ...activitiesCreated,
+      ...activities.filter(a => !activitiesCreated.some(c => c._id === a._id))
+    ];
+  } else {
+    // juste la liste "activities"
+    allMarkers = activities;
+  }
+
   if (loading) {
-    return <ActivityIndicator size="large" color="#2D2A6E" style={styles.loader} />;
+    return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
 
   return (
     <View style={styles.container}>
-      {/* Saisie manuelle (byLocality) */}
+      {/* byLocality => inputs lat/lon */}
       {showInput && (
         <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.inputContainer}
         >
           <TextInput
@@ -372,10 +334,10 @@ export default function MapScreen({ route, navigation }) {
       <MapView
         style={styles.map}
         region={region}
-        onPress={handleMapPress} 
+        onPress={handleMapPress}
       >
-        {/* Marqueurs pour les modes d'exploration */}
-        {(filter === 'activity' || filter === 'aroundMe' || filter === 'byLocality') && activities.map((act) => {
+        {/* Rendu de tous les marqueurs unifiés */}
+        {allMarkers.map((act) => {
           const coords = parseLocation(act.location);
           if (!coords) return null;
           return (
@@ -385,12 +347,13 @@ export default function MapScreen({ route, navigation }) {
               title={act.title}
               description={act.description}
               onCalloutPress={() => {
+                // Si on est en "activity" ou "aroundMe", propose de join
                 Alert.alert(
-                  "Réserver l'activité",
-                  "Voulez-vous vous inscrire à cette activité ?",
+                  "Réserver l'activité ?",
+                  `Voulez-vous vous inscrire à: ${act.title} ?`,
                   [
-                    { text: "Annuler", style: "cancel" },
-                    { text: "Réserver", onPress: () => handleJoinEvent(act._id) }
+                    { text: 'Annuler', style: 'cancel' },
+                    { text: 'OK', onPress: () => handleJoinEvent(act._id) }
                   ]
                 );
               }}
@@ -398,36 +361,23 @@ export default function MapScreen({ route, navigation }) {
           );
         })}
 
-        {/* Marqueurs pour les activités créées (mode createActivity) */}
-        {filter === 'createActivity' && activitiesCreated.map((act) => {
-          const coords = parseLocation(act.location);
-          if (!coords) return null;
-          return (
-            <Marker
-              key={act._id}
-              coordinate={coords}
-              title={act.title}
-              description={act.description}
-            />
-          );
-        })}
-
-        {/* Marqueur principal : position actuelle ou localité */}
+        {/* Marqueur principal (user ou localité) */}
         <Marker
           coordinate={{ latitude: region.latitude, longitude: region.longitude }}
           title={filter === 'byLocality' && locality ? locality.name : 'Position actuelle'}
+          pinColor="blue"
         />
       </MapView>
 
-      {/* Barre de catégories en mode "activity" */}
+      {/* Barre de catégories si filter === 'activity' */}
       {filter === 'activity' && (
         <View style={styles.categoryBar}>
-          {['Sport', 'Culturel', 'Sorties', 'Culinaire'].map((cat) => (
+          {['Sport','Culturel','Sorties','Culinaire'].map((cat) => (
             <TouchableOpacity
               key={cat}
               style={[
                 styles.categoryButton,
-                selectedCategory === cat && styles.activeButton,
+                selectedCategory === cat && styles.activeButton
               ]}
               onPress={() => {
                 setSelectedCategory(cat);
@@ -440,10 +390,10 @@ export default function MapScreen({ route, navigation }) {
         </View>
       )}
 
-      {/* Modale de création d'activité en mode "createActivity" */}
+      {/* Modal création si createActivity */}
       <Modal
-        transparent={true}
         visible={isCreateModalVisible}
+        transparent
         animationType="slide"
       >
         <View style={styles.modalOverlay}>
@@ -476,14 +426,15 @@ export default function MapScreen({ route, navigation }) {
             />
             <TextInput
               style={styles.modalInput}
-              placeholder="Max. Participants"
+              placeholder="Max participants"
+              keyboardType="numeric"
               value={newActivityMaxParticipants}
               onChangeText={setNewActivityMaxParticipants}
-              keyboardType="numeric"
             />
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]}
+                style={[styles.button, { backgroundColor: '#999', marginRight:10 }]}
                 onPress={() => {
                   setIsCreateModalVisible(false);
                   setNewActivityCoords(null);
@@ -508,102 +459,47 @@ export default function MapScreen({ route, navigation }) {
       </Modal>
     </View>
   );
-}
+};
 
-// --- STYLES ---
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  // Saisie manuelle (byLocality)
   inputContainer: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 80 : 60,
-    left: 10,
-    right: 10,
-    flexDirection: 'row',
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 8,
-    borderRadius: 10,
-    zIndex: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    position: 'absolute', top: 70, left: 10, right: 10,
+    flexDirection: 'row', backgroundColor: '#FFF',
+    padding: 8, borderRadius: 8, zIndex: 100,
   },
   input: {
-    flex: 1,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#CCC',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-    marginRight: 10,
+    flex:1, borderWidth:1, borderColor:'#CCC', marginRight:5, borderRadius:8, paddingHorizontal:8,
   },
   button: {
-    backgroundColor: '#2D2A6E',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 8,
+    backgroundColor:'#2D2A6E', borderRadius:8, paddingHorizontal:10, paddingVertical:8
   },
-  buttonText: { 
-    color: '#fff',
-    fontWeight: 'bold', 
-    textAlign: 'center',
-  },
-  // Barre de catégories
+  buttonText: { color:'#FFF', fontWeight:'bold' },
+
   categoryBar: {
-    position: 'absolute',
-    bottom: 20,
-    left: 10,
-    right: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingVertical: 10,
-    borderRadius: 10,
+    position:'absolute', bottom:20, left:10, right:10,
+    flexDirection:'row', justifyContent:'space-around',
+    backgroundColor:'rgba(255,255,255,0.9)', paddingVertical:10, borderRadius:10,
   },
-  categoryButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    backgroundColor: '#ccc',
-  },
-  activeButton: { backgroundColor: '#2D2A6E' },
-  categoryText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  // Styles de la modale de création
+  categoryButton: { backgroundColor:'#ccc', paddingVertical:8, paddingHorizontal:12, borderRadius:5 },
+  activeButton: { backgroundColor:'#2D2A6E' },
+  categoryText: { color:'#FFF', fontWeight:'bold' },
+
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex:1, backgroundColor:'rgba(0,0,0,0.5)', justifyContent:'center', alignItems:'center'
   },
   modalContainer: {
-    width: '85%',
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    padding: 20,
+    width:'85%', backgroundColor:'#FFF', padding:20, borderRadius:8
   },
   modalTitle: {
-    fontSize: 18,
-    fontFamily: 'FredokaOne',
-    color: '#2D2A6E',
-    marginBottom: 10,
+    fontSize:18, fontFamily:'FredokaOne', color:'#2D2A6E', marginBottom:10
   },
   modalInput: {
-    borderWidth: 1,
-    borderColor: '#CCC',
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
+    borderWidth:1, borderColor:'#CCC', borderRadius:8, padding:10, marginVertical:5
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 10,
-  },
+    flexDirection:'row', justifyContent:'flex-end', marginTop:10
+  }
 });
