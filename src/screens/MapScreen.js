@@ -7,9 +7,13 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 // URL du backend
 const BASE_URL = 'https://backend-city-connect.vercel.app';
+
+
+
 
 // Fonction pour convertir une chaîne "latitude, longitude" en objet { latitude, longitude }
 const parseLocation = (locationStr) => {
@@ -22,6 +26,8 @@ const parseLocation = (locationStr) => {
 };
 
 export default function MapScreen({ route }) {
+
+  
   const { 
     filter,
     userLocation, // pour aroundMe, activity, createActivity
@@ -39,6 +45,7 @@ export default function MapScreen({ route }) {
 
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
+ 
 
   // -- ACTIVITÉS --
   const [activities, setActivities] = useState([]);
@@ -57,7 +64,17 @@ export default function MapScreen({ route }) {
   const [newActivityTitle, setNewActivityTitle] = useState('');
   const [newActivityDescription, setNewActivityDescription] = useState('');
   const [newActivityDate, setNewActivityDate] = useState('');
-  const [newActivityCategory, setNewActivityCategory] = useState('');
+// zone categorie defilante
+const [open, setOpen] = useState(false);
+const [newActivityCategory, setNewActivityCategory] = useState("sport");
+const [categories, setCategories] = useState([
+  { label: "Sport", value: "sport" },
+  { label: "Sorties", value: "sorties" },
+  { label: "Culinaire", value: "culinaire" },
+  { label: "Culturel", value: "culturel" },
+]);
+
+
   const [newActivityMaxParticipants, setNewActivityMaxParticipants] = useState('');
   const [activitiesCreated, setActivitiesCreated] = useState([]);
 
@@ -447,38 +464,50 @@ export default function MapScreen({ route }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Créer une activité</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Titre"
-              value={newActivityTitle}
-              onChangeText={setNewActivityTitle}
-            />
-            <TextInput
-              style={[styles.modalInput, { height: 70 }]}
-              multiline
-              placeholder="Description"
-              value={newActivityDescription}
-              onChangeText={setNewActivityDescription}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Date (YYYY-MM-DD)"
-              value={newActivityDate}
-              onChangeText={setNewActivityDate}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Catégorie"
-              value={newActivityCategory}
-              onChangeText={setNewActivityCategory}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Max. Participants"
-              value={newActivityMaxParticipants}
-              onChangeText={setNewActivityMaxParticipants}
-              keyboardType="numeric"
-            />
+           <TextInput
+  style={[styles.modalInput, { color: '#2D2A6E' }]} // Appliquer la couleur bleue
+  placeholder="Titre"
+  placeholderTextColor="#2D2A6E"
+  value={newActivityTitle}
+  onChangeText={setNewActivityTitle}
+/>
+<TextInput
+  style={[styles.modalInput, { height: 70, color: '#2D2A6E' }]} // Pour texte bleu et multiline
+  multiline
+  placeholder="Description"
+  placeholderTextColor="#2D2A6E"
+  value={newActivityDescription}
+  onChangeText={setNewActivityDescription}
+/>
+<TextInput
+  style={[styles.modalInput, { color: '#2D2A6E' }]}
+  placeholder="Date (YYYY-MM-DD)"
+  placeholderTextColor="#2D2A6E"
+  value={newActivityDate}
+  onChangeText={setNewActivityDate}
+/>
+{/* zone roulante dans la creation de l'activité */}
+<DropDownPicker
+  open={open}
+  value={newActivityCategory}
+  items={categories}
+  placeholder="Catégorie" 
+  setOpen={setOpen}
+  setValue={setNewActivityCategory}
+  setItems={setCategories}
+  style={styles.dropdown}
+  dropDownContainerStyle={styles.dropdownContainer}
+/>
+
+<TextInput
+  style={[styles.modalInput, { color: '2D2A6E' }]}
+  placeholder="Max. Participants"
+  placeholderTextColor="#2D2A6E"
+  value={newActivityMaxParticipants}
+  onChangeText={setNewActivityMaxParticipants}
+  keyboardType="numeric"
+/>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]}
@@ -538,6 +567,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FFF',
     marginRight: 10,
+    color: '#2D2A6E',
   },
   button: {
     backgroundColor: '#2D2A6E',
@@ -592,16 +622,38 @@ const styles = StyleSheet.create({
     color: '#2D2A6E',
     marginBottom: 10,
   },
+  
   modalInput: {
-    borderWidth: 1,
-    borderColor: '#CCC',
+    borderWidth: 2,
+    borderColor: '#2D2A6E',
     borderRadius: 8,
     padding: 10,
     marginVertical: 8,
+    color: '#2D2A6E',
+   
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginTop: 10,
   },
+  dropdown: {
+    borderWidth: 2,
+    borderColor: '#2D2A6E',
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    marginVertical: 8,
+    color: '#2D2A6E',
+    zIndex: 1000, // Pour éviter qu'il soit caché par d'autres éléments
+  },
+  dropdownContainer: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#2D2A6E',
+    color: '#2D2A6E',
+    zIndex: 1000, // Priorité sur les autres éléments
+  }
+  
+  
+  
 });
