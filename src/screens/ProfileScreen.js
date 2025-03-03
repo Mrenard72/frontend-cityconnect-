@@ -145,7 +145,7 @@ formData.append('file', {
 
     setProfileImage(backendData.photo);
     await AsyncStorage.setItem('profileImage', backendData.photo);
-    Alert.alert('Succès', 'Photo mise à jour !');
+    Alert.alert('Photo mise à jour !');
 
   } catch (error) {
     console.error("❌ Erreur lors de l'upload :", error);

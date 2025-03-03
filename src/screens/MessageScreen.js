@@ -176,6 +176,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: 5,
   },
+  
+  
 });
 
 export default MessageScreen;

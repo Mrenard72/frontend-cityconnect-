@@ -2,15 +2,17 @@ import React from 'react';
 import { 
   View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground 
 } from 'react-native';
+import Header from '../components/Header';
 
 // 📌 Écran du tableau de bord (DashboardScreen)
 const DashboardScreen = ({ navigation }) => {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header/>
+      <Text style={styles.title}>Tableau de bord</Text>
       <View style={styles.container}>
         {/* 🏙️ Logo de l'application */}
-        <Image source={require('../../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Tableau de bord</Text>
+     
 
         {/* 📌 Carte "J'explore" → Navigue vers `ExploreScreen` */}
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Explore')}>
@@ -48,6 +50,8 @@ const styles = StyleSheet.create({
   container: {
     width: '90%',
     alignItems: 'center',
+    marginTop: 50,
+   
   },
   logo: {
     width: 120,
@@ -65,34 +69,25 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 10,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#20135B',
   },
   cardImage: {
     width: '100%',
     height: '100%',
     position: 'absolute',
+
+    
   },
   cardText: {
-    fontSize: 22,
+    fontSize: 30,
     fontFamily: 'FredokaOne',
     color: 'white',
     textAlign: 'center',
     marginTop: 'auto',
     marginBottom: 10,
-    paddingVertical: 5,
-  },
-  logoutButton: {
-    backgroundColor: '#E53935',
-    padding: 15,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 30,
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'FredokaOne',
+    paddingVertical: 50,
   },
 });
 
