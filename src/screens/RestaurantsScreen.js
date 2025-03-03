@@ -5,7 +5,7 @@ import axios from 'axios';
 import * as Location from 'expo-location';
 import Header from '../components/Header';
 
-const BACKEND_URL = "https://mon-backend.vercel.app"; // 🔹 Remplace par l'URL de ton backend
+const BACKEND_URL = "https://backend-city-connect.vercel.app/api"; // ✅ URL du backend
 
 const RestaurantsScreen = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -37,14 +37,20 @@ const RestaurantsScreen = () => {
     }, []);
 
     const fetchRestaurants = async (coords) => {
-        const url = `${BACKEND_URL}/api/restaurants?lat=${coords.latitude}&lon=${coords.longitude}`;
+        const url = `${BACKEND_URL}/restaurants?lat=${coords.latitude}&lon=${coords.longitude}`;
 
         try {
+            console.log(`🔍 Requête vers : ${url}`);
             const response = await axios.get(url);
-            console.log("Réponse API Backend:", response.data);
+            console.log("✅ Réponse API Backend:", response.data);
+
+            if (response.data.message) {
+                Alert.alert("Info", response.data.message);
+            }
+
             setRestaurants(response.data);
         } catch (error) {
-            console.error("Erreur API Backend:", error.response ? error.response.data : error);
+            console.error("❌ Erreur API Backend:", error.response ? error.response.data : error);
             Alert.alert("Erreur", "Impossible de récupérer les restaurants.");
         }
         setLoading(false);
@@ -91,7 +97,6 @@ const RestaurantsScreen = () => {
     );
 };
 
-// 📌 Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
