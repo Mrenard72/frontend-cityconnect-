@@ -177,6 +177,8 @@ const AppNavigator = () => {
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
           
         </>
       )}
