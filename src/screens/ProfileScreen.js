@@ -89,7 +89,7 @@ const handleChoosePhoto = async () => {
   if (!result.canceled) {
     const selectedImageUri = result.assets[0].uri;
     setProfileImage(selectedImageUri); // ✅ Mise à jour immédiate de l’affichage
-    await uploadImage(selectedImageUri); // ✅ Envoi de l’image après sélection
+    await uploadImage(selectedImageUri); // ✅ Envoi de l’image après sélection !
   }
 };
 
