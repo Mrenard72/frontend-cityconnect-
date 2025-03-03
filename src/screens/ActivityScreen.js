@@ -39,13 +39,17 @@ const ActivityScreen = ({ navigation }) => {
           <TouchableOpacity
             key={activity.id}
             style={styles.activityCard}
-            onPress={() =>
-              navigation.navigate('Carte', {
-                filter: 'activity', 
-                category: activity.title, 
-                userLocation,
-              })
-            }
+            onPress={() => {
+              if (activity.title === "Culinaire") {
+                navigation.navigate('Restaurants', { userLocation });
+              } else {
+                navigation.navigate('Carte', {
+                  filter: 'activity', 
+                  category: activity.title, 
+                  userLocation,
+                });
+              }
+            }}
           >
             <ImageBackground 
               source={activity.image} 
