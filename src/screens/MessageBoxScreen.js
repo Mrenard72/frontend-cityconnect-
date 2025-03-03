@@ -30,7 +30,9 @@ const MessageBoxScreen = () => {
 
         const data = await response.json();
         if (response.ok) {
-          setConversations(data); // ✅ Met à jour la liste des conversations
+          // Filtrer pour afficher uniquement les conversations liées aux événements
+          const eventConversations = data.filter(convo => convo.eventId);
+          setConversations(eventConversations);
         } else {
           console.error("Erreur API :", data.message);
         }
@@ -48,7 +50,7 @@ const MessageBoxScreen = () => {
   const handleOpenConversation = (conversation) => {
     navigation.navigate('Messaging', { 
       conversationId: conversation._id, // 🔗 Passe l'ID de la conversation
-      conversationName: conversation.participants.map(p => p.username).join(', '), // 📌 Affiche les noms des participants
+      conversationName: conversation.eventId ? conversation.eventId.title : 'Conversation', // 📌 Affiche le nom de l'événement
     });
   };
 
@@ -69,7 +71,7 @@ const MessageBoxScreen = () => {
           >
             <View style={styles.conversationContent}>
               <Text style={styles.conversationName}>
-                {item.participants.map(p => p.username).join(', ')}
+                {item.eventId ? item.eventId.title : 'Conversation'}
               </Text>
               <Text style={styles.lastMessage}>
                 {item.messages.length > 0 ? item.messages[item.messages.length - 1].content : "Aucun message"}
