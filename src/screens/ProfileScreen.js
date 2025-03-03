@@ -19,12 +19,12 @@ const ProfileScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = await AsyncStorage.getItem('token'); // ✅ Récupère le token stocké
+        const token = await AsyncStorage.getItem('token');
         if (!token) {
-          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); // 🔄 Redirection si pas de token
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           return;
         }
-
+  
         const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
           method: 'GET',
           headers: {
@@ -32,23 +32,24 @@ const ProfileScreen = ({ navigation }) => {
             'Content-Type': 'application/json',
           },
         });
-
+  
         const data = await response.json();
         if (response.ok) {
-          setUserName(data.username); // ✅ Met à jour le nom de l'utilisateur !
-          setProfileImage(data.photo); // ✅ Ajout de la mise à jour de l'image
+          setUserName(data.username);
+          setProfileImage(data.photo || await AsyncStorage.getItem('profileImage')); // ✅ Vérifie AsyncStorage
         } else {
           console.log("Erreur récupération profil :", data.message);
-          await AsyncStorage.removeItem('token'); // ❌ Supprime le token si erreur
+          await AsyncStorage.removeItem('token');
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         }
       } catch (error) {
         console.error("Erreur lors de la récupération du profil :", error);
       }
     };
-
+  
     fetchUserProfile();
   }, []);
+  
 
   // 🚀 Fonction pour gérer la déconnexion
   const handleLogout = async () => {
@@ -104,12 +105,13 @@ const uploadImage = async (uri) => {
 
   try {
     let formData = new FormData();
-    formData.append('file', {
-      uri,
-      name: 'profile.jpg',
-      type: 'image/jpeg'
+formData.append('file', {
+  uri: uri,
+  type: 'image/jpeg', // Assurez-vous que l'image a un bon type MIME
+  name: `profile_${Date.now()}.jpg`, // Nom unique
     });
     formData.append('upload_preset', 'default_preset'); // Assure-toi que l'upload preset existe
+    formData.append('cloud_name', 'dasntwyhd');
 
     // 🚀 Envoie l'image sur Cloudinary
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/dasntwyhd/image/upload`, {
@@ -183,12 +185,12 @@ const uploadImage = async (uri) => {
         <Text style={styles.userName}>{userName ? userName : "Chargement..."}</Text>
 
         {/* 📌 Boutons des différentes sections */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('ServicesScreen')}>
           <Text style={styles.textButton}>Mes services</Text>
           <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('SortiesScreen')}>
           <Text style={styles.textButton}>Mes sorties</Text>
           <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
