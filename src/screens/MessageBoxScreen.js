@@ -1,6 +1,12 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
-  SafeAreaView, View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator 
+  SafeAreaView,
+  View, 
+  Text, 
+  TouchableOpacity, 
+  FlatList, 
+  StyleSheet, 
+  ActivityIndicator 
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,8 +32,6 @@ const MessageBoxScreen = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        // Si le backend ne peuple pas eventId, on peut gérer cela ici
-        // Par exemple, si eventId est une chaîne (ID) on utilisera "Activité" par défaut
         const eventConversations = data.filter(convo => convo.eventId);
         setConversations(eventConversations);
       } else {
@@ -40,7 +44,6 @@ const MessageBoxScreen = () => {
     }
   };
 
-  // Recharger les conversations chaque fois que l'écran est focus
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
@@ -48,13 +51,13 @@ const MessageBoxScreen = () => {
     }, [])
   );
 
-  // Fonction appelée lorsqu'un utilisateur clique sur une conversation
   const handleOpenConversation = (conversation) => {
-    // Récupérer le titre de la conversation : si eventId est un objet et contient un titre, sinon "Activité"
-    const conversationTitle = 
-      conversation.eventId && typeof conversation.eventId === 'object' && conversation.eventId.title
-        ? conversation.eventId.title
-        : "Activité";
+    let conversationTitle = 'Conversation';
+    if (conversation.eventId && typeof conversation.eventId === 'object' && conversation.eventId.title) {
+      conversationTitle = conversation.eventId.title;
+    } else if (conversation.eventId) {
+      conversationTitle = "Activité";
+    }
     navigation.navigate('Messaging', { 
       conversationId: conversation._id, 
       conversationName: conversationTitle,
@@ -62,7 +65,11 @@ const MessageBoxScreen = () => {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#20135B" style={{ marginTop: 20 }} />;
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#20135B" style={{ marginTop: 20 }} />
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -73,7 +80,7 @@ const MessageBoxScreen = () => {
         ) : (
           <FlatList
             data={conversations}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item) => item._id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity 
                 style={styles.conversationItem} 
@@ -83,16 +90,14 @@ const MessageBoxScreen = () => {
                   <Text style={styles.conversationName}>
                     {item.eventId && typeof item.eventId === 'object' && item.eventId.title
                       ? item.eventId.title
-                      : 'Activité'}
+                      : 'Conversation'}
                   </Text>
                   <Text style={styles.lastMessage}>
                     {item.messages.length > 0 ? item.messages[item.messages.length - 1].content : "Aucun message"}
                   </Text>
                 </View>
                 <Text style={styles.time}>
-                  {item.messages.length > 0 
-                    ? new Date(item.messages[item.messages.length - 1].timestamp).toLocaleTimeString() 
-                    : ''}
+                  {item.messages.length > 0 ? new Date(item.messages[item.messages.length - 1].timestamp).toLocaleTimeString() : ''}
                 </Text>
               </TouchableOpacity>
             )}
@@ -106,6 +111,7 @@ const MessageBoxScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
