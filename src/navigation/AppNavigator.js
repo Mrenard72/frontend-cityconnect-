@@ -15,6 +15,8 @@ import MapScreen from '../screens/MapScreen';
 import MessageScreen from '../screens/MessageScreen';
 import MessageBoxScreen from '../screens/MessageBoxScreen';
 import ActivityScreen from '../screens/ActivityScreen';
+import SortiesScreen from '../screens/SortiesScreen';
+import ServicesScreen from '../screens/ServicesScreen';
 
 // 📌 Import des icônes pour la barre de navigation
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +52,31 @@ const DashboardStack = () => {
   );
 };
 
+// ✅ Stack pour le profil incluant les écrans supplémentaires
+const ProfileStack = createStackNavigator();
+
+const ProfileStackScreen = () => {
+  return (
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen 
+        name="ProfileMain" 
+        component={ProfileScreen} 
+        options={{ headerShown: false }} 
+      />
+      <ProfileStack.Screen 
+        name="ServicesScreen" 
+        component={ServicesScreen} 
+        options={{ title: 'Mes services' }} 
+      />
+      <ProfileStack.Screen 
+        name="SortiesScreen" 
+        component={SortiesScreen} 
+        options={{ title: 'Mes sorties' }} 
+      />
+    </ProfileStack.Navigator>
+  );
+};
+
 // ✅ Barre de navigation en bas avec les onglets principaux
 const BottomTabs = () => {
   return (
@@ -81,7 +108,7 @@ const BottomTabs = () => {
       {/* 💬 Onglet Messagerie */}
       <Tab.Screen name="Messagerie" component={MessageStack} />
       {/* 👤 Onglet Profil */}
-      <Tab.Screen name="Profil" component={ProfileScreen} />
+      <Tab.Screen name="Profil" component={ProfileStackScreen} />
     </Tab.Navigator>
   );
 };

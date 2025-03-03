@@ -107,11 +107,11 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={styles.userName}>{userName ? userName : "Chargement..."}</Text>
 
         {/* 📌 Boutons des différentes sections */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('ServicesScreen')}>
           <Text style={styles.textButton}>Mes services</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('SortiesScreen')}>
           <Text style={styles.textButton}>Mes sorties</Text>
         </TouchableOpacity>
 
