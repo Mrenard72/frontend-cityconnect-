@@ -1,14 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import axios from 'axios';
 import * as Location from 'expo-location';
 import Header from '../components/Header';
+import { Animated } from 'react-native';
 
-const BACKEND_URL = "https://backend-city-connect.vercel.app/api"; // ✅ URL du backend
+// ✅ Fonction pour calculer la distance entre 2 points GPS
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c).toFixed(1); // ✅ Distance en km arrondie à 1 décimale
+};
+
+const fetchRestaurants = async (coords, setRestaurants, setSortedRestaurants, setLoading) => {
+    const overpassQuery = `
+        [out:json];
+        node[amenity=restaurant](around:5000, ${coords.latitude}, ${coords.longitude});
+        out;
+    `;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
+
+    try {
+        console.log(`🔍 Requête vers Overpass API: ${url}`);
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.elements && data.elements.length > 0) {
+            const restaurants = data.elements.map((place) => ({
+                id: place.id.toString(),
+                name: place.tags.name || "Nom inconnu",
+                address: place.tags["addr:street"] || "Adresse non disponible",
+                latitude: place.lat,
+                longitude: place.lon,
+                distance: calculateDistance(coords.latitude, coords.longitude, place.lat, place.lon), // ✅ Ajout de la distance
+            }));
+
+            setRestaurants(restaurants); // ✅ Stocke la liste des restaurants pour la carte
+
+            // ✅ Trie une copie pour la liste, sans affecter la carte
+            const sortedRestaurants = [...restaurants].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+            setSortedRestaurants(sortedRestaurants);
+        } else {
+            Alert.alert("Info", "Aucun restaurant trouvé dans cette zone.");
+            setRestaurants([]);
+            setSortedRestaurants([]);
+        }
+    } catch (error) {
+        console.error("❌ Erreur Overpass API:", error);
+        Alert.alert("Erreur", "Impossible de récupérer les restaurants.");
+    }
+    setLoading(false);
+};
 
 const RestaurantsScreen = () => {
-    const [restaurants, setRestaurants] = useState([]);
+    const [restaurants, setRestaurants] = useState([]); // ✅ Pour les marqueurs
+    const [sortedRestaurants, setSortedRestaurants] = useState([]); // ✅ Liste triée pour l'affichage
     const [loading, setLoading] = useState(true);
     const [location, setLocation] = useState(null);
 
@@ -30,31 +83,11 @@ const RestaurantsScreen = () => {
             };
 
             setLocation(userCoords);
-            fetchRestaurants(userCoords);
+            fetchRestaurants(userCoords, setRestaurants, setSortedRestaurants, setLoading);
         };
 
         getLocationAndRestaurants();
     }, []);
-
-    const fetchRestaurants = async (coords) => {
-        const url = `${BACKEND_URL}/restaurants?lat=${coords.latitude}&lon=${coords.longitude}`;
-
-        try {
-            console.log(`🔍 Requête vers : ${url}`);
-            const response = await axios.get(url);
-            console.log("✅ Réponse API Backend:", response.data);
-
-            if (response.data.message) {
-                Alert.alert("Info", response.data.message);
-            }
-
-            setRestaurants(response.data);
-        } catch (error) {
-            console.error("❌ Erreur API Backend:", error.response ? error.response.data : error);
-            Alert.alert("Erreur", "Impossible de récupérer les restaurants.");
-        }
-        setLoading(false);
-    };
 
     return (
         <View style={styles.container}>
@@ -71,7 +104,7 @@ const RestaurantsScreen = () => {
                             key={restaurant.id}
                             coordinate={{ latitude: restaurant.latitude, longitude: restaurant.longitude }}
                             title={restaurant.name}
-                            description={`${restaurant.address}, ${restaurant.city}`}
+                            description={`${restaurant.address} - ${restaurant.distance} km`}
                         />
                     ))}
                 </MapView>
@@ -81,14 +114,14 @@ const RestaurantsScreen = () => {
 
             <View style={styles.listContainer}>
                 {loading && <ActivityIndicator size="large" color="#0000ff" />}
-                {restaurants.length === 0 && !loading && <Text style={styles.noData}>Aucun restaurant disponible</Text>}
+                {sortedRestaurants.length === 0 && !loading && <Text style={styles.noData}>Aucun restaurant disponible</Text>}
                 <FlatList
-                    data={restaurants}
-                    keyExtractor={(item) => item.id.toString()}
+                    data={sortedRestaurants} // ✅ Affichage trié sans modifier la carte
+                    keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                         <View style={styles.restaurant}>
-                            <Text style={styles.name}>{item.name}</Text>
-                            <Text>{item.address}, {item.city}</Text>
+                            <Text style={styles.name}>{item.name} - {item.distance} km</Text>
+                            <Text>{item.address}</Text>
                         </View>
                     )}
                 />
@@ -97,6 +130,7 @@ const RestaurantsScreen = () => {
     );
 };
 
+// 📌 Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
