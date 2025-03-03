@@ -146,7 +146,7 @@ formData.append('file', {
 
     setProfileImage(backendData.photo);
     await AsyncStorage.setItem('profileImage', backendData.photo);
-    Alert.alert('Succès', 'Photo mise à jour !');
+    Alert.alert('Photo mise à jour !');
 
   } catch (error) {
     console.error("❌ Erreur lors de l'upload :", error);
@@ -186,12 +186,12 @@ formData.append('file', {
         <Text style={styles.userName}>{userName ? userName : "Chargement..."}</Text>
 
         {/* 📌 Boutons des différentes sections */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('ServicesScreen')}>
           <Text style={styles.textButton}>Mes services</Text>
           <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('SortiesScreen')}>
           <Text style={styles.textButton}>Mes sorties</Text>
           <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
