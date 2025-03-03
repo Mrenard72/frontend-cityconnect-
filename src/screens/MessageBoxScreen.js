@@ -1,65 +1,85 @@
 import React, { useState, useCallback } from 'react';
-import { 
-  SafeAreaView,
-  View, 
-  Text, 
-  TouchableOpacity, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator 
+import {
+  SafeAreaView, View, Text, TouchableOpacity, FlatList,
+  StyleSheet, ActivityIndicator
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MessageBoxScreen = () => {
+const BACKEND_URL = 'https://backend-city-connect.vercel.app';
+
+export default function MessageBoxScreen() {
   const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
 
-  // Fonction de récupération des conversations
+  // 1. Récupérer userId (via /auth/profile)
+  const fetchUserId = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`${BACKEND_URL}/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data._id) {
+        setUserId(data._id);
+      }
+    } catch (error) {
+      console.error('Erreur fetchUserId:', error);
+    }
+  };
+
+  // 2. Charger les conversations
   const fetchConversations = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        console.error("Token manquant !");
-        return;
-      }
-      const response = await fetch('https://backend-city-connect.vercel.app/conversations/my-conversations', {
+      if (!token) return;
+
+      const response = await fetch(`${BACKEND_URL}/conversations/my-conversations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
       const data = await response.json();
+
       if (response.ok) {
-        const eventConversations = data.filter(convo => convo.eventId);
-        setConversations(eventConversations);
+        setConversations(data); // Tableau de conv
       } else {
-        console.error("Erreur API :", data.message);
+        console.error('Erreur API :', data.message);
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération des conversations :", error);
+      console.error('Erreur récupération conversations :', error);
     } finally {
       setLoading(false);
     }
   };
 
+  // 3. useFocusEffect pour (re)charger en revenant sur cet écran
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      fetchConversations();
+      fetchUserId().then(() => fetchConversations());
     }, [])
   );
 
+  // 4. Ouvrir une conversation → MessageScreen
   const handleOpenConversation = (conversation) => {
+    // Titre, par exemple "Nom de l’événement - Participant(s)" ou un fallback
     let conversationTitle = 'Conversation';
-    if (conversation.eventId && typeof conversation.eventId === 'object' && conversation.eventId.title) {
-      conversationTitle = conversation.eventId.title;
-    } else if (conversation.eventId) {
-      conversationTitle = "Activité";
+    if (conversation.eventId?.title) {
+      conversationTitle = conversation.eventId.title; 
     }
-    navigation.navigate('Messaging', { 
-      conversationId: conversation._id, 
+    // Redirection
+    navigation.navigate('Messaging', {
+      conversationId: conversation._id,
       conversationName: conversationTitle,
     });
   };
@@ -74,6 +94,10 @@ const MessageBoxScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Mes Conversations</Text>
+      </View>
+
       <View style={styles.container}>
         {conversations.length === 0 ? (
           <Text style={styles.noConversationText}>Aucune conversation pour le moment.</Text>
@@ -81,49 +105,71 @@ const MessageBoxScreen = () => {
           <FlatList
             data={conversations}
             keyExtractor={(item) => item._id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity 
-                style={styles.conversationItem} 
-                onPress={() => handleOpenConversation(item)}
-              >
-                <View style={styles.conversationContent}>
-                  <Text style={styles.conversationName}>
-                    {item.eventId && typeof item.eventId === 'object' && item.eventId.title
-                      ? item.eventId.title
-                      : 'Conversation'}
-                  </Text>
-                  <Text style={styles.lastMessage}>
-                    {item.messages.length > 0 ? item.messages[item.messages.length - 1].content : "Aucun message"}
-                  </Text>
-                </View>
-                <Text style={styles.time}>
-                  {item.messages.length > 0 ? new Date(item.messages[item.messages.length - 1].timestamp).toLocaleTimeString() : ''}
-                </Text>
-              </TouchableOpacity>
-            )}
+            renderItem={({ item }) => {
+              const lastMessage = item.messages?.[item.messages.length - 1];
+              const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
+              const lastTime = lastMessage
+                ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : '';
+
+              // Récupère les noms des participants SAUF le mien
+              const otherParticipants = (item.participants || [])
+                .filter(p => p._id !== userId);
+              const otherNames = otherParticipants.map(p => p.username).join(', ');
+              
+              // Exemple d’affichage : "TitreDeLEvent - Bob, Alice"
+              const conversationDisplayName =
+                item.eventId?.title
+                  ? `${item.eventId.title} - ${otherNames}`
+                  : (otherNames || 'Conversation');
+
+              return (
+                <TouchableOpacity
+                  style={styles.conversationItem}
+                  onPress={() => handleOpenConversation(item)}
+                >
+                  <View style={styles.conversationContent}>
+                    <Text style={styles.conversationName}>
+                      {conversationDisplayName}
+                    </Text>
+                    <Text style={styles.lastMessage}>{lastMessageText}</Text>
+                  </View>
+                  <Text style={styles.time}>{lastTime}</Text>
+                </TouchableOpacity>
+              );
+            }}
           />
         )}
       </View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  headerContainer: {
+    padding: 10,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    color: '#20135B',
+    fontWeight: 'bold',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
     padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   noConversationText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#777',
+    textAlign: 'center',
+    marginTop: 50,
   },
   conversationItem: {
     flexDirection: 'row',
@@ -135,7 +181,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     elevation: 2,
-    width: '100%',
   },
   conversationContent: {
     flex: 1,
@@ -153,7 +198,6 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 12,
     color: '#999',
+    marginLeft: 10,
   },
 });
-
-export default MessageBoxScreen;
