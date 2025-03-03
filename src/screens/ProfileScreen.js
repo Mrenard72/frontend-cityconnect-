@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Header from '../components/Header';
+
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 
@@ -195,10 +196,12 @@ formData.append('file', {
           <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Info')} style={styles.button} activeOpacity={0.8}>
+          {/* 📌 Bouton section "Mes infos" */}
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('InfosScreen')} activeOpacity={0.8}>
           <Text style={styles.textButton}>Mes infos</Text>
           <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
+
 
         {/* 🔴 Bouton de déconnexion */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
