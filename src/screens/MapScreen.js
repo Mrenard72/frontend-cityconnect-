@@ -21,7 +21,7 @@ const parseLocation = (locationStr) => {
   };
 };
 
-export default function MapScreen({ route }) {
+export default function MapScreen({ route, navigation }) {
   const { 
     filter,
     userLocation, // pour aroundMe, activity, createActivity
@@ -76,38 +76,41 @@ export default function MapScreen({ route }) {
   const handleJoinEvent = async (eventId) => {
     const token = await getToken();
     if (!token) {
-        Alert.alert("Erreur", "Veuillez vous reconnecter.");
-        return;
+      Alert.alert("Erreur", "Veuillez vous reconnecter.");
+      return;
     }
     try {
-        const response = await fetch(`${BASE_URL}/events/${eventId}/join`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
-        } else {
-            Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
-            
-            // 🔹 Rediriger l'utilisateur vers la conversation
-            if (data.conversation) {
-                navigation.navigate('Messaging', { 
-                    conversationId: data.conversation._id, 
-                    conversationName: data.event.title 
-                });
-            }
+      const response = await fetch(`${BASE_URL}/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
+      } else {
+        // Inscription réussie : rediriger vers l'écran de messagerie pour envoyer un message
+        if (data.conversation) {
+          navigation.navigate('Messagerie', {
+            screen: 'Messaging',
+            params: { 
+              conversationId: data.conversation._id,
+              conversationName: data.conversation.name || "Conversation"
+            }
+          });
+        } else {
+          Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
+        }
+      }
     } catch (error) {
-        console.log("Erreur lors de la réservation :", error);
-        Alert.alert("Erreur", "Impossible de réserver l'activité.");
+      console.log("Erreur lors de l'inscription :", error);
+      Alert.alert("Erreur", "Impossible de réserver l'activité.");
     }
   };
-
-
+  
+  
   // --------------------------
   // FETCH DES ACTIVITÉS (optionnel : sans filtre ou par catégorie)
   // --------------------------
