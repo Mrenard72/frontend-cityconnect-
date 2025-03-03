@@ -17,6 +17,7 @@ import MessageBoxScreen from '../screens/MessageBoxScreen';
 import ActivityScreen from '../screens/ActivityScreen';
 import SortiesScreen from '../screens/SortiesScreen';
 import ServicesScreen from '../screens/ServicesScreen';
+import RestaurantsScreen from '../screens/RestaurantsScreen';
 import InfosScreen from '../screens/InfosScreen';
 
 // 📌 Import des icônes pour la barre de navigation
@@ -49,6 +50,7 @@ const DashboardStack = () => {
       <DashboardStackNav.Screen name="DashboardMain" component={DashboardScreen} />
       <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
       <DashboardStackNav.Screen name="Activity" component={ActivityScreen} />
+      <DashboardStackNav.Screen name="Restaurants" component={RestaurantsScreen} />
     </DashboardStackNav.Navigator>
   );
 };
@@ -112,7 +114,7 @@ const BottomTabs = () => {
         {/* Onglet Carte */}
       <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
-      <Tab.Screen name="Messagerie" component={MessageStack} />
+      <Tab.Screen name="Messagerie" component={MessageBoxScreen} />
       {/* 👤 Onglet Profil */}
       <Tab.Screen name="Profil" component={ProfileStackScreen} />
     </Tab.Navigator>
@@ -185,6 +187,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Restaurants" component={RestaurantsScreen} options={{ headerShown: false }} />
           
         </>
       )}
