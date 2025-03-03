@@ -19,7 +19,7 @@ const MessageBoxScreen = () => {
           console.error("Token manquant !");
           return;
         }
-
+  
         // 🔗 Requête GET pour récupérer les conversations de l’utilisateur
         const response = await fetch('https://backend-city-connect.vercel.app/conversations/my-conversations', {
           headers: {
@@ -27,7 +27,7 @@ const MessageBoxScreen = () => {
             'Content-Type': 'application/json',
           },
         });
-
+  
         const data = await response.json();
         if (response.ok) {
           // Filtrer pour afficher uniquement les conversations liées aux événements
@@ -42,10 +42,10 @@ const MessageBoxScreen = () => {
         setLoading(false); // ❌ Désactive l’indicateur de chargement
       }
     };
-
+  
     fetchConversations();
   }, []);
-
+  
   // 📌 Fonction appelée lorsqu'un utilisateur clique sur une conversation
   const handleOpenConversation = (conversation) => {
     navigation.navigate('Messaging', { 
@@ -93,6 +93,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noConversationText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#777',
   },
   conversationItem: {
     flexDirection: 'row',
@@ -104,6 +111,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     elevation: 2,
+    width: '100%',
   },
   conversationContent: {
     flex: 1,
