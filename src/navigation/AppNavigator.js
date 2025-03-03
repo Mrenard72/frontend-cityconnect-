@@ -18,6 +18,7 @@ import ActivityScreen from '../screens/ActivityScreen';
 import SortiesScreen from '../screens/SortiesScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import RestaurantsScreen from '../screens/RestaurantsScreen';
+import InfosScreen from '../screens/InfosScreen';
 
 // 📌 Import des icônes pour la barre de navigation
 import { Ionicons } from '@expo/vector-icons';
@@ -74,6 +75,11 @@ const ProfileStackScreen = () => {
         name="SortiesScreen" 
         component={SortiesScreen} 
         options={{ title: 'Mes sorties' }} 
+      />
+      <ProfileStack.Screen 
+        name="InfosScreen" 
+        component={InfosScreen} 
+        options={{ title: 'Mes infos' }} 
       />
     </ProfileStack.Navigator>
   );
@@ -175,7 +181,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-          
+      
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
