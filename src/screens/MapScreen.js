@@ -40,7 +40,7 @@ export default function MapScreen({ route, navigation }) {
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
 
-  // -- ACTIVITÉS --
+  // -- ACTIVITÉS -- !
   const [activities, setActivities] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(
     filter === 'activity' ? category : null
