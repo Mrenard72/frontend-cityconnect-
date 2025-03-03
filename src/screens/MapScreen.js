@@ -91,18 +91,15 @@ export default function MapScreen({ route, navigation }) {
       if (!response.ok) {
         Alert.alert("Erreur", data.message || "Impossible de réserver l'activité.");
       } else {
-        // Inscription réussie : rediriger vers l'écran de messagerie pour envoyer un message
-        if (data.conversation) {
-          navigation.navigate('Messagerie', {
-            screen: 'Messaging',
-            params: { 
-              conversationId: data.conversation._id,
-              conversationName: data.conversation.name || "Conversation"
-            }
-          });
-        } else {
-          Alert.alert("Réservation", "Vous êtes inscrit à l'activité !");
-        }
+        // Naviguer directement vers l'écran Messaging avec les infos de la conversation
+        navigation.navigate('Messagerie', {
+          screen: 'Messaging',
+          params: { 
+            conversationId: data.conversation._id,
+            // Utiliser le titre de l'événement pour nommer la conversation
+            conversationName: data.conversation.name || data.event.title || "Conversation"
+          }
+        });
       }
     } catch (error) {
       console.log("Erreur lors de l'inscription :", error);
