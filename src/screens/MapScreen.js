@@ -8,7 +8,7 @@ import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// URL du backend
+// URL du backend en const
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
 // Fonction pour convertir une chaîne "latitude, longitude" en objet { latitude, longitude }
