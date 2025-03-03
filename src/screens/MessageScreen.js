@@ -17,17 +17,15 @@ const MessageScreen = () => {
   const route = useRoute();
   const { conversationId, conversationName } = route.params;
 
-  const [messages, setMessages] = useState([]); // Stocke les messages de la conversation
-  const [newMessage, setNewMessage] = useState(''); // Stocke le message en cours de saisie
-  
+  const [messages, setMessages] = useState([]); // Messages de la conversation
+  const [newMessage, setNewMessage] = useState(''); // Message en cours
+
   // Charger les messages au démarrage
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         if (!token) return;
-        
-        // Requête GET pour récupérer les messages de la conversation
         const response = await fetch(`https://backend-city-connect.vercel.app/conversations/${conversationId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -53,8 +51,10 @@ const MessageScreen = () => {
     if (!newMessage.trim()) return;
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-      // Requête POST pour envoyer un message
+      if (!token) {
+        alert("Vous devez être connecté pour envoyer un message.");
+        return;
+      }
       const response = await fetch(`https://backend-city-connect.vercel.app/conversations/${conversationId}/message`, {
         method: 'POST',
         headers: {
@@ -65,8 +65,8 @@ const MessageScreen = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        setMessages(prev => [...prev, data]); // Ajoute le message à la liste
-        setNewMessage(''); // Réinitialise l’input
+        setMessages(prev => [...prev, data]); // Ajouter le nouveau message
+        setNewMessage('');
       } else {
         console.error("Erreur envoi message :", data.message);
       }
@@ -77,19 +77,22 @@ const MessageScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <Text style={styles.title}>{conversationName}</Text>
-
         <FlatList
           data={messages}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item._id.toString()}
           renderItem={({ item }) => (
             <View style={[styles.messageBubble, item.sender === 'me' ? styles.myMessage : styles.otherMessage]}>
               <Text style={styles.messageText}>{item.content}</Text>
             </View>
           )}
+          contentContainerStyle={{ paddingBottom: 20 }}
         />
-
         <View style={styles.inputContainer}>
           <TextInput 
             style={styles.textInput} 
@@ -109,9 +112,11 @@ const MessageScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
+    padding: 10,
     backgroundColor: '#f5f5f5',
   },
   title: {
