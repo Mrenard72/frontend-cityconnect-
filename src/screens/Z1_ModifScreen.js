@@ -11,10 +11,12 @@ const Z1_ModifScreen = ({ navigation }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  const handleGoBack = () => {
-    console.log("Bouton de retour pressé");
-    navigation.goBack();
-  };
+{/* Fleche de retour header */}
+const handleGoBack = () => {
+  console.log("Bouton de retour pressé");
+  navigation.goBack();
+};
+{/* Fleche de retour header */}
 
   const handleRegister = async () => {
     if (newPassword !== confirmNewPassword) {
@@ -52,9 +54,13 @@ const Z1_ModifScreen = ({ navigation }) => {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       {/* Bouton de retour placé au-dessus du Header */}
-      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-        <FontAwesome name="arrow-left" size={25} color="#20135B" />
-      </TouchableOpacity>
+
+        {/* Fleche de retour header */}
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <FontAwesome name="arrow-left" size={25} color="#20135B" />
+        </TouchableOpacity>
+        {/* Fleche de retour header */}
+
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
@@ -145,6 +151,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 25,
   },
+
+// Fleche de retour header
   backButton: {
     position: 'absolute',
     top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
@@ -152,8 +160,10 @@ const styles = StyleSheet.create({
     zIndex: 21, // Plus élevé que le zIndex du Header
     padding: 10, // Zone cliquable étendue
     backgroundColor: 'transparent', // Fond transparent pour respecter le design
-
   },
+// Fleche de retour header
+
+
 });
 
 export default Z1_ModifScreen;

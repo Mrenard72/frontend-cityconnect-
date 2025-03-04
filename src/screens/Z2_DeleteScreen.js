@@ -1,31 +1,37 @@
+// Supprimer le compte
+
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
 import { FontAwesome } from '@expo/vector-icons'
 
-const RegisterScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
+const Z2_DeleteScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleGoBack = () => {
-    console.log("Bouton de retour pressé");
-    navigation.goBack();
-  };
+//============================================================
+// rajouter verification dans bdd du mot de passe
+//============================================================
+
+{/* Fleche de retour header */}
+const handleGoBack = () => {
+  console.log("Bouton de retour pressé");
+  navigation.goBack();
+};
+{/* Fleche de retour header */}
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmNewPassword) {
       alert("Les mots de passe ne correspondent pas !");
       return;
     }
-
     try {
       const response = await fetch('https://backend-city-connect.vercel.app/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ password, newPassword }),
       });
 
       const data = await response.json();
@@ -47,24 +53,28 @@ const RegisterScreen = ({ navigation }) => {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       {/* Bouton de retour placé au-dessus du Header */}
-      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-        <FontAwesome name="arrow-left" size={25} color="#20135B" />
-      </TouchableOpacity>
+
+        {/* Fleche de retour header */}
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <FontAwesome name="arrow-left" size={25} color="#20135B" />
+        </TouchableOpacity>
+        {/* Fleche de retour header */}
+
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <Text style={styles.title}>Inscription</Text>
+          <Text style={styles.title}>Supprimer le compte</Text>
+          <TextInput 
+            placeholder="Adresse mail" 
+            style={styles.input} 
+            value={email} 
+            onChangeText={setEmail} 
+          />
           <TextInput 
             placeholder="Nom d'utilisateur" 
             style={styles.input} 
             value={username} 
             onChangeText={setUsername} 
-          />
-          <TextInput 
-            placeholder="Email" 
-            style={styles.input} 
-            value={email} 
-            onChangeText={setEmail} 
           />
           <TextInput 
             placeholder="Mot de passe" 
@@ -73,18 +83,9 @@ const RegisterScreen = ({ navigation }) => {
             value={password} 
             onChangeText={setPassword} 
           />
-          <TextInput 
-            placeholder="Confirmer le mot de passe" 
-            style={styles.input} 
-            secureTextEntry 
-            value={confirmPassword} 
-            onChangeText={setConfirmPassword} 
-          />
+          <Text style={styles.linkText}>mot de passe oublié ?</Text>
           <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>S'inscrire</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.linkText}>Déjà un compte ? Connecte-toi</Text>
+            <Text style={styles.buttonText}>Confirmer la suppression</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '100%',
     alignItems: 'center',
-    marginTop: 25,
+    marginTop: 120,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -146,15 +147,22 @@ const styles = StyleSheet.create({
     color: '#2D2A6E',
     fontFamily: 'FredokaOne',
     fontSize: 16,
+    marginTop: 2,
+    marginBottom: 25,
   },
-  backButton: {
-    position: 'absolute',
-    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
-    left: 20, // Distance par rapport au bord gauche
-    zIndex: 21, // Plus élevé que le zIndex du Header
-    padding: 10, // Zone cliquable étendue
-    backgroundColor: 'transparent', // Fond transparent pour respecter le design
-  },
+
+// Fleche de retour header
+backButton: {
+  position: 'absolute',
+  top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+  left: 20, // Distance par rapport au bord gauche
+  zIndex: 21, // Plus élevé que le zIndex du Header
+  padding: 10, // Zone cliquable étendue
+  backgroundColor: 'transparent', // Fond transparent pour respecter le design
+},
+// Fleche de retour header
+
+
 });
 
-export default RegisterScreen;
+export default Z2_DeleteScreen;
