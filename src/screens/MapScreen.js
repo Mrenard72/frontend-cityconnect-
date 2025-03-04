@@ -596,12 +596,31 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
       )}
 
 <MapView style={styles.map} region={region} onPress={handleMapPress}>
+  
+{/* 🔹 Petit ping pour la position actuelle */}
+<Marker
+    coordinate={{
+      latitude: region.latitude,
+      longitude: region.longitude
+    }}
+    title="Ma position"
+    tracksViewChanges={false}
+  >
+    <View style={{
+      width: 20,
+      height: 20,
+      backgroundColor: '#2D2A6E', // Couleur bleue foncée
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: 'white', 
+    }} />
+  </Marker>
+
+  {/* 🔹 Ajout des marqueurs pour les activités */}
   {allMarkers.map((act) => {
     if (!act.location) return null;
     const coords = parseLocation(act.location);
     if (!coords) return null;
-
-    console.log("🔍 Catégorie de l'activité:", act.category); // Debug
 
     return (
       <Marker
@@ -611,10 +630,10 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
         description={act.description}
         onPress={() => setSelectedActivity(act)}
       >
-        {/* Ajout de l'icône avec une taille fixe */}
+        {/* Icône de l'activité */}
         <Image
           source={categoryIcons[act.category]}
-          style={{ width: 40, height: 40, resizeMode: 'contain' }} // 📌 Taille fixe + ne s'étire pas
+          style={{ width: 40, height: 40, resizeMode: 'contain' }}
         />
       </Marker>
     );
