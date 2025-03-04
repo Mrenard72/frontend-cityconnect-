@@ -18,7 +18,8 @@ export default function MessageScreen() {
   const { conversationId = '', conversationName = 'Conversation' } = route.params || {};
 
   const [userId, setUserId] = useState(null);
-  const [username, setUsername] = useState('');  // Nouvel état pour le pseudo
+  const [username, setUsername] = useState('');  // Nom de l'utilisateur actuel
+  const [otherParticipant, setOtherParticipant] = useState(null); // Stockage de l'autre participant
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
 
@@ -35,6 +36,7 @@ export default function MessageScreen() {
         });
         const data = await res.json();
         if (res.ok && data._id) {
+          console.log('Utilisateur actuel récupéré:', data);
           setUserId(data._id);
           setUsername(data.username || 'Moi');
         } else {
@@ -70,26 +72,42 @@ export default function MessageScreen() {
         const conversation = await response.json();
         console.log('Conversation récupérée :', conversation);
 
+        // Trouver l'autre participant dans la conversation
+        if (conversation.participants && conversation.participants.length > 0) {
+          const other = conversation.participants.find(p => p._id !== userId);
+          if (other) {
+            console.log('Autre participant identifié:', other);
+            setOtherParticipant(other);
+            
+            // Mettre à jour le nom de la conversation si nécessaire
+            if (other.username && conversationName === 'Conversation') {
+              navigation.setParams({ conversationName: other.username });
+            }
+          }
+        }
+
         // On mappe les messages
         const loaded = conversation.messages.map((m) => {
-          const isMe = (m.sender && m.sender._id === userId);
+          const isMe = m.sender && m.sender._id === userId;
           return {
             id: m._id,
             text: m.content,
             sender: isMe ? 'me' : 'other',
-            // Si le sender est peuplé, utiliser son username, sinon utiliser le username stocké
-            senderName: m.sender?.username || username || 'Participant',
+            // Déterminer le nom de l'expéditeur de façon plus robuste
+            senderName: isMe 
+              ? username 
+              : (m.sender?.username || (otherParticipant?.username || 'Autre participant')),
             time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           };
         });
-
+        
         setMessages(loaded);
       } catch (err) {
         console.error('Erreur fetchConversation:', err);
       }
     }
     fetchConversation();
-  }, [userId, conversationId, username]);
+  }, [userId, conversationId, username, otherParticipant]);
 
   /*********************************************************
    * Étape 3 : Envoyer un message => POST /message
@@ -144,15 +162,29 @@ export default function MessageScreen() {
       const convData = await convRes.json();
       console.log("Conversation rechargée :", convData);
   
+      // Trouver l'autre participant si pas encore défini
+      if (!otherParticipant && convData.participants) {
+        const other = convData.participants.find(p => p._id !== userId);
+        if (other) {
+          console.log('Autre participant identifié après envoi:', other);
+          setOtherParticipant(other);
+        }
+      }
+  
       // Transformer les messages récupérés pour l'affichage
-      const updatedMessages = convData.messages.map((m) => ({
-        id: m._id,
-        text: m.content,
-        sender: m.sender && m.sender._id === userId ? 'me' : 'other',
-        // Si le backend renvoie un sender peuplé, on l'utilise, sinon on utilise le username local
-        senderName: m.sender?.username || username || 'Participant',
-        time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }));
+      const updatedMessages = convData.messages.map((m) => {
+        const isCurrentUser = m.sender && m.sender._id === userId;
+        return {
+          id: m._id,
+          text: m.content,
+          sender: isCurrentUser ? 'me' : 'other',
+          // Logique améliorée pour déterminer le nom de l'expéditeur
+          senderName: isCurrentUser 
+            ? username 
+            : (m.sender?.username || (otherParticipant?.username || 'Autre participant')),
+          time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+      });
   
       setMessages(updatedMessages);
     } catch (err) {
@@ -162,7 +194,6 @@ export default function MessageScreen() {
     }
   };
   
-
   // Bouton de retour
   const handleGoBack = () => navigation.goBack();
 
@@ -182,31 +213,41 @@ export default function MessageScreen() {
         <Header />
       </View>
 
-      <Text style={styles.title}>{conversationName}</Text>
+      {/* Titre de la conversation (nom de l'autre participant) */}
+      <Text style={styles.title}>
+        {otherParticipant?.username || conversationName}
+      </Text>
 
+      {/* Liste des messages */}
       <FlatList
         data={messages}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messagesContainer}
-        renderItem={({ item }) => {
-          const isMe = item.sender === 'me';
-          return (
-            <View>
-              {!isMe && <Text style={styles.senderName}>{item.senderName}</Text>}
-              <View
-                style={[
-                  styles.messageBubble,
-                  isMe ? styles.myMessage : styles.otherMessage,
-                ]}
-              >
-                <Text style={styles.messageText}>{item.text}</Text>
-                <Text style={styles.timeText}>{item.time}</Text>
-              </View>
+        renderItem={({ item }) => (
+          <View style={[
+            styles.messageContainer,
+            item.sender === 'me' ? styles.myMessageContainer : styles.otherMessageContainer
+          ]}>
+            <Text style={[
+              styles.senderName,
+              item.sender === 'me' ? styles.mySenderName : styles.otherSenderName
+            ]}>
+              {item.sender === 'me' ? 'Moi' : item.senderName}
+            </Text>
+            <View
+              style={[
+                styles.messageBubble,
+                item.sender === 'me' ? styles.myMessage : styles.otherMessage,
+              ]}
+            >
+              <Text style={styles.messageText}>{item.text}</Text>
+              <Text style={styles.timeText}>{item.time}</Text>
             </View>
-          );
-        }}
+          </View>
+        )}
       />
 
+      {/* Zone d'entrée de message */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.textInput}
@@ -245,26 +286,40 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingTop: 140,
   },
+  messageContainer: {
+    marginBottom: 15,
+    maxWidth: '80%',
+  },
+  myMessageContainer: {
+    alignSelf: 'flex-end',
+  },
+  otherMessageContainer: {
+    alignSelf: 'flex-start',
+  },
   senderName: {
     fontSize: 12,
-    color: '#555',
     marginBottom: 2,
     marginLeft: 5,
   },
+  mySenderName: {
+    color: '#20135B',
+    alignSelf: 'flex-end',
+    marginRight: 5,
+  },
+  otherSenderName: {
+    color: '#555',
+    alignSelf: 'flex-start',
+  },
   messageBubble: {
-    maxWidth: '80%',
     padding: 10,
     borderRadius: 10,
-    marginBottom: 10,
   },
   myMessage: {
-    alignSelf: 'flex-end',
     backgroundColor: '#F1F0F0',
     borderWidth: 1,
     borderColor: '#20135B',
   },
   otherMessage: {
-    alignSelf: 'flex-start',
     backgroundColor: '#E2DFEE',
     borderWidth: 1,
     borderColor: '#20135B',
@@ -309,5 +364,3 @@ const styles = StyleSheet.create({
     fontFamily: 'FredokaOne',
   },
 });
-
-
