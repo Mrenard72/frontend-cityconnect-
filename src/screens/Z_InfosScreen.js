@@ -31,12 +31,12 @@ const Z_InfosScreen = ({ navigation }) => {
         {/* Fleche de retour header */}    
 
     <Header/>
-<ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
+          <Text style={styles.title}>Mes infos</Text>
             {/* ✅ Boutons des différentes sections */}
           <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
             <Text style={styles.textButton}>Changer le mot de passe</Text>
-            <FontAwesome name="lock" size={24} color="white" style={styles.icon} />
+            <FontAwesome name="" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z2_DeleteScreen')}>
@@ -44,7 +44,6 @@ const Z_InfosScreen = ({ navigation }) => {
             <FontAwesome name="" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
         </View>
-      </ScrollView>
     </ImageBackground>
   );
 };
@@ -54,6 +53,12 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     resizeMode: 'cover',
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 20,
   },
   container: {
     flex: 1,
