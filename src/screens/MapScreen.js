@@ -489,6 +489,12 @@ export default function MapScreen({ route, navigation }) {
   if (loading) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
+  const categoryIcons = {
+    Sport: require('../../assets/Iconsport.png'),
+    Culturel: require('../../assets/Iconculturel.png'),
+    Sorties: require('../../assets/Iconsortie.png'),
+    Culinaire: require('../../assets/Iconculinaire.png'),
+};
 
   return (
     <View style={styles.container}>
@@ -517,36 +523,42 @@ export default function MapScreen({ route, navigation }) {
         </KeyboardAvoidingView>
       )}
 
-      <MapView style={styles.map} region={region} onPress={handleMapPress}>
-        {allMarkers.map((act) => {
-          if (!act.location) return null;
-          const coords = parseLocation(act.location);
-          if (!coords) return null;
-          return (
-            <Marker
-              key={act._id}
-              coordinate={coords}
-              title={act.title}
-              description={act.description}
-              onCalloutPress={() => {
-                Alert.alert(
-                  "Réserver l'activité ?",
-                  `Voulez-vous vous inscrire à: ${act.title} ?`,
-                  [
-                    { text: 'Annuler', style: 'cancel' },
-                    { text: 'OK', onPress: () => handleJoinEvent(act._id) },
-                  ]
-                );
-              }}
-            />
+<MapView style={styles.map} region={region} onPress={handleMapPress}>
+  {allMarkers.map((act) => {
+    if (!act.location) return null;
+    const coords = parseLocation(act.location);
+    if (!coords) return null;
+
+    console.log("🔍 Catégorie de l'activité:", act.category); // Debug
+
+    return (
+      <Marker
+        key={act._id}
+        coordinate={coords}
+        title={act.title}
+        description={act.description}
+        onCalloutPress={() => {
+          Alert.alert(
+            "Réserver l'activité ?",
+            `Voulez-vous vous inscrire à: ${act.title} ?`,
+            [
+              { text: 'Annuler', style: 'cancel' },
+              { text: 'OK', onPress: () => handleJoinEvent(act._id) },
+            ]
           );
-        })}
-        <Marker
-          coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-          title={filter === 'byLocality' && locality ? locality.name : 'Position actuelle'}
-          pinColor="blue"
+        }}
+      >
+        {/* Ajout de l'icône avec une taille fixe */}
+        <Image
+          source={categoryIcons[act.category]}
+          style={{ width: 40, height: 40, resizeMode: 'contain' }} // 📌 Taille fixe + ne s'étire pas
         />
-      </MapView>
+      </Marker>
+    );
+  })}
+</MapView>
+
+
 
       {filter === 'activity' && (
         <View style={styles.categoryBar}>
