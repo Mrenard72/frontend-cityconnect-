@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, Alert, ActivityIndicator } from 'reac
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Header from '../components/Header';
-import { Animated } from 'react-native';
+
 
 // ✅ Fonction pour calculer la distance entre 2 points GPS
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
