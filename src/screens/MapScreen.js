@@ -508,28 +508,28 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
 
   return (
     <Modal visible={!!activity} transparent animationType="fade">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+      <View style={styles.activityModal_overlay}>
+        <View style={styles.activityModal_container}>
           
           {/* 🔹 TITRE CENTRÉ */}
-          <Text style={styles.modalTitle}>{activity.title}</Text>
+          <Text style={styles.activityModal_title}>{activity.title}</Text>
 
           {/* 🔹 DESCRIPTION CENTRÉE */}
-          <Text style={styles.modalDescription}>{activity.description}</Text>
+          <Text style={styles.activityModal_description}>{activity.description}</Text>
 
           {/* 🔹 IMAGE GRANDE */}
           {activity.photos && activity.photos.length > 0 ? (
             <Image 
               source={{ uri: activity.photos[0] }} 
-              style={styles.imagePreview}
+              style={styles.activityModal_imagePreview}
             />
           ) : (
-            <Text style={styles.noImageText}>Aucune image disponible</Text>
+            <Text style={styles.activityModal_noImageText}>Aucune image disponible</Text>
           )}
 
           {/* 🔹 DATE & PARTICIPANTS ALIGNÉS SUR UNE MÊME LIGNE */}
-          <View style={styles.infoRow}>
-            <Text style={styles.infoText}>
+          <View style={styles.activityModal_infoRow}>
+            <Text style={styles.activityModal_infoText}>
               📅 {activity.date ? new Date(activity.date).toLocaleDateString('fr-FR', {
                 weekday: 'long',
                 day: 'numeric',
@@ -537,24 +537,24 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
                 year: 'numeric'
               }) : "Date non définie"}
             </Text>
-            <Text style={styles.infoText}>
+            <Text style={styles.activityModal_infoText}>
               👥 {activity.participants ? activity.participants.length : 0}/{activity.maxParticipants || '∞'}
             </Text>
           </View>
 
           {/* 🔹 BOUTONS */}
-          <View style={styles.modalButtons}>
-            <TouchableOpacity style={styles.joinButton} onPress={() => {
+          <View style={styles.activityModal_buttons}>
+            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => {
                 onJoin(activity._id);
                 onClose();
                 Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
               }}
             >
-              <Text style={styles.buttonText}>Rejoindre</Text>
+              <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.buttonText}>Fermer</Text>
+            <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>
+              <Text style={styles.activityModal_buttonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
 
@@ -563,6 +563,7 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
     </Modal>
   );
 };
+
 
 
 
@@ -688,7 +689,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginVertical: 5,
-    color: '#000', // Texte noir pour bien le voir
+    color: '#000',
   },
   button: {
     backgroundColor: '#2D2A6E',
@@ -697,43 +698,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   buttonText: { color: '#FFF', fontWeight: 'bold' },
-  categoryBar: {
-    position: 'absolute',
-    bottom: 20,
-    left: 10,
-    right: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  categoryButton: {
-     backgroundColor: '#ccc', 
-    paddingVertical: 8, 
-    paddingHorizontal: 12, borderRadius: 5 },
-  activeButton: { 
-    backgroundColor: '#2D2A6E' },
-  categoryText: {
-     color: '#FFF', fontWeight: 'bold' },
-  modalOverlay: {
-     flex: 1, justifyContent: 'center',
-      alignItems: 'center', 
-      backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContainer: {
-     width: '85%', 
-     backgroundColor: '#FFF',
-      padding: 20, 
-      borderRadius: 8 },
-  modalTitle: { fontSize: 30, fontWeight: 'bold', marginBottom: 10 },
-  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
-  imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
-  imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
-  datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
-  dropdownContainer: {
-    zIndex: 2000, // Évite que le dropdown soit caché par d'autres éléments
-  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -744,55 +708,75 @@ const styles = StyleSheet.create({
     width: '85%',
     backgroundColor: '#FFF',
     padding: 20,
-    borderRadius: 15,
-    alignItems: 'center', // Centre tout le contenu
+    borderRadius: 8,
   },
-  modalTitle: {
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
+  imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
+  imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
+  datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
+  
+  // ✅ STYLES UNIQUEMENT POUR `ActivityDetailsModal`
+  activityModal_overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  activityModal_container: {
+    width: '85%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  activityModal_title: {
     fontSize: 22,
     fontWeight: 'bold',
-    textAlign: 'center', // 🔹 Centre le titre
+    textAlign: 'center',
     marginBottom: 5,
     color: '#2D2A6E',
   },
-  modalDescription: {
+  activityModal_description: {
     fontSize: 16,
-    textAlign: 'center', // 🔹 Centre la description
+    textAlign: 'center',
     color: '#555',
     marginBottom: 15,
-    paddingHorizontal: 10, // Évite que ça touche les bords
+    paddingHorizontal: 10,
   },
-  imagePreview: {
+  activityModal_imagePreview: {
     width: '100%',
     height: 200,
     borderRadius: 10,
-    marginBottom: 15, // 🔹 Ajoute un espace avant la date & participants
+    marginBottom: 15,
   },
-  noImageText: {
+  activityModal_noImageText: {
     fontSize: 14,
     color: '#777',
     fontStyle: 'italic',
     textAlign: 'center',
     marginBottom: 15,
   },
-  infoRow: {
-    flexDirection: 'row', // 🔹 Aligne date & participants sur la même ligne
+  activityModal_infoRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%', // 🔹 Prend toute la largeur de la modale
+    width: '100%',
     paddingHorizontal: 15,
     marginBottom: 20,
   },
-  infoText: {
+  activityModal_infoText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
   },
-  modalButtons: {
+  activityModal_buttons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
   },
-  joinButton: {
-    backgroundColor: '#4CAF50', // 
+  activityModal_joinButton: {
+    backgroundColor: '#4CAF50',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -800,15 +784,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  closeButton: {
-    backgroundColor: '#2D2A6E',
+  activityModal_closeButton: {
+    backgroundColor: '#FF6347',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     flex: 1,
     alignItems: 'center',
   },
-  buttonText: {
+  activityModal_buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
   },
