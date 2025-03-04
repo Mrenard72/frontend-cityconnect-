@@ -96,25 +96,24 @@ export default function MessageScreen() {
    *********************************************************/
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
-
+  
     const tempId = Date.now().toString();
+    // Message temporaire optimiste (affiché immédiatement)
     const localMsg = {
       id: tempId,
       text: newMessage,
       sender: 'me',
-      senderName: username || 'Moi',  // utiliser le username local
+      senderName: username || 'Moi', // username stocké localement
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-
-    // Mise à jour optimiste
+  
     setMessages((prev) => [...prev, localMsg]);
     setNewMessage('');
-
+  
     try {
       const token = await AsyncStorage.getItem('token');
-      console.log("Token lu depuis AsyncStorage:", token);
       if (!token) return;
-
+  
       console.log("Envoi du message à", `${BACKEND_URL}/conversations/${conversationId}/message`);
       const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}/message`, {
         method: 'POST',
@@ -124,34 +123,45 @@ export default function MessageScreen() {
         },
         body: JSON.stringify({ content: localMsg.text }),
       });
-
+  
       if (!response.ok) {
         const status = response.status;
         const errTxt = await response.text();
         console.log(`Erreur POST message: status=${status}, body=`, errTxt);
         throw new Error('Envoi message échoué');
       }
-
-      const serverMsg = await response.json();
-      console.log('Message créé côté serveur :', serverMsg);
-
-      // Construire le message final
-      const finalMsg = {
-        id: serverMsg._id,
-        text: serverMsg.content,
-        sender: serverMsg.sender?._id === userId ? 'me' : 'other',
-        // Ici, si serverMsg.sender?.username est absent, utiliser le username stocké localement
-        senderName: (serverMsg.sender && serverMsg.sender.username) || username || 'Participant',
-        time: new Date(serverMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? finalMsg : m)));
+  
+      // Au lieu de se fier à la réponse immédiate, on recharge la conversation
+      const convRes = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!convRes.ok) {
+        throw new Error('Impossible de recharger la conversation');
+      }
+      const convData = await convRes.json();
+      console.log("Conversation rechargée :", convData);
+  
+      // Transformer les messages récupérés pour l'affichage
+      const updatedMessages = convData.messages.map((m) => ({
+        id: m._id,
+        text: m.content,
+        sender: m.sender && m.sender._id === userId ? 'me' : 'other',
+        // Si le backend renvoie un sender peuplé, on l'utilise, sinon on utilise le username local
+        senderName: m.sender?.username || username || 'Participant',
+        time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }));
+  
+      setMessages(updatedMessages);
     } catch (err) {
       console.error('Erreur handleSendMessage:', err);
-      // Optionnel : retirer le message local si erreur
-      // setMessages((prev) => prev.filter(m => m.id !== tempId));
+      // Optionnel : retirer le message temporaire en cas d'erreur
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
   };
+  
 
   // Bouton de retour
   const handleGoBack = () => navigation.goBack();
@@ -300,4 +310,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MessageScreen;
+
