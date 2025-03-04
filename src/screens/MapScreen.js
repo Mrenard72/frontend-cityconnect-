@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, Alert, ActivityIndicator,
-  TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, Image
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
+  Image
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,9 +20,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropDownPicker from 'react-native-dropdown-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
-
-
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dasntwyhd/image/upload';
@@ -41,13 +47,12 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
   const [photoUri, setPhotoUri] = useState(null);
   const [isCalendarVisible, setCalendarVisible] = useState(false);
   const [openCategory, setOpenCategory] = useState(false);
-const [items, setItems] = useState([
-  { label: 'Sport', value: 'Sport' },
-  { label: 'Culturel', value: 'Culturel' },
-  { label: 'Sorties', value: 'Sorties' },
-  { label: 'Culinaire', value: 'Culinaire' },
-]);
-
+  const [items, setItems] = useState([
+    { label: 'Sport', value: 'Sport' },
+    { label: 'Culturel', value: 'Culturel' },
+    { label: 'Sorties', value: 'Sorties' },
+    { label: 'Culinaire', value: 'Culinaire' },
+  ]);
 
   const pickImage = async () => {
     try {
@@ -56,32 +61,28 @@ const [items, setItems] = useState([
         Alert.alert("Permission refusée", "Vous devez autoriser l'accès à la galerie pour sélectionner une image.");
         return;
       }
-
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       });
-
-      console.log("Résultat de la sélection d'image :", result); // Log pour déboguer
-
+      console.log("Résultat de la sélection d'image :", result);
       if (!result.canceled) {
         setPhotoUri(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Erreur lors de la sélection de l'image :", error); // Log pour déboguer
+      console.error("Erreur lors de la sélection de l'image :", error);
       Alert.alert("Erreur", "Impossible de sélectionner une image.");
     }
   };
+
   const handleCreate = () => {
     if (!title || !description || !date || !category || !maxParticipants) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
       return;
     }
-  
     const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
-  
     console.log("📤 Données envoyées par handleCreate :", {
       title,
       description,
@@ -90,85 +91,66 @@ const [items, setItems] = useState([
       maxParticipants,
       photoUri,
     });
-  
-    // Envoie les données au parent (MapScreen) via onCreate
     onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
-  
+
   const handleDayPress = (day) => {
     const newDate = new Date(day.dateString);
-  
-    // Stocke la date sélectionnée
     setSelectedDate(newDate);
-  
-    // Formate la date pour affichage
     const formattedDate = newDate.toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
-  
     setDate(formattedDate);
     setCalendarVisible(false);
   };
-  
-  
-
 
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Créer une activité</Text>
-          <TextInput style={styles.modalInput} placeholder="Titre" placeholderTextColor="#666"  value={title} onChangeText={setTitle} />
+          <TextInput style={styles.modalInput} placeholder="Titre" placeholderTextColor="#666" value={title} onChangeText={setTitle} />
           <TextInput style={[styles.modalInput, { height: 70 }]} multiline placeholder="Description" placeholderTextColor="#666" value={description} onChangeText={setDescription} />
           <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Text style={styles.buttonText}>Choisir une image</Text>
-    <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-  </View>
-</TouchableOpacity>
-
-
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.buttonText}>Choisir une image</Text>
+              <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+            </View>
+          </TouchableOpacity>
           {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
           <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
-  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-    <Text style={styles.buttonText}>
-      {date ? ` ${date}` : "Choisir une date"}
-    </Text>
-    <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-  </View>
-</TouchableOpacity>
-
-
-
-{isCalendarVisible && (
-  <Calendar
-    onDayPress={handleDayPress}
-    markedDates={
-      selectedDate
-        ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
-        : {}
-    }
-  />
-)}
-
- <View style={{ zIndex: 3000, marginBottom: 10 }}>
-  <DropDownPicker
-    open={openCategory}
-    value={category}
-    items={items}
-    setOpen={setOpenCategory}
-    setValue={setCategory}
-    setItems={setItems}
-    placeholder="Sélectionner une catégorie"
-    style={{ borderColor: '#CCC' }}
-    dropDownContainerStyle={{ backgroundColor: '#FFF' }}
-  />
-</View>
-
-
-
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={styles.buttonText}>
+                {date ? ` ${date}` : "Choisir une date"}
+              </Text>
+              <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+            </View>
+          </TouchableOpacity>
+          {isCalendarVisible && (
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={
+                selectedDate
+                  ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
+                  : {}
+              }
+            />
+          )}
+          <View style={{ zIndex: 3000, marginBottom: 10 }}>
+            <DropDownPicker
+              open={openCategory}
+              value={category}
+              items={items}
+              setOpen={setOpenCategory}
+              setValue={setCategory}
+              setItems={setItems}
+              placeholder="Sélectionner une catégorie"
+              style={{ borderColor: '#CCC' }}
+              dropDownContainerStyle={{ backgroundColor: '#FFF' }}
+            />
+          </View>
           <TextInput style={styles.modalInput} placeholder="Max participants" keyboardType="numeric" value={maxParticipants} onChangeText={setMaxParticipants} />
           <View style={styles.modalButtons}>
             <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
@@ -184,11 +166,51 @@ const [items, setItems] = useState([
   );
 };
 
+// Composant pour afficher les détails d'une activité
+const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
+  if (!activity) return null;
+  return (
+    <Modal visible={!!activity} transparent animationType="fade">
+      <View style={styles.activityModal_overlay}>
+        <View style={styles.activityModal_container}>
+          <Text style={styles.activityModal_title}>{activity.title}</Text>
+          <Text style={styles.activityModal_description}>{activity.description}</Text>
+          {activity.photos && activity.photos.length > 0 ? (
+            <Image source={{ uri: activity.photos[0] }} style={styles.activityModal_imagePreview} />
+          ) : (
+            <Text style={styles.activityModal_noImageText}>Aucune image disponible</Text>
+          )}
+          <View style={styles.activityModal_infoRow}>
+            <Text style={styles.activityModal_infoText}>
+              📅 {activity.date ? new Date(activity.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              }) : "Date non définie"}
+            </Text>
+            <Text style={styles.activityModal_infoText}>
+              👥 {activity.participants ? activity.participants.length : 0}/{activity.maxParticipants || '∞'}
+            </Text>
+          </View>
+          <View style={styles.activityModal_buttons}>
+            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => { onJoin(activity._id); onClose(); Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit."); }}>
+              <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>
+              <Text style={styles.activityModal_buttonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 // Composant principal MapScreen
 export default function MapScreen({ route, navigation }) {
   const { filter, userLocation, category, locality } = route.params || {};
 
-  // Région par défaut (Paris)
   const defaultRegion = {
     latitude: 48.8566,
     longitude: 2.3522,
@@ -200,6 +222,7 @@ export default function MapScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
   const [activitiesCreated, setActivitiesCreated] = useState([]);
+  // On initialise selectedCategory avec la catégorie passée en paramètre si le filtre est 'activity'
   const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
   const [showInput, setShowInput] = useState(false);
   const [latitudeInput, setLatitudeInput] = useState('');
@@ -208,12 +231,6 @@ export default function MapScreen({ route, navigation }) {
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
 
-
-
-
-
-
-  // Récupérer le token
   async function getToken() {
     try {
       return await AsyncStorage.getItem('token');
@@ -222,7 +239,6 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  // Rejoindre un événement
   async function handleJoinEvent(eventId) {
     const token = await getToken();
     if (!token) {
@@ -259,7 +275,6 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  // Charger les activités
   async function fetchActivities(cat) {
     try {
       setLoading(true);
@@ -275,14 +290,12 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-   // Recharge automatiquement les activités dès que selectedCategory change
-   useEffect(() => {
+  useEffect(() => {
     if (filter === 'activity') {
       fetchActivities(selectedCategory);
     }
   }, [selectedCategory, filter]);
 
-  // Gérer la localisation de l'utilisateur
   async function getUserLocation() {
     setLoading(true);
     try {
@@ -304,7 +317,6 @@ export default function MapScreen({ route, navigation }) {
     setLoading(false);
   }
 
-  // Recentrer la carte manuellement
   function handleRecenterMap() {
     const lat = parseFloat(latitudeInput);
     const lon = parseFloat(longitudeInput);
@@ -320,7 +332,6 @@ export default function MapScreen({ route, navigation }) {
     });
   }
 
-  // Gérer le clic sur la carte
   function handleMapPress(e) {
     if (filter === 'createActivity') {
       const { coordinate } = e.nativeEvent;
@@ -329,22 +340,18 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  // Créer une activité
   const handleCreateActivity = async (activityData) => {
     const { title, description, date, category, maxParticipants, photoUri } = activityData;
-  
     if (!newActivityCoords || !title || !description || !category || !maxParticipants) {
       Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
       return;
     }
-  
     setLoading(true);
     const token = await getToken();
     if (!token) {
       Alert.alert("Erreur", "Vous devez être connecté");
       return;
     }
-  
     let photoUrl = null;
     if (photoUri) {
       console.log("📤 Upload de l'image...");
@@ -355,19 +362,16 @@ export default function MapScreen({ route, navigation }) {
         return;
       }
     }
-  
     const payload = {
       title,
       description,
-      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`, // Ajout des coordonnées
+      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
       date,
       category,
       maxParticipants: parseInt(maxParticipants, 10),
       photos: photoUrl ? [photoUrl] : [],
     };
-  
     console.log("📤 Données envoyées au backend :", JSON.stringify(payload, null, 2));
-  
     try {
       const res = await fetch(`${BASE_URL}/events`, {
         method: 'POST',
@@ -377,16 +381,13 @@ export default function MapScreen({ route, navigation }) {
         },
         body: JSON.stringify(payload),
       });
-  
       const data = await res.json();
       console.log("📩 Réponse du backend :", data);
-  
       if (!res.ok) {
         Alert.alert("Erreur", data.message || "Impossible de créer");
         setLoading(false);
         return;
       }
-  
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
       setActivitiesCreated([...activitiesCreated, data.event]);
@@ -395,17 +396,13 @@ export default function MapScreen({ route, navigation }) {
       console.error("❌ Erreur lors de la création :", error);
       Alert.alert("Erreur", "Impossible de créer l'activité");
     }
-  
     setLoading(false);
   };
-  
 
-  // Téléverser une image sur Cloudinary
   const uploadImage = async (uri) => {
     let formData = new FormData();
     formData.append('file', { uri, type: 'image/jpeg', name: 'activity.jpg' });
     formData.append('upload_preset', UPLOAD_PRESET);
-
     const response = await fetch(CLOUDINARY_URL, {
       method: 'POST',
       body: formData,
@@ -414,7 +411,6 @@ export default function MapScreen({ route, navigation }) {
     return data.secure_url;
   };
 
-  // Effet de focus pour gérer les modes
   useFocusEffect(
     useCallback(() => {
       if (filter === 'aroundMe') {
@@ -428,7 +424,6 @@ export default function MapScreen({ route, navigation }) {
       } else if (filter === 'activity') {
         setShowInput(false);
         handleActivityMode();
-        // Le rechargement est maintenant géré par useEffect sur [selectedCategory, filter]
       } else if (filter === 'createActivity') {
         setShowInput(false);
         handleCreateActivityMode();
@@ -436,7 +431,6 @@ export default function MapScreen({ route, navigation }) {
     }, [filter])
   );
 
-  // Gérer le mode "byLocality"
   function handleByLocality() {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
@@ -452,7 +446,6 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  // Gérer le mode "activity"
   async function handleActivityMode() {
     if (userLocation) {
       setRegion({
@@ -466,7 +459,6 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  // Gérer le mode "createActivity"
   async function handleCreateActivityMode() {
     if (userLocation) {
       setRegion({
@@ -480,7 +472,6 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  // Fusionner les marqueurs
   let allMarkers = [];
   if (filter === 'createActivity') {
     allMarkers = [
@@ -494,79 +485,13 @@ export default function MapScreen({ route, navigation }) {
   if (loading) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
+
   const categoryIcons = {
     Sport: require('../../assets/Iconsport.png'),
     Culturel: require('../../assets/Iconculturel.png'),
     Sorties: require('../../assets/Iconsortie.png'),
     Culinaire: require('../../assets/Iconculinaire.png'),
-};
-
-
-// modale a l'ouverture de l'activité 
-const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
-  if (!activity) return null;
-
-  return (
-    <Modal visible={!!activity} transparent animationType="fade">
-      <View style={styles.activityModal_overlay}>
-        <View style={styles.activityModal_container}>
-          
-          {/* 🔹 TITRE CENTRÉ */}
-          <Text style={styles.activityModal_title}>{activity.title}</Text>
-
-          {/* 🔹 DESCRIPTION CENTRÉE */}
-          <Text style={styles.activityModal_description}>{activity.description}</Text>
-
-          {/* 🔹 IMAGE GRANDE */}
-          {activity.photos && activity.photos.length > 0 ? (
-            <Image 
-              source={{ uri: activity.photos[0] }} 
-              style={styles.activityModal_imagePreview}
-            />
-          ) : (
-            <Text style={styles.activityModal_noImageText}>Aucune image disponible</Text>
-          )}
-
-          {/* 🔹 DATE & PARTICIPANTS ALIGNÉS SUR UNE MÊME LIGNE */}
-          <View style={styles.activityModal_infoRow}>
-            <Text style={styles.activityModal_infoText}>
-              📅 {activity.date ? new Date(activity.date).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              }) : "Date non définie"}
-            </Text>
-            <Text style={styles.activityModal_infoText}>
-              👥 {activity.participants ? activity.participants.length : 0}/{activity.maxParticipants || '∞'}
-            </Text>
-          </View>
-
-          {/* 🔹 BOUTONS */}
-          <View style={styles.activityModal_buttons}>
-            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => {
-                onJoin(activity._id);
-                onClose();
-                Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
-              }}
-            >
-              <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>
-              <Text style={styles.activityModal_buttonText}>Fermer</Text>
-            </TouchableOpacity>
-          </View>
-
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
-
-
-
+  };
 
   return (
     <View style={styles.container}>
@@ -595,74 +520,51 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
         </KeyboardAvoidingView>
       )}
 
-<MapView style={styles.map} region={region} onPress={handleMapPress}>
-  
-{/* 🔹 Petit ping pour la position actuelle */}
-<Marker
-    coordinate={{
-      latitude: region.latitude,
-      longitude: region.longitude
-    }}
-    title="Ma position"
-    tracksViewChanges={false}
-  >
-    <View style={{
-      width: 20,
-      height: 20,
-      backgroundColor: '#2D2A6E', // Couleur bleue foncée
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: 'white', 
-    }} />
-  </Marker>
-
-  {/* 🔹 Ajout des marqueurs pour les activités */}
-  {allMarkers.map((act) => {
-    if (!act.location) return null;
-    const coords = parseLocation(act.location);
-    if (!coords) return null;
-
-    return (
-      <Marker
-        key={act._id}
-        coordinate={coords}
-        title={act.title}
-        description={act.description}
-        onPress={() => setSelectedActivity(act)}
-      >
-        {/* Icône de l'activité */}
-        <Image
-          source={categoryIcons[act.category]}
-          style={{ width: 40, height: 40, resizeMode: 'contain' }}
+      <MapView style={styles.map} region={region} onPress={handleMapPress}>
+        {allMarkers.map((act) => {
+          if (!act.location) return null;
+          const coords = parseLocation(act.location);
+          if (!coords) return null;
+          return (
+            <Marker
+              key={act._id}
+              coordinate={coords}
+              title={act.title}
+              description={act.description}
+              onPress={() => setSelectedActivity(act)}
+            >
+              <Image
+                source={categoryIcons[act.category]}
+                style={{ width: 40, height: 40, resizeMode: 'contain' }}
+              />
+            </Marker>
+          );
+        })}
+        <Marker
+          coordinate={{ latitude: region.latitude, longitude: region.longitude }}
+          title={filter === 'byLocality' && locality ? locality.name : 'Position actuelle'}
+          pinColor="blue"
         />
-      </Marker>
-    );
-  })}
-</MapView>
-{/* Modale qui s'affiche quand une activité est sélectionnée */}
-<ActivityDetailsModal
-  activity={selectedActivity}
-  onClose={() => setSelectedActivity(null)}
-  onJoin={handleJoinEvent}
-/>
+      </MapView>
 
-
-
-
+      {selectedActivity && (
+        <ActivityDetailsModal
+          activity={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+          onJoin={handleJoinEvent}
+        />
+      )}
 
       {filter === 'activity' && (
         <View style={styles.categoryBar}>
-          {['Sport', 'Culturel', 'Sorties'].map((cat) => (
+          {['Sport', 'Culturel', 'Sorties', 'Culinaire'].map((cat) => (
             <TouchableOpacity
               key={cat}
               style={[
                 styles.categoryButton,
                 selectedCategory === cat && styles.activeButton,
               ]}
-              onPress={() => {
-                setSelectedCategory(cat);
-                fetchActivities(cat);
-              }}
+              onPress={() => setSelectedCategory(cat)}
             >
               <Text style={styles.categoryText}>{cat}</Text>
             </TouchableOpacity>
@@ -717,26 +619,30 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   buttonText: { color: '#FFF', fontWeight: 'bold' },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  categoryBar: {
+    position: 'absolute',
+    bottom: 20,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  modalContainer: {
-    width: '85%',
-    backgroundColor: '#FFF',
-    padding: 20,
-    borderRadius: 8,
-  },
+  categoryButton: { backgroundColor: '#ccc', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5 },
+  activeButton: { backgroundColor: '#2D2A6E' },
+  categoryText: { color: '#FFF', fontWeight: 'bold' },
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContainer: { width: '85%', backgroundColor: '#FFF', padding: 20, borderRadius: 8 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
-  
-  // ✅ STYLES UNIQUEMENT POUR `ActivityDetailsModal`
+  dropdownContainer: { zIndex: 2000 },
+  // Styles pour ActivityDetailsModal
   activityModal_overlay: {
     flex: 1,
     justifyContent: 'center',
@@ -816,3 +722,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+
