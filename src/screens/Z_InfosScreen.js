@@ -16,12 +16,12 @@ const InfosScreen = ({ navigation }) => {
         <Text style={styles.title}>Mes infos</Text>
 
         {/* 📌 Boutons des différentes sections */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('ChangeMDPScreen')}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
           <Text style={styles.textButton}>Changer le mot de passe</Text>
           <FontAwesome name="" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('SuppressionScreen')}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z2_DeleteScreen')}>
           <Text style={styles.textButton}>Supprimer le compte</Text>
           <FontAwesome name="" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
