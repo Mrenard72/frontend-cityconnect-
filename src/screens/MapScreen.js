@@ -206,6 +206,8 @@ export default function MapScreen({ route, navigation }) {
   const [longitudeInput, setLongitudeInput] = useState('');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+
 
 
 
@@ -496,6 +498,72 @@ export default function MapScreen({ route, navigation }) {
     Culinaire: require('../../assets/Iconculinaire.png'),
 };
 
+
+// modale a l'ouverture de l'activité 
+const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
+  if (!activity) return null;
+
+  return (
+    <Modal visible={!!activity} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          
+          {/* 🔹 TITRE CENTRÉ */}
+          <Text style={styles.modalTitle}>{activity.title}</Text>
+
+          {/* 🔹 DESCRIPTION CENTRÉE */}
+          <Text style={styles.modalDescription}>{activity.description}</Text>
+
+          {/* 🔹 IMAGE GRANDE */}
+          {activity.photos && activity.photos.length > 0 ? (
+            <Image 
+              source={{ uri: activity.photos[0] }} 
+              style={styles.imagePreview}
+            />
+          ) : (
+            <Text style={styles.noImageText}>Aucune image disponible</Text>
+          )}
+
+          {/* 🔹 DATE & PARTICIPANTS ALIGNÉS SUR UNE MÊME LIGNE */}
+          <View style={styles.infoRow}>
+            <Text style={styles.infoText}>
+              📅 {activity.date ? new Date(activity.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              }) : "Date non définie"}
+            </Text>
+            <Text style={styles.infoText}>
+              👥 {activity.participants ? activity.participants.length : 0}/{activity.maxParticipants || '∞'}
+            </Text>
+          </View>
+
+          {/* 🔹 BOUTONS */}
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={styles.joinButton} onPress={() => {
+                onJoin(activity._id);
+                onClose();
+                Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
+              }}
+            >
+              <Text style={styles.buttonText}>Rejoindre</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.buttonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+
+
+
   return (
     <View style={styles.container}>
       {showInput && (
@@ -537,16 +605,7 @@ export default function MapScreen({ route, navigation }) {
         coordinate={coords}
         title={act.title}
         description={act.description}
-        onCalloutPress={() => {
-          Alert.alert(
-            "Réserver l'activité ?",
-            `Voulez-vous vous inscrire à: ${act.title} ?`,
-            [
-              { text: 'Annuler', style: 'cancel' },
-              { text: 'OK', onPress: () => handleJoinEvent(act._id) },
-            ]
-          );
-        }}
+        onPress={() => setSelectedActivity(act)}
       >
         {/* Ajout de l'icône avec une taille fixe */}
         <Image
@@ -557,6 +616,14 @@ export default function MapScreen({ route, navigation }) {
     );
   })}
 </MapView>
+{/* Modale qui s'affiche quand une activité est sélectionnée */}
+<ActivityDetailsModal
+  activity={selectedActivity}
+  onClose={() => setSelectedActivity(null)}
+  onJoin={handleJoinEvent}
+/>
+
+
 
 
 
@@ -655,7 +722,7 @@ const styles = StyleSheet.create({
      backgroundColor: '#FFF',
       padding: 20, 
       borderRadius: 8 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  modalTitle: { fontSize: 30, fontWeight: 'bold', marginBottom: 10 },
   modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
@@ -664,5 +731,82 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     zIndex: 2000, // Évite que le dropdown soit caché par d'autres éléments
   },
-  
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    width: '85%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center', // Centre tout le contenu
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center', // 🔹 Centre le titre
+    marginBottom: 5,
+    color: '#2D2A6E',
+  },
+  modalDescription: {
+    fontSize: 16,
+    textAlign: 'center', // 🔹 Centre la description
+    color: '#555',
+    marginBottom: 15,
+    paddingHorizontal: 10, // Évite que ça touche les bords
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 15, // 🔹 Ajoute un espace avant la date & participants
+  },
+  noImageText: {
+    fontSize: 14,
+    color: '#777',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  infoRow: {
+    flexDirection: 'row', // 🔹 Aligne date & participants sur la même ligne
+    justifyContent: 'space-between',
+    width: '100%', // 🔹 Prend toute la largeur de la modale
+    paddingHorizontal: 15,
+    marginBottom: 20,
+  },
+  infoText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  joinButton: {
+    backgroundColor: '#4CAF50', // 
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  closeButton: {
+    backgroundColor: '#2D2A6E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
 });
