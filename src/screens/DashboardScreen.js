@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 10,
-    borderWidth: 2,
     borderColor: '#20135B',
   },
   cardImage: {

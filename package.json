@@ -12,6 +12,8 @@
   "dependencies": {
     "@expo-google-fonts/fredoka-one": "^0.2.3",
     "@expo/vector-icons": "^14.0.4",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-native-fontawesome": "^0.3.2",
     "@react-native-async-storage/async-storage": "^2.1.1",
     "@react-native-community/datetimepicker": "^8.3.0",
     "@react-native-picker/picker": "^2.11.0",

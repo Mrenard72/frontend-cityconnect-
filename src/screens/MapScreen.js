@@ -9,6 +9,11 @@ import * as Location from 'expo-location';
 import { Calendar } from 'react-native-calendars';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DropDownPicker from 'react-native-dropdown-picker';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
+
+
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dasntwyhd/image/upload';
@@ -29,11 +34,20 @@ function parseLocation(locationStr) {
 const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
   const [category, setCategory] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
   const [photoUri, setPhotoUri] = useState(null);
   const [isCalendarVisible, setCalendarVisible] = useState(false);
+  const [openCategory, setOpenCategory] = useState(false);
+const [items, setItems] = useState([
+  { label: 'Sport', value: 'Sport' },
+  { label: 'Culturel', value: 'Culturel' },
+  { label: 'Sorties', value: 'Sorties' },
+  { label: 'Culinaire', value: 'Culinaire' },
+]);
+
 
   const pickImage = async () => {
     try {
@@ -60,39 +74,101 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
       Alert.alert("Erreur", "Impossible de sélectionner une image.");
     }
   };
-
   const handleCreate = () => {
-    onCreate({ title, description, date, category, maxParticipants, photoUri });
+    if (!title || !description || !date || !category || !maxParticipants) {
+      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      return;
+    }
+  
+    const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
+  
+    console.log("📤 Données envoyées par handleCreate :", {
+      title,
+      description,
+      date: formattedDate,
+      category,
+      maxParticipants,
+      photoUri,
+    });
+  
+    // Envoie les données au parent (MapScreen) via onCreate
+    onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
-
+  
   const handleDayPress = (day) => {
-    setDate(new Date(day.dateString));
+    const newDate = new Date(day.dateString);
+  
+    // Stocke la date sélectionnée
+    setSelectedDate(newDate);
+  
+    // Formate la date pour affichage
+    const formattedDate = newDate.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  
+    setDate(formattedDate);
     setCalendarVisible(false);
   };
+  
+  
+
 
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Créer une activité</Text>
-          <TextInput style={styles.modalInput} placeholder="Titre" value={title} onChangeText={setTitle} />
-          <TextInput style={[styles.modalInput, { height: 70 }]} multiline placeholder="Description" value={description} onChangeText={setDescription} />
+          <TextInput style={styles.modalInput} placeholder="Titre" placeholderTextColor="#666"  value={title} onChangeText={setTitle} />
+          <TextInput style={[styles.modalInput, { height: 70 }]} multiline placeholder="Description" placeholderTextColor="#666" value={description} onChangeText={setDescription} />
           <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
-            <Text style={styles.buttonText}>Choisir une image</Text>
-          </TouchableOpacity>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <Text style={styles.buttonText}>Choisir une image</Text>
+    <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+  </View>
+</TouchableOpacity>
+
+
           {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
           <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
-            <Text style={styles.buttonText}>Choisir une date</Text>
-          </TouchableOpacity>
-          {isCalendarVisible && (
-            <Calendar
-              onDayPress={handleDayPress}
-              markedDates={{
-                [date.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' },
-              }}
-            />
-          )}
-          <TextInput style={styles.modalInput} placeholder="Catégorie" value={category} onChangeText={setCategory} />
+  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+    <Text style={styles.buttonText}>
+      {date ? ` ${date}` : "Choisir une date"}
+    </Text>
+    <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+  </View>
+</TouchableOpacity>
+
+
+
+{isCalendarVisible && (
+  <Calendar
+    onDayPress={handleDayPress}
+    markedDates={
+      selectedDate
+        ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
+        : {}
+    }
+  />
+)}
+
+ <View style={{ zIndex: 3000, marginBottom: 10 }}>
+  <DropDownPicker
+    open={openCategory}
+    value={category}
+    items={items}
+    setOpen={setOpenCategory}
+    setValue={setCategory}
+    setItems={setItems}
+    placeholder="Sélectionner une catégorie"
+    style={{ borderColor: '#CCC' }}
+    dropDownContainerStyle={{ backgroundColor: '#FFF' }}
+  />
+</View>
+
+
+
           <TextInput style={styles.modalInput} placeholder="Max participants" keyboardType="numeric" value={maxParticipants} onChangeText={setMaxParticipants} />
           <View style={styles.modalButtons}>
             <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
@@ -130,6 +206,10 @@ export default function MapScreen({ route, navigation }) {
   const [longitudeInput, setLongitudeInput] = useState('');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
+
+
+
+
 
   // Récupérer le token
   async function getToken() {
@@ -243,29 +323,42 @@ export default function MapScreen({ route, navigation }) {
   // Créer une activité
   const handleCreateActivity = async (activityData) => {
     const { title, description, date, category, maxParticipants, photoUri } = activityData;
+  
     if (!newActivityCoords || !title || !description || !category || !maxParticipants) {
       Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
       return;
     }
+  
     setLoading(true);
     const token = await getToken();
     if (!token) {
       Alert.alert("Erreur", "Vous devez être connecté");
       return;
     }
+  
     let photoUrl = null;
     if (photoUri) {
+      console.log("📤 Upload de l'image...");
       photoUrl = await uploadImage(photoUri);
+      if (!photoUrl) {
+        Alert.alert("Erreur", "Échec de l'upload de l'image.");
+        setLoading(false);
+        return;
+      }
     }
+  
     const payload = {
       title,
       description,
-      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
-      date: date.toISOString(),
+      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`, // Ajout des coordonnées
+      date,
       category,
       maxParticipants: parseInt(maxParticipants, 10),
       photos: photoUrl ? [photoUrl] : [],
     };
+  
+    console.log("📤 Données envoyées au backend :", JSON.stringify(payload, null, 2));
+  
     try {
       const res = await fetch(`${BASE_URL}/events`, {
         method: 'POST',
@@ -275,20 +368,28 @@ export default function MapScreen({ route, navigation }) {
         },
         body: JSON.stringify(payload),
       });
+  
       const data = await res.json();
+      console.log("📩 Réponse du backend :", data);
+  
       if (!res.ok) {
         Alert.alert("Erreur", data.message || "Impossible de créer");
+        setLoading(false);
         return;
       }
+  
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
-      setActivitiesCreated([...activitiesCreated, data]);
+      setActivitiesCreated([...activitiesCreated, data.event]);
       Alert.alert("Succès", "Activité créée !");
     } catch (error) {
+      console.error("❌ Erreur lors de la création :", error);
       Alert.alert("Erreur", "Impossible de créer l'activité");
     }
+  
     setLoading(false);
   };
+  
 
   // Téléverser une image sur Cloudinary
   const uploadImage = async (uri) => {
@@ -499,6 +600,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
   },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#CCC',
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 5,
+    color: '#000', // Texte noir pour bien le voir
+  },
   button: {
     backgroundColor: '#2D2A6E',
     borderRadius: 8,
@@ -517,15 +626,31 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  categoryButton: { backgroundColor: '#ccc', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5 },
-  activeButton: { backgroundColor: '#2D2A6E' },
-  categoryText: { color: '#FFF', fontWeight: 'bold' },
-  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContainer: { width: '85%', backgroundColor: '#FFF', padding: 20, borderRadius: 8 },
+  categoryButton: {
+     backgroundColor: '#ccc', 
+    paddingVertical: 8, 
+    paddingHorizontal: 12, borderRadius: 5 },
+  activeButton: { 
+    backgroundColor: '#2D2A6E' },
+  categoryText: {
+     color: '#FFF', fontWeight: 'bold' },
+  modalOverlay: {
+     flex: 1, justifyContent: 'center',
+      alignItems: 'center', 
+      backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContainer: {
+     width: '85%', 
+     backgroundColor: '#FFF',
+      padding: 20, 
+      borderRadius: 8 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
+  dropdownContainer: {
+    zIndex: 2000, // Évite que le dropdown soit caché par d'autres éléments
+  },
+  
 });
