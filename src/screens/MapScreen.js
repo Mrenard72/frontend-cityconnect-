@@ -273,6 +273,13 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
+   // Recharge automatiquement les activités dès que selectedCategory change
+   useEffect(() => {
+    if (filter === 'activity') {
+      fetchActivities(selectedCategory);
+    }
+  }, [selectedCategory, filter]);
+
   // Gérer la localisation de l'utilisateur
   async function getUserLocation() {
     setLoading(true);
@@ -419,11 +426,7 @@ export default function MapScreen({ route, navigation }) {
       } else if (filter === 'activity') {
         setShowInput(false);
         handleActivityMode();
-        if (selectedCategory) {
-          fetchActivities(selectedCategory);
-        } else {
-          fetchActivities();
-        }
+        // Le rechargement est maintenant géré par useEffect sur [selectedCategory, filter]
       } else if (filter === 'createActivity') {
         setShowInput(false);
         handleCreateActivityMode();
