@@ -6,10 +6,10 @@ import Header from '../components/Header';
 import * as Location from 'expo-location';
 
 const activities = [
-  { id: 1, title: 'Sport', image: require('../../assets/sport.jpg') },
-  { id: 2, title: 'Culturel', image: require('../../assets/culturel.jpg') },
-  { id: 3, title: 'Sorties', image: require('../../assets/sorties.jpg') },
-  { id: 4, title: 'Culinaire', image: require('../../assets/culinaire.jpg') },
+  { id: 1, title: 'Sport', category: 'Sport', image: require('../../assets/sport.jpg') },
+  { id: 2, title: 'Culturel', category: 'Culturel', image: require('../../assets/culturel.jpg') },
+  { id: 3, title: 'Sorties', category: 'Sorties', image: require('../../assets/sorties.jpg') },
+  { id: 4, title: 'Culinaire', category : 'Culinaire', image: require('../../assets/culinaire.jpg') },
 ];
 
 const ActivityScreen = ({ navigation }) => {
