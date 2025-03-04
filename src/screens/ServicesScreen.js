@@ -269,7 +269,8 @@ const ServicesScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   background: { flex: 1, width: '100%', height: '100%' },
-  container: { flex: 1, padding: 20 },
+  container: { flex: 1, padding: 20,
+    paddingTop: 140, },
   header: { fontSize: 24, fontFamily: 'FredokaOne', textAlign: 'center', marginBottom: 20, color: '#2D2A6E' },
   itemContainer: { width: '100%', borderRadius: 12, marginBottom: 15, overflow: 'hidden' },
   imageBackground: { width: '100%', justifyContent: 'center', alignItems: 'center' },

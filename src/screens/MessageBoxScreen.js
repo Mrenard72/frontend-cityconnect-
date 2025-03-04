@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import {
   SafeAreaView, View, Text, TouchableOpacity, FlatList,
-  StyleSheet, ActivityIndicator
+  StyleSheet, ActivityIndicator, Alert
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Swipeable } from 'react-native-gesture-handler';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const BACKEND_URL = 'https://backend-city-connect.vercel.app';
 
@@ -62,6 +64,36 @@ export default function MessageBoxScreen() {
       setRefreshing(false);
     }
   };
+
+  //3.2
+
+  // 3. Suppression d'une conversation
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setConversations(prevConversations => prevConversations.filter(c => c._id !== conversationId));
+        Alert.alert("Succès", "Conversation supprimée !");
+      } else {
+        const errorMsg = await response.text();
+        Alert.alert("Erreur", errorMsg || "Impossible de supprimer la conversation.");
+      }
+    } catch (error) {
+      console.error("Erreur suppression conversation:", error);
+      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+    }
+  };
+
 
   // 3. useFocusEffect pour (re)charger en revenant sur cet écran
   useFocusEffect(
@@ -130,22 +162,35 @@ export default function MessageBoxScreen() {
                   : (otherNames || 'Conversation');
 
               return (
-                <TouchableOpacity
-                  style={styles.conversationItem}
-                  onPress={() => handleOpenConversation(item)}
-                >
-                  <View style={styles.conversationContent}>
-                    <Text style={styles.conversationName}>
-                      {conversationDisplayName}
-                    </Text>
-                    <Text style={styles.lastMessage}>{lastMessageText}</Text>
-                  </View>
-                  <Text style={styles.time}>{lastTime}</Text>
-                </TouchableOpacity>
+                <Swipeable
+  renderRightActions={() => (
+    <TouchableOpacity
+      style={styles.deleteButton}
+      onPress={() => handleDeleteConversation(item._id)}
+    >
+      <FontAwesome5 name="trash" size={24} color="white" /> 
+    </TouchableOpacity>
+  )}
+>
+  <TouchableOpacity
+    style={styles.conversationItem}
+    onPress={() => handleOpenConversation(item)}
+  >
+    <View style={styles.conversationContent}>
+      <Text style={styles.conversationName}>
+        {conversationDisplayName}
+      </Text>
+      <Text style={styles.lastMessage}>{lastMessageText}</Text>
+    </View>
+    <Text style={styles.time}>{lastTime}</Text>
+  </TouchableOpacity>
+</Swipeable>
+
               );
             }}
           />
         )}
+        
       </View>
     </SafeAreaView>
   );
@@ -205,5 +250,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     marginLeft: 10,
+  },
+  deleteButton: {
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    marginVertical: 10,
+    borderRadius: 10,
   },
 });

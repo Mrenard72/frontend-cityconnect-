@@ -55,26 +55,10 @@ const ProfileScreen = ({ navigation }) => {
   // 🚀 Fonction pour gérer la déconnexion
   const handleLogout = async () => {
     try {
-      console.log("Tentative de déconnexion...");
-      
-      await AsyncStorage.removeItem('token'); // ✅ Suppression du token
-      const token = await AsyncStorage.getItem('token');
-      
-      if (!token) {
-        console.log("✅ Déconnexion réussie, token supprimé !");
-      } else {
-        console.log("❌ Token toujours présent :", token);
-      }
-  
-      // 🔄 Redirection forcée vers la page de connexion
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-  
+      await AsyncStorage.removeItem('token');
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     } catch (error) {
-      console.error("❌ Erreur lors de la déconnexion :", error);
-      Alert.alert("Erreur", "Impossible de se déconnecter.");
+      console.error("Erreur lors de la déconnexion :", error);
     }
   };
   

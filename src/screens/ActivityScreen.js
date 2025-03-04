@@ -6,14 +6,15 @@ import Header from '../components/Header';
 import * as Location from 'expo-location';
 
 const activities = [
-  { id: 1, title: 'Sport', image: require('../../assets/sport.jpg') },
-  { id: 2, title: 'Culturel', image: require('../../assets/culturel.jpg') },
-  { id: 3, title: 'Sorties', image: require('../../assets/sorties.jpg') },
-  { id: 4, title: 'Culinaire', image: require('../../assets/culinaire.jpg') },
+  { id: 1, title: 'Sport', category: 'Sport', image: require('../../assets/sport.jpg') },
+  { id: 2, title: 'Culturel', category: 'Culturel', image: require('../../assets/culturel.jpg') },
+  { id: 3, title: 'Sorties', category: 'Sorties', image: require('../../assets/sorties.jpg') },
+  { id: 4, title: 'Culinaire', category : 'Culinaire', image: require('../../assets/culinaire.jpg') },
 ];
 
 const ActivityScreen = ({ navigation }) => {
   const [userLocation, setUserLocation] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Récupérer la localisation dès le montage de l'écran
   useEffect(() => {
@@ -28,6 +29,17 @@ const ActivityScreen = ({ navigation }) => {
     })();
   }, []);
 
+  // Navigation lors de la sélection d'une activité
+  const handleActivityPress = (activity) => {
+    // Vous pouvez choisir d'utiliser activity.title comme catégorie ou la stocker dans selectedCategory
+    // Ici, on navigue directement en passant activity.title
+    navigation.navigate('Carte', { 
+      filter: 'activity', 
+      category: activity.category, 
+      userLocation,
+    });
+  };
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <Header />
@@ -39,17 +51,7 @@ const ActivityScreen = ({ navigation }) => {
           <TouchableOpacity
             key={activity.id}
             style={styles.activityCard}
-            onPress={() => {
-              if (activity.title === "Culinaire") {
-                navigation.navigate('Restaurants', { userLocation });
-              } else {
-                navigation.navigate('Carte', {
-                  filter: 'activity', 
-                  category: activity.title, 
-                  userLocation,
-                });
-              }
-            }}
+            onPress={() => handleActivityPress(activity)}
           >
             <ImageBackground 
               source={activity.image} 
@@ -62,7 +64,6 @@ const ActivityScreen = ({ navigation }) => {
             </ImageBackground>
           </TouchableOpacity>
         ))}
-        
       </ScrollView>
     </ImageBackground>
   );
@@ -113,18 +114,6 @@ const styles = StyleSheet.create({
     fontFamily: 'FredokaOne',
     color: 'white',
     textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#2D2A6E',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
-    alignSelf: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontFamily: 'FredokaOne',
-    fontSize: 16,
   },
 });
 

@@ -192,8 +192,18 @@ export default function MessageScreen() {
   contentContainerStyle={styles.messagesContainer}
   renderItem={({ item }) => {
     return (
-      <View style={styles.messageContainer}>
-        <Text style={styles.senderName}>{item.senderName}</Text>
+      <View style={[styles.messageContainer, item.sender === 'me' && styles.myMessageContainer]}>
+        {/* ✅ Aligner le nom en fonction de l'expéditeur */}
+        <Text 
+          style={[
+            styles.senderName, 
+            item.sender === 'me' ? styles.mySenderName : styles.otherSenderName
+          ]}
+        >
+          {item.senderName}
+        </Text>
+
+        {/* Bulle de message */}
         <View
           style={[
             styles.messageBubble,
@@ -207,6 +217,7 @@ export default function MessageScreen() {
     );
   }}
 />
+
 
 
       <View style={styles.inputContainer}>
@@ -245,7 +256,10 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     padding: 10,
-    paddingTop: 140,
+    paddingTop: 10,
+  },
+  myMessageContainer: {
+    alignItems: 'flex-end', // ✅ Aligner le nom et la bulle de droite
   },
   senderName: {
     fontSize: 12,
