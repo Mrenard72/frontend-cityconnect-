@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   FlatList, 
   StyleSheet, 
-  ActivityIndicator 
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +16,7 @@ const MessageBoxScreen = () => {
   const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fonction de récupération des conversations
   const fetchConversations = async () => {
@@ -41,6 +43,7 @@ const MessageBoxScreen = () => {
       console.error("Erreur lors de la récupération des conversations :", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -64,6 +67,11 @@ const MessageBoxScreen = () => {
     });
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchConversations();
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -81,6 +89,9 @@ const MessageBoxScreen = () => {
           <FlatList
             data={conversations}
             keyExtractor={(item) => item._id.toString()}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity 
                 style={styles.conversationItem} 
@@ -93,11 +104,15 @@ const MessageBoxScreen = () => {
                       : 'Conversation'}
                   </Text>
                   <Text style={styles.lastMessage}>
-                    {item.messages.length > 0 ? item.messages[item.messages.length - 1].content : "Aucun message"}
+                    {item.messages && item.messages.length > 0 
+                      ? item.messages[item.messages.length - 1].content 
+                      : "Aucun message"}
                   </Text>
                 </View>
                 <Text style={styles.time}>
-                  {item.messages.length > 0 ? new Date(item.messages[item.messages.length - 1].timestamp).toLocaleTimeString() : ''}
+                  {item.messages && item.messages.length > 0 
+                    ? new Date(item.messages[item.messages.length - 1].timestamp).toLocaleTimeString() 
+                    : ''}
                 </Text>
               </TouchableOpacity>
             )}

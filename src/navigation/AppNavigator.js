@@ -114,7 +114,7 @@ const BottomTabs = () => {
         {/* Onglet Carte */}
       <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
-      <Tab.Screen name="Messagerie" component={MessageBoxScreen} />
+      <Tab.Screen name="Messagerie" component={MessageStack} />
       {/* 👤 Onglet Profil */}
       <Tab.Screen name="Profil" component={ProfileStackScreen} />
     </Tab.Navigator>

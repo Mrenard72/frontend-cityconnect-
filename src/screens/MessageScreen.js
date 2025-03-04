@@ -67,7 +67,13 @@ const MessageScreen = () => {
     if (!newMessage.trim()) return;
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.error("Token manquant !");
+        return;
+      }
+  
+      console.log("📩 Envoi du message :", newMessage);
+      
       const resp = await fetch(
         `https://backend-city-connect.vercel.app/conversations/${conversationId}/message`,
         {
@@ -79,18 +85,21 @@ const MessageScreen = () => {
           body: JSON.stringify({ content: newMessage }),
         }
       );
+  
       const data = await resp.json();
+      console.log("🔍 Réponse API :", data);
+      
       if (resp.ok) {
         setMessages(prev => [...prev, data]);
         setNewMessage('');
       } else {
-        console.error("Erreur envoi message:", data.message);
+        console.error("❌ Erreur envoi message:", data.message);
       }
     } catch (err) {
-      console.error("Erreur lors de l'envoi du message:", err);
+      console.error("❌ Erreur lors de l'envoi du message:", err);
     }
   };
-
+  
   // 4) Rendu d'un message
   const renderItem = ({ item }) => {
     // Comparer l'id de l'expéditeur avec mon id pour déterminer si c'est moi
