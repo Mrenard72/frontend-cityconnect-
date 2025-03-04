@@ -206,6 +206,8 @@ export default function MapScreen({ route, navigation }) {
   const [longitudeInput, setLongitudeInput] = useState('');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+
 
 
 
@@ -499,6 +501,73 @@ export default function MapScreen({ route, navigation }) {
     Culinaire: require('../../assets/Iconculinaire.png'),
 };
 
+
+// modale a l'ouverture de l'activité 
+const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
+  if (!activity) return null;
+
+  return (
+    <Modal visible={!!activity} transparent animationType="fade">
+      <View style={styles.activityModal_overlay}>
+        <View style={styles.activityModal_container}>
+          
+          {/* 🔹 TITRE CENTRÉ */}
+          <Text style={styles.activityModal_title}>{activity.title}</Text>
+
+          {/* 🔹 DESCRIPTION CENTRÉE */}
+          <Text style={styles.activityModal_description}>{activity.description}</Text>
+
+          {/* 🔹 IMAGE GRANDE */}
+          {activity.photos && activity.photos.length > 0 ? (
+            <Image 
+              source={{ uri: activity.photos[0] }} 
+              style={styles.activityModal_imagePreview}
+            />
+          ) : (
+            <Text style={styles.activityModal_noImageText}>Aucune image disponible</Text>
+          )}
+
+          {/* 🔹 DATE & PARTICIPANTS ALIGNÉS SUR UNE MÊME LIGNE */}
+          <View style={styles.activityModal_infoRow}>
+            <Text style={styles.activityModal_infoText}>
+              📅 {activity.date ? new Date(activity.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              }) : "Date non définie"}
+            </Text>
+            <Text style={styles.activityModal_infoText}>
+              👥 {activity.participants ? activity.participants.length : 0}/{activity.maxParticipants || '∞'}
+            </Text>
+          </View>
+
+          {/* 🔹 BOUTONS */}
+          <View style={styles.activityModal_buttons}>
+            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => {
+                onJoin(activity._id);
+                onClose();
+                Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
+              }}
+            >
+              <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>
+              <Text style={styles.activityModal_buttonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+
+
+
+
   return (
     <View style={styles.container}>
       {showInput && (
@@ -540,16 +609,7 @@ export default function MapScreen({ route, navigation }) {
         coordinate={coords}
         title={act.title}
         description={act.description}
-        onCalloutPress={() => {
-          Alert.alert(
-            "Réserver l'activité ?",
-            `Voulez-vous vous inscrire à: ${act.title} ?`,
-            [
-              { text: 'Annuler', style: 'cancel' },
-              { text: 'OK', onPress: () => handleJoinEvent(act._id) },
-            ]
-          );
-        }}
+        onPress={() => setSelectedActivity(act)}
       >
         {/* Ajout de l'icône avec une taille fixe */}
         <Image
@@ -560,6 +620,14 @@ export default function MapScreen({ route, navigation }) {
     );
   })}
 </MapView>
+{/* Modale qui s'affiche quand une activité est sélectionnée */}
+<ActivityDetailsModal
+  activity={selectedActivity}
+  onClose={() => setSelectedActivity(null)}
+  onJoin={handleJoinEvent}
+/>
+
+
 
 
 
@@ -621,7 +689,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginVertical: 5,
-    color: '#000', // Texte noir pour bien le voir
+    color: '#000',
   },
   button: {
     backgroundColor: '#2D2A6E',
@@ -630,42 +698,102 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   buttonText: { color: '#FFF', fontWeight: 'bold' },
-  categoryBar: {
-    position: 'absolute',
-    bottom: 20,
-    left: 10,
-    right: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  categoryButton: {
-     backgroundColor: '#ccc', 
-    paddingVertical: 8, 
-    paddingHorizontal: 12, borderRadius: 5 },
-  activeButton: { 
-    backgroundColor: '#2D2A6E' },
-  categoryText: {
-     color: '#FFF', fontWeight: 'bold' },
   modalOverlay: {
-     flex: 1, justifyContent: 'center',
-      alignItems: 'center', 
-      backgroundColor: 'rgba(0,0,0,0.5)' },
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
   modalContainer: {
-     width: '85%', 
-     backgroundColor: '#FFF',
-      padding: 20, 
-      borderRadius: 8 },
+    width: '85%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 8,
+  },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
-  dropdownContainer: {
-    zIndex: 2000, // Évite que le dropdown soit caché par d'autres éléments
-  },
   
+  // ✅ STYLES UNIQUEMENT POUR `ActivityDetailsModal`
+  activityModal_overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  activityModal_container: {
+    width: '85%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  activityModal_title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#2D2A6E',
+  },
+  activityModal_description: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#555',
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  activityModal_imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  activityModal_noImageText: {
+    fontSize: 14,
+    color: '#777',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  activityModal_infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 15,
+    marginBottom: 20,
+  },
+  activityModal_infoText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  activityModal_buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  activityModal_joinButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  activityModal_closeButton: {
+    backgroundColor: '#FF6347',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
+  },
+  activityModal_buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
 });
