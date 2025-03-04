@@ -1,32 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground 
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+
 import Header from '../components/Header';
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from '@expo/vector-icons'
+
 
 // 📌 Écran de "Mes infos"
-const InfosScreen = ({ navigation }) => {
+const Z_InfosScreen = ({ navigation }) => {
+
+{/* Fleche de retour header */}
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+{/* Fleche de retour header */}
+
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
-      <Header />
-      
-      <View style={styles.container}>
-        <Text style={styles.title}>Mes infos</Text>
+      {/* Bouton de retour placé au-dessus du Header */}
 
-        {/* 📌 Boutons des différentes sections */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
-          <Text style={styles.textButton}>Changer le mot de passe</Text>
-          <FontAwesome name="" size={24} color="white" style={styles.icon} />
+        {/* Fleche de retour header */}
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <FontAwesome name="arrow-left" size={25} color="#20135B" />
         </TouchableOpacity>
+        {/* Fleche de retour header */}    
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z2_DeleteScreen')}>
-          <Text style={styles.textButton}>Supprimer le compte</Text>
-          <FontAwesome name="" size={24} color="white" style={styles.icon} />
-        </TouchableOpacity>
+    <Header/>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Mes infos</Text>
 
-      </View>
+          {/* 📌 Boutons des différentes sections */}
+          <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
+            <Text style={styles.textButton}>Changer le mot de passe</Text>
+            <FontAwesome name="" size={24} color="white" style={styles.icon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z2_DeleteScreen')}>
+            <Text style={styles.textButton}>Supprimer le compte</Text>
+            <FontAwesome name="" size={24} color="white" style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </ImageBackground>
   );
 };
@@ -74,16 +90,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: '70%',
     alignItems: 'center',
-    
   },
   textButton: {
     color: '#FFFFFF',
     fontSize: 20,
     fontFamily: 'FredokaOne',
   },
-  icon: {
-    marginLeft: 10,
-},
   logoutButton: {
     backgroundColor: '#E53935',
     paddingVertical: 12,
@@ -100,6 +112,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'FredokaOne',
   },
+
+// Fleche de retour header
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+  },
+// Fleche de retour header
+
 });
 
-export default InfosScreen;
+export default Z_InfosScreen;

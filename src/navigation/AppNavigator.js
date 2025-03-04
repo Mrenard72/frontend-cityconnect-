@@ -187,7 +187,6 @@ const AppNavigator = () => {
         <>
          {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
-          
         </>
       ) : (
         <>
