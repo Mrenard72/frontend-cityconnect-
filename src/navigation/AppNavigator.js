@@ -18,7 +18,11 @@ import ActivityScreen from '../screens/ActivityScreen';
 import SortiesScreen from '../screens/SortiesScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import RestaurantsScreen from '../screens/RestaurantsScreen';
-import InfosScreen from '../screens/InfosScreen';
+
+// ajout screen dans mes infos
+import Z_InfosScreen from '../screens/Z_InfosScreen';
+import Z1_ModifScreen from '../screens/Z1_ModifScreen';
+import Z2_DeleteScreen from '../screens/Z2_DeleteScreen';
 
 // 📌 Import des icônes pour la barre de navigation
 import { Ionicons } from '@expo/vector-icons';
@@ -77,10 +81,20 @@ const ProfileStackScreen = () => {
         options={{ title: 'Mes sorties' }} 
       />
       <ProfileStack.Screen 
-        name="InfosScreen" 
-        component={InfosScreen} 
+        name="Z_InfosScreen" 
+        component={Z_InfosScreen} 
         options={{ title: 'Mes infos' }} 
       />
+          <ProfileStack.Screen 
+          name="Z1_ModifScreen" 
+          component={Z1_ModifScreen} 
+          options={{ title: 'Changer le mot de passe' }} 
+          />
+          <ProfileStack.Screen 
+          name="Z2_DeleteScreen" 
+          component={Z2_DeleteScreen} 
+          options={{ title: 'Supprimer le compte' }} 
+          />
     </ProfileStack.Navigator>
   );
 };

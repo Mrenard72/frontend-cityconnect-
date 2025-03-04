@@ -199,7 +199,7 @@ formData.append('file', {
         </TouchableOpacity>
 
           {/* 📌 Bouton section "Mes infos" */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('InfosScreen')} >
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z_InfosScreen')} >
           <Text style={styles.textButton}>Mes infos</Text>
           <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
