@@ -18,6 +18,10 @@ const Z_InfosScreen = ({ navigation }) => {
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+       {/* Bouton de retour placé au-dessus du Header */}
+       <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
       {/* Bouton de retour placé au-dessus du Header */}
 
         {/* Fleche de retour header */}
@@ -27,13 +31,12 @@ const Z_InfosScreen = ({ navigation }) => {
         {/* Fleche de retour header */}    
 
     <Header/>
+<ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <Text style={styles.title}>Mes infos</Text>
-
-          {/* 📌 Boutons des différentes sections */}
+            {/* ✅ Boutons des différentes sections */}
           <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
             <Text style={styles.textButton}>Changer le mot de passe</Text>
-            <FontAwesome name="" size={24} color="white" style={styles.icon} />
+            <FontAwesome name="lock" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z2_DeleteScreen')}>
@@ -41,7 +44,7 @@ const Z_InfosScreen = ({ navigation }) => {
             <FontAwesome name="" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
         </View>
-  
+      </ScrollView>
     </ImageBackground>
   );
 };
@@ -70,16 +73,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: '70%',
     alignItems: 'center',
-    
   },
   textButton: {
     color: '#FFFFFF',
     fontSize: 20,
     fontFamily: 'FredokaOne',
   },
-  icon: {
-    marginLeft: 10,
-},
   logoutButton: {
     backgroundColor: '#E53935',
     paddingVertical: 12,
