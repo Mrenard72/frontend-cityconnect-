@@ -20,6 +20,7 @@ export default function MessageScreen() {
   const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState('');  // Nouvel état pour le pseudo
   const [messages, setMessages] = useState([]);
+  console.log('Messages:', messages);
   const [newMessage, setNewMessage] = useState('');
 
   /********************************************************
@@ -72,12 +73,13 @@ export default function MessageScreen() {
 
         // On mappe les messages
         const loaded = conversation.messages.map((m) => {
+          console.log('Message:', m); // Vérifie chaque message et `m.sender`
           const isMe = m.sender && m.sender._id === userId;
           return {
             id: m._id,
             text: m.content,
             sender: isMe ? 'me' : 'other',
-            senderName: m.sender && m.sender.username ? m.sender.username : 'Nom inconnu',
+            senderName: m.sender?.username || 'Utilisateur inconnu',
             time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           };
         });

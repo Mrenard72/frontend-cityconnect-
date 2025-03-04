@@ -59,6 +59,7 @@ export default function MessageBoxScreen() {
       console.error('Erreur récupération conversations :', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -82,6 +83,11 @@ export default function MessageBoxScreen() {
       conversationId: conversation._id,
       conversationName: conversationTitle,
     });
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchConversations();
   };
 
   if (loading) {
