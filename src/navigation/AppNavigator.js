@@ -73,27 +73,27 @@ const ProfileStackScreen = () => {
       <ProfileStack.Screen 
         name="ServicesScreen" 
         component={ServicesScreen} 
-        options={{ title: 'Mes services' }} 
+        options={{ headerShown: false }} 
       />
       <ProfileStack.Screen 
         name="SortiesScreen" 
         component={SortiesScreen} 
-        options={{ title: 'Mes sorties' }} 
+        options={{ headerShown: false }} 
       />
       <ProfileStack.Screen 
         name="Z_InfosScreen" 
         component={Z_InfosScreen} 
-        options={{ title: 'Mes infos' }} 
+        options={{ headerShown: false }} 
       />
           <ProfileStack.Screen 
           name="Z1_ModifScreen" 
           component={Z1_ModifScreen} 
-          options={{ title: 'Changer le mot de passe' }} 
+          options={{ headerShown: false }} 
           />
           <ProfileStack.Screen 
           name="Z2_DeleteScreen" 
           component={Z2_DeleteScreen} 
-          options={{ title: 'Supprimer le compte' }} 
+          options={{ headerShown: false }} 
           />
     </ProfileStack.Navigator>
   );

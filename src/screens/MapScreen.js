@@ -74,11 +74,27 @@ const [items, setItems] = useState([
       Alert.alert("Erreur", "Impossible de sélectionner une image.");
     }
   };
-
   const handleCreate = () => {
-    onCreate({ title, description, date, category, maxParticipants, photoUri });
+    if (!title || !description || !date || !category || !maxParticipants) {
+      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      return;
+    }
+  
+    const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
+  
+    console.log("📤 Données envoyées par handleCreate :", {
+      title,
+      description,
+      date: formattedDate,
+      category,
+      maxParticipants,
+      photoUri,
+    });
+  
+    // Envoie les données au parent (MapScreen) via onCreate
+    onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
-
+  
   const handleDayPress = (day) => {
     const newDate = new Date(day.dateString);
   
@@ -307,29 +323,42 @@ export default function MapScreen({ route, navigation }) {
   // Créer une activité
   const handleCreateActivity = async (activityData) => {
     const { title, description, date, category, maxParticipants, photoUri } = activityData;
+  
     if (!newActivityCoords || !title || !description || !category || !maxParticipants) {
       Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
       return;
     }
+  
     setLoading(true);
     const token = await getToken();
     if (!token) {
       Alert.alert("Erreur", "Vous devez être connecté");
       return;
     }
+  
     let photoUrl = null;
     if (photoUri) {
+      console.log("📤 Upload de l'image...");
       photoUrl = await uploadImage(photoUri);
+      if (!photoUrl) {
+        Alert.alert("Erreur", "Échec de l'upload de l'image.");
+        setLoading(false);
+        return;
+      }
     }
+  
     const payload = {
       title,
       description,
-      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
-      date: date.toISOString(),
+      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`, // Ajout des coordonnées
+      date,
       category,
       maxParticipants: parseInt(maxParticipants, 10),
       photos: photoUrl ? [photoUrl] : [],
     };
+  
+    console.log("📤 Données envoyées au backend :", JSON.stringify(payload, null, 2));
+  
     try {
       const res = await fetch(`${BASE_URL}/events`, {
         method: 'POST',
@@ -339,20 +368,28 @@ export default function MapScreen({ route, navigation }) {
         },
         body: JSON.stringify(payload),
       });
+  
       const data = await res.json();
+      console.log("📩 Réponse du backend :", data);
+  
       if (!res.ok) {
         Alert.alert("Erreur", data.message || "Impossible de créer");
+        setLoading(false);
         return;
       }
+  
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
-      setActivitiesCreated([...activitiesCreated, data]);
+      setActivitiesCreated([...activitiesCreated, data.event]);
       Alert.alert("Succès", "Activité créée !");
     } catch (error) {
+      console.error("❌ Erreur lors de la création :", error);
       Alert.alert("Erreur", "Impossible de créer l'activité");
     }
+  
     setLoading(false);
   };
+  
 
   // Téléverser une image sur Cloudinary
   const uploadImage = async (uri) => {

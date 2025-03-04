@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 const BACKGROUND_IMAGE = require('../../assets/background.png');
@@ -78,25 +79,6 @@ const SortiesScreen = () => {
     }
   };
 
-  const handleContact = async (recipientId, eventId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/conversations/create`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientId, eventId })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert("Succès", "Conversation créée avec succès.");
-      } else {
-        Alert.alert("Erreur", data.message || "Impossible de contacter ce guide.");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la création de la conversation:", error);
-      Alert.alert("Erreur", "Impossible de contacter ce guide.");
-    }
-  };
-
   const renderItem = ({ item }) => {
     return (
       <View style={styles.itemContainer}>
@@ -105,11 +87,8 @@ const SortiesScreen = () => {
             <Text style={styles.guide}>Guide: {item.createdBy.username}</Text>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.description}>{item.description}</Text>
-            <TouchableOpacity style={styles.button} onPress={() => handleContact(item.createdBy._id, item._id)}>
-              <Text style={styles.buttonText}>Contacter</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.leaveButton} onPress={() => handleLeave(item._id)}>
-              <Text style={styles.leaveButtonText}>Quitter</Text>
+            <TouchableOpacity style={styles.button} onPress={() => handleLeave(item._id)}>
+              <Text style={styles.buttonText}>Quitter</Text>
             </TouchableOpacity>
           </View>
         </ImageBackground>
@@ -119,6 +98,9 @@ const SortiesScreen = () => {
 
   return (
     <ImageBackground source={BACKGROUND_IMAGE} style={styles.background}>
+      {/* 🔹 Header bien en haut et séparé du container */}
+      <Header />
+
       <View style={styles.container}>
         <Text style={styles.header}>Mes Sorties</Text>
         {loading ? (
@@ -145,6 +127,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    paddingTop: 90, // ✅ Espace ajouté pour éviter le chevauchement avec le Header
   },
   header: {
     fontSize: 24,
@@ -176,7 +159,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   button: {
-    backgroundColor: '#2D2A6E',
+    backgroundColor: '#E53935',
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
@@ -184,19 +167,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontFamily: 'FredokaOne'
-  },
-  leaveButton: {
-    backgroundColor: 'red',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    alignSelf: 'center',
-    marginTop: 10,
-  },
-  leaveButtonText: {
     color: '#FFF',
     fontSize: 14,
     fontFamily: 'FredokaOne'
@@ -218,14 +188,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontFamily: 'FredokaOne',
   },
-
   emptyText: {
     fontSize: 16,
     color: '#2D2A6E',
     textAlign: 'center',
+    marginTop: 50, // ✅ Espace ajouté pour éviter que le texte ne soit collé en haut
   },
-
-  
 });
 
 export default SortiesScreen;

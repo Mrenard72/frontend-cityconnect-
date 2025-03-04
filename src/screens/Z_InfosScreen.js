@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { 
-  View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground 
+  View, Text, TouchableOpacity, StyleSheet, ImageBackground 
 } from 'react-native';
 import Header from '../components/Header';
 import FontAwesome from "react-native-vector-icons/FontAwesome";
@@ -8,73 +8,58 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 // 📌 Écran de "Mes infos"
 const InfosScreen = ({ navigation }) => {
 
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+       {/* Bouton de retour placé au-dessus du Header */}
+       <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
       <Header />
-      
-      <View style={styles.container}>
-        <Text style={styles.title}>Mes infos</Text>
 
-        {/* 📌 Boutons des différentes sections */}
+      <View style={styles.container}>
+        {/* ✅ Boutons des différentes sections */}
         <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
           <Text style={styles.textButton}>Changer le mot de passe</Text>
-          <FontAwesome name="" size={24} color="white" style={styles.icon} />
+          <FontAwesome name="lock" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z2_DeleteScreen')}>
           <Text style={styles.textButton}>Supprimer le compte</Text>
-          <FontAwesome name="" size={24} color="white" style={styles.icon} />
+          <FontAwesome name="trash" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
-
       </View>
     </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 26,
-    fontFamily: 'FredokaOne',
-    color: '#2D2A6E',
-    marginBottom: 20,
-    marginTop: 10,
-  },
   background: {
     flex: 1,
     width: '100%',
-    height: '100%',
     resizeMode: 'cover',
   },
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 130,
-  },
-  imageContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 80,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    marginBottom: 20,
-    borderWidth: 4,
-    borderColor: '#20135B',
+    justifyContent: 'center', // ✅ Commence juste sous le Header
+    paddingTop: 50, // Ajuste l'espacement après le Header
+    
   },
   button: {
-    flexDirection: "row", // Aligner le texte et l'icône en ligne
-    justifyContent: "center", // Pousse le texte à gauche et l'icône à droite
-    alignItems: "center", // Centre verticalement le texte et l'icône
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: '#20135B',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginVertical: 10,
-    width: '70%',
-    alignItems: 'center',
-    
+    width: '75%',
+    height: '8%'
   },
   textButton: {
     color: '#FFFFFF',
@@ -83,22 +68,15 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginLeft: 10,
-},
-  logoutButton: {
-    backgroundColor: '#E53935',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    width: '50%',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
-    opacity: 0.8,
   },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontFamily: 'FredokaOne',
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+
   },
 });
 

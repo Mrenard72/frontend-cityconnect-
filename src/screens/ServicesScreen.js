@@ -2,12 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ImageBackground, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextInput } from  'react-native';
+import Header from '../components/Header';
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 const BACKGROUND_IMAGE = require('../../assets/background.png');
 const ITEM_BACKGROUND_IMAGE = require('../../assets/item-background.jpg');
 
-const ServicesScreen = () => {
+
+
+const ServicesScreen = ({ navigation }) => {
+
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+  
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -17,6 +28,8 @@ const ServicesScreen = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
+
+  
 
   const getToken = async () => {
     try {
@@ -182,8 +195,12 @@ const ServicesScreen = () => {
 
   return (
     <ImageBackground source={BACKGROUND_IMAGE} style={styles.background}>
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+      <Header/>
       <View style={styles.container}>
-        <Text style={styles.header}>Mes Services</Text>
+        
         {loading ? (
           <ActivityIndicator size="large" color="#2D2A6E" />
         ) : (
@@ -263,7 +280,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontFamily: 'FredokaOne', color: '#2D2A6E', marginTop: 10 },
   description: { fontSize: 16, color: '#2D2A6E', marginTop: 10, fontFamily: 'FredokaOne' },
   participants: { fontSize: 14, fontStyle: 'italic', color: '#777', marginVertical: 5 },
-  emptyText: { fontSize: 16, color: '#2D2A6E', textAlign: 'center' },
+  emptyText: { fontSize: 18, color: '#2D2A6E', textAlign: 'center' , marginTop: 380, },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -327,6 +344,15 @@ const styles = StyleSheet.create({
     color: '#fff', 
     fontSize: 14, 
     fontFamily: 'FredokaOne' 
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+
   },
   
 
