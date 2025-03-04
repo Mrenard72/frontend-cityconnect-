@@ -53,9 +53,11 @@ const ExploreScreen = ({ navigation }) => {
         // Transmettre à MapScreen la région calculée ainsi que les coordonnées individuelles
         navigation.navigate('Carte', { 
           filter: 'byLocality', 
-          city: searchQuery, 
-          latitude, 
-          longitude,
+          locality: { 
+            latitude, 
+            longitude, 
+            name: searchQuery 
+          },
           region: { latitude, longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 }
         });
       } else {
