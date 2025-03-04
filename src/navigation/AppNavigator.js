@@ -201,7 +201,6 @@ const AppNavigator = () => {
           <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Restaurants" component={RestaurantsScreen} options={{ headerShown: false }} />
-          
         </>
       )}
     </Stack.Navigator>

@@ -67,10 +67,9 @@ const ProfileScreen = ({ navigation }) => {
       }
   
       // 🔄 Redirection forcée vers la page de connexion
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
+      navigation.navigate({ name: 'Login' });
+        
+      
   
     } catch (error) {
       console.error("❌ Erreur lors de la déconnexion :", error);

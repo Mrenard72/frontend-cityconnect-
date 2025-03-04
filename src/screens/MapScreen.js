@@ -562,7 +562,7 @@ export default function MapScreen({ route, navigation }) {
 
       {filter === 'activity' && (
         <View style={styles.categoryBar}>
-          {['Sport', 'Culturel', 'Sorties', 'Culinaire'].map((cat) => (
+          {['Sport', 'Culturel', 'Sorties'].map((cat) => (
             <TouchableOpacity
               key={cat}
               style={[
