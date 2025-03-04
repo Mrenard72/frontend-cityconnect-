@@ -68,32 +68,32 @@ const ProfileStackScreen = () => {
       <ProfileStack.Screen 
         name="ProfileMain" 
         component={ProfileScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="ServicesScreen" 
         component={ServicesScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="SortiesScreen" 
         component={SortiesScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="Z_InfosScreen" 
         component={Z_InfosScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
           <ProfileStack.Screen 
           name="Z1_ModifScreen" 
           component={Z1_ModifScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false }} // cache le menu du haut avec la fleche
           />
           <ProfileStack.Screen 
           name="Z2_DeleteScreen" 
           component={Z2_DeleteScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false }} // cache le menu du haut avec la fleche
           />
     </ProfileStack.Navigator>
   );
