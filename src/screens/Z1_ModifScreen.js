@@ -88,30 +88,38 @@ const Z1_ModifScreen = ({ navigation }) => {
             placeholder="Ancien mot de passe" 
             style={styles.input} 
             value={lastPassword} 
-            onChangeText={setLastPassword} 
-            secureTextEntry // Cache le mot de passe
-          />
+            onChangeText={(text) => { 
+            console.log("📝 Ancien mot de passe saisi :", text); // Ajout d'un log
+            setLastPassword(text);
+      }} 
+  secureTextEntry
+/>
 
           {/* Lien pour récupérer son mot de passe en cas d'oubli */}
           <Text style={styles.linkText}>Mot de passe oublié ?</Text>
 
-          {/* Champ de saisie pour le nouveau mot de passe */}
+        
           <TextInput 
-            placeholder="Nouveau mot de passe" 
-            style={styles.input} 
-            value={newPassword} 
-            onChangeText={setNewPassword} 
-            secureTextEntry // Cache le mot de passe
-          />
+  placeholder="Nouveau mot de passe" 
+  style={styles.input} 
+  value={newPassword} 
+  onChangeText={(text) => { 
+    console.log("📝 Nouveau mot de passe saisi :", text); // Ajout d'un log
+    setNewPassword(text);
+  }} 
+  secureTextEntry
+/>
 
-          {/* Champ de saisie pour confirmer le nouveau mot de passe */}
-          <TextInput 
-            placeholder="Confirmer le mot de passe" 
-            style={styles.input} 
-            secureTextEntry 
-            value={confirmNewPassword} 
-            onChangeText={setConfirmNewPassword} 
-          />
+<TextInput 
+  placeholder="Confirmer le mot de passe" 
+  style={styles.input} 
+  value={confirmNewPassword} 
+  onChangeText={(text) => { 
+    console.log("📝 Confirmation du mot de passe :", text); // Ajout d'un log
+    setConfirmNewPassword(text);
+  }} 
+  secureTextEntry
+/>
 
           {/* Bouton pour valider la modification du mot de passe */}
           <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
