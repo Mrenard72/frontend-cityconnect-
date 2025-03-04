@@ -18,22 +18,20 @@ const Z_InfosScreen = ({ navigation }) => {
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
-       {/* Bouton de retour placé au-dessus du Header */}
+      
+      {/* Bouton de retour placé au-dessus du Header */}
        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
         <FontAwesome name="arrow-left" size={25} color="#20135B" />
       </TouchableOpacity>
       {/* Bouton de retour placé au-dessus du Header */}
 
-        {/* Fleche de retour header */}
-        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-          <FontAwesome name="arrow-left" size={25} color="#20135B" />
-        </TouchableOpacity>
-        {/* Fleche de retour header */}    
-
     <Header/>
         <View style={styles.container}>
+
+          {/* Titre */}
           <Text style={styles.title}>Mes infos</Text>
-            {/* ✅ Boutons des différentes sections */}
+
+          {/* ✅ Boutons des différentes sections */}
           <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
             <Text style={styles.textButton}>Changer le mot de passe</Text>
             <FontAwesome name="" size={24} color="white" style={styles.icon} />
@@ -43,7 +41,9 @@ const Z_InfosScreen = ({ navigation }) => {
             <Text style={styles.textButton}>Supprimer le compte</Text>
             <FontAwesome name="" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
+        
         </View>
+
     </ImageBackground>
   );
 };
