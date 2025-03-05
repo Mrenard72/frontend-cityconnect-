@@ -194,7 +194,7 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
             </Text>
           </View>
           <View style={styles.activityModal_buttons}>
-            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => { onJoin(activity._id); onClose(); Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit."); }}>
+            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => { onJoin(activity._id); onClose(); Alert.alert("✅ Vous êtes bien inscrit à l'activité ! 🎉"); }}>
               <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>

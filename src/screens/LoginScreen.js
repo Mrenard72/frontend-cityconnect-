@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
   ImageBackground, Image, Alert 
 } from 'react-native';
+import * as AuthSession from "expo-auth-session"
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Stockage local pour gérer le token utilisateur
 
+const CLIENT_ID = "994283205046-ecibtacvb02sjvtg578vj6eg5f1rledh.apps.googleusercontent.com"; // Ton Client ID Web
 // 📌 Écran de connexion (Login)
 const LoginScreen = ({ navigation }) => {
   // ✅ États pour stocker les informations saisies par l'utilisateur
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+
+// 📌 Configuration Google Sign-In
+
 
   // 🔐 Fonction pour gérer la connexion
   const handleLogin = async () => {
@@ -44,6 +50,52 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+
+  // 🔹 Fonction pour gérer la connexion Google avec Expo
+  const handleGoogleLogin = async () => {
+    try {
+      const redirectUri = AuthSession.makeRedirectUri(); // Génère une URI de redirection automatique
+
+      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${redirectUri}&response_type=id_token&scope=openid%20profile%20email`;
+
+      const result = await AuthSession.startAsync({
+        authUrl,
+        returnUrl: AuthSession.makeRedirectUri(),
+      });
+      
+
+      if (result.type === "success") {
+        const { id_token } = result.params;
+        setToken(id_token);
+
+        // Envoie le token Google au backend Express
+        const response = await fetch("https://backend-city-connect.vercel.app/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: id_token }),
+        });
+
+        const data = await response.json();
+        console.log("Réponse Google Backend :", data);
+
+        if (response.ok) {
+          await AsyncStorage.setItem("token", data.token);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+          });
+        } else {
+          Alert.alert("Erreur", data.message);
+        }
+      } else {
+        Alert.alert("Erreur", "Connexion Google annulée.");
+      }
+    } catch (error) {
+      console.error("Erreur Google Sign-In :", error);
+      Alert.alert("Erreur", "Connexion Google échouée.");
+    }
+  };
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
@@ -75,8 +127,8 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Se connecter</Text>
         </TouchableOpacity>
 
-        {/* 🔵 Bouton de connexion via Google (non fonctionnel pour l'instant) */}
-        <TouchableOpacity style={styles.googleButton}>
+       {/* 🔵 Connexion Google */}
+       <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
           <Text style={styles.googleButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
 
@@ -162,6 +214,23 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: '#2D2A6E',
     fontFamily: 'FredokaOne',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 12,
+    width: '100%',
+    marginTop: 20,
+    backgroundColor: '#fff',
+  },
+  googleButtonText: {
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    color: '#000',
   },
 });
 
