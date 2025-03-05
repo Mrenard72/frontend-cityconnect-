@@ -234,7 +234,7 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => {
-              navigation.navigate('Profil', { screen: 'UserProfileScreen' });
+              navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
               onClose();
             }}
           >
