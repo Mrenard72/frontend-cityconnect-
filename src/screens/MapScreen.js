@@ -16,7 +16,7 @@ import MapView, { Marker } from 'react-native-maps';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Calendar } from 'react-native-calendars';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropDownPicker from 'react-native-dropdown-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -36,8 +36,9 @@ function parseLocation(locationStr) {
   };
 }
 
-// Composant pour la modale de création d'activité
+// Modale pour créer une nouvelle activité
 const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
+  // états...
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -54,6 +55,7 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     { label: 'Culinaire', value: 'Culinaire' },
   ]);
 
+  // Fonction pour choisir une image depuis la galerie
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -77,6 +79,7 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     }
   };
 
+  // Fonction pour gérer la création d'une nouvelle activité
   const handleCreate = () => {
     if (!title || !description || !date || !category || !maxParticipants) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
@@ -94,6 +97,7 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
 
+  // Fonction pour gérer la sélection d'une date dans le calendrier
   const handleDayPress = (day) => {
     const newDate = new Date(day.dateString);
     setSelectedDate(newDate);
@@ -111,8 +115,21 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Créer une activité</Text>
-          <TextInput style={styles.modalInput} placeholder="Titre" placeholderTextColor="#666" value={title} onChangeText={setTitle} />
-          <TextInput style={[styles.modalInput, { height: 70 }]} multiline placeholder="Description" placeholderTextColor="#666" value={description} onChangeText={setDescription} />
+          <TextInput
+            style={styles.modalInput}
+            placeholder="Titre"
+            placeholderTextColor="#666"
+            value={title}
+            onChangeText={setTitle}
+          />
+          <TextInput
+            style={[styles.modalInput, { height: 70 }]}
+            multiline
+            placeholder="Description"
+            placeholderTextColor="#666"
+            value={description}
+            onChangeText={setDescription}
+          />
           <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.buttonText}>Choisir une image</Text>
@@ -151,7 +168,13 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
               dropDownContainerStyle={{ backgroundColor: '#FFF' }}
             />
           </View>
-          <TextInput style={styles.modalInput} placeholder="Max participants" keyboardType="numeric" value={maxParticipants} onChangeText={setMaxParticipants} />
+          <TextInput
+            style={styles.modalInput}
+            placeholder="Max participants"
+            keyboardType="numeric"
+            value={maxParticipants}
+            onChangeText={setMaxParticipants}
+          />
           <View style={styles.modalButtons}>
             <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
               <Text style={styles.buttonText}>Annuler</Text>
@@ -166,8 +189,9 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
   );
 };
 
-// Composant pour afficher les détails d'une activité
+// Modale pour afficher les détails d'une activité
 const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
+  const navigation = useNavigation();
   if (!activity) return null;
   return (
     <Modal visible={!!activity} transparent animationType="fade">
@@ -194,13 +218,33 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
             </Text>
           </View>
           <View style={styles.activityModal_buttons}>
-            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => { onJoin(activity._id); onClose(); Alert.alert("✅ Vous êtes bien inscrit à l'activité ! 🎉"); }}>
+            <TouchableOpacity
+              style={styles.activityModal_joinButton}
+              onPress={() => {
+                onJoin(activity._id);
+                onClose();
+                Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
+              }}
+            >
               <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>
+            <TouchableOpacity
+              style={styles.activityModal_closeButton}
+              onPress={onClose}
+            >
               <Text style={styles.activityModal_buttonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
+          {/* Bouton pour naviguer vers le profil utilisateur avec style dédié */}
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => {
+              navigation.navigate('Profil', { screen: 'UserProfileScreen' });
+              onClose();
+            }}
+          >
+            <Text style={styles.profileButtonText}>Voir Profil</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -210,7 +254,6 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
 // Composant principal MapScreen
 export default function MapScreen({ route, navigation }) {
   const { filter, userLocation, category, locality } = route.params || {};
-
   const defaultRegion = {
     latitude: 48.8566,
     longitude: 2.3522,
@@ -222,7 +265,6 @@ export default function MapScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
   const [activitiesCreated, setActivitiesCreated] = useState([]);
-  // On initialise selectedCategory avec la catégorie passée en paramètre si le filtre est 'activity'
   const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
   const [showInput, setShowInput] = useState(false);
   const [latitudeInput, setLatitudeInput] = useState('');
@@ -390,7 +432,7 @@ export default function MapScreen({ route, navigation }) {
       }
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
-      setActivitiesCreated([...activitiesCreated, data.event]);
+      // On suppose que activitiesCreated est géré ailleurs
       Alert.alert("Succès", "Activité créée !");
     } catch (error) {
       console.error("❌ Erreur lors de la création :", error);
@@ -475,8 +517,8 @@ export default function MapScreen({ route, navigation }) {
   let allMarkers = [];
   if (filter === 'createActivity') {
     allMarkers = [
-      ...activitiesCreated,
-      ...activities.filter(a => !activitiesCreated.some(c => c._id === a._id)),
+      // ...activitiesCreated et autres activités
+      ...activities
     ];
   } else {
     allMarkers = activities;
@@ -720,7 +762,21 @@ const styles = StyleSheet.create({
   activityModal_buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
+    fontSize: 18,
+  },
+  // Nouveaux styles pour le bouton "Voir Profil"
+  profileButton: {
+    backgroundColor: '#007bff',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  profileButtonText: {
+    fontSize: 18,
+    color: '#FFF',
+    fontWeight: 'bold',
   },
 });
-
 
