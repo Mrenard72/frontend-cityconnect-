@@ -239,8 +239,12 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => {
-              navigation.navigate('Profil', { screen: 'UserProfileScreen' });
-              onClose();
+              if (activity.createdBy) {
+                navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
+                onClose();
+              } else {
+                Alert.alert("Erreur", "Identifiant du créateur non disponible.");
+              }
             }}
           >
             <Text style={styles.profileButtonText}>Voir Profil</Text>

@@ -201,7 +201,7 @@ formData.append('file', {
   activeOpacity={0.8} 
   onPress={() => {
     console.log("🔍 userId envoyé à UserProfileScreen :", userToken);
-    navigation.navigate('UserProfile', { userId: userToken });
+    navigation.navigate('UserProfileScreen', { userId: userToken });
   }} 
 >
   <Text style={styles.textButton}>Ma page</Text>

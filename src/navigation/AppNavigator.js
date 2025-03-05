@@ -45,7 +45,6 @@ const MessageStack = () => {
   );
 };
 
-
 // ✅ Stack interne pour inclure `ExploreScreen` dans les onglets (et garder la navigation intacte)
 const DashboardStack = () => {
   const DashboardStackNav = createStackNavigator();
@@ -86,18 +85,18 @@ const ProfileStackScreen = () => {
         component={Z_InfosScreen} 
         options={{ headerShown: false }} 
       />
-          <ProfileStack.Screen 
-          name="Z1_ModifScreen" 
-          component={Z1_ModifScreen} 
-          options={{ headerShown: false }} 
-          />
-          <ProfileStack.Screen 
-          name="Z2_DeleteScreen" 
-          component={Z2_DeleteScreen} 
-          options={{ headerShown: false }} 
-          />
+      <ProfileStack.Screen 
+        name="Z1_ModifScreen" 
+        component={Z1_ModifScreen} 
+        options={{ headerShown: false }} 
+      />
+      <ProfileStack.Screen 
+        name="Z2_DeleteScreen" 
+        component={Z2_DeleteScreen} 
+        options={{ headerShown: false }} 
+      />
       <ProfileStack.Screen
-        name="UserProfile"
+        name="UserProfileScreen"
         component={UserProfileScreen}
         options={{ headerShown: false }}
       />
@@ -129,9 +128,9 @@ const BottomTabs = () => {
         },
       })}
     > 
-    {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
+      {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
       <Tab.Screen name="Accueil" component={DashboardStack} />
-        {/* Onglet Carte */}
+      {/* Onglet Carte */}
       <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
       <Tab.Screen name="Messagerie" component={MessageStack} />
@@ -154,7 +153,7 @@ const AppNavigator = () => {
           return;
         }
 
-         // 🔍 Vérifier si le token est valide en appelant l'API backend
+        // 🔍 Vérifier si le token est valide en appelant l'API backend
         const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
           method: 'GET',
           headers: {
@@ -186,13 +185,15 @@ const AppNavigator = () => {
       </View>
     );
   }
-        // ✅ Gestion de la navigation selon l'état de connexion
+
+  // ✅ Gestion de la navigation selon l'état de connexion
   return (
     <Stack.Navigator>
       {isLoggedIn ? (
         <>
-         {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
+          {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>
@@ -200,7 +201,6 @@ const AppNavigator = () => {
           <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-      
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
@@ -210,12 +210,10 @@ const AppNavigator = () => {
           <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Sorties" component={SortiesScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Services" component={ServicesScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
         </>
       )}
     </Stack.Navigator>
-
-    
   );
 };
 

@@ -13,7 +13,7 @@ const UserProfileScreen = ({ route, navigation }) => {
   const [user, setUser] = useState(null);
   const [rating, setRating] = useState(0);
   const [activities, setActivities] = useState([]);
-
+console.log(userId);
   useEffect(() => {
     fetchUserProfile();
     fetchUserActivities();
@@ -21,7 +21,7 @@ const UserProfileScreen = ({ route, navigation }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/users/${userId}`);
+      const response = await fetch(`${BASE_URL}/users/${userId._id}`);
       const data = await response.json();
       if (response.ok) {
         setUser(data);
@@ -35,7 +35,7 @@ const UserProfileScreen = ({ route, navigation }) => {
 
   const fetchUserActivities = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
+      const response = await fetch(`${BASE_URL}/users/${userId._id}/activities`);
       const data = await response.json();
       if (response.ok) {
         setActivities(data);
@@ -97,8 +97,11 @@ const UserProfileScreen = ({ route, navigation }) => {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View style={styles.activityItem}>
-              <Text style={styles.activityTitle}>{item.title}</Text>
-              <Text style={styles.activityDescription}>{item.description}</Text>
+                <Image source={{ uri: item.image }} style={styles.activityImage} />
+              <View style={styles.activityTextContainer}>
+                <Text style={styles.activityTitle}>{item.title}</Text>
+                <Text style={styles.activityDescription}>{item.description}</Text>
+              </View>
             </View>
           )}
         />
@@ -118,15 +121,17 @@ const UserProfileScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
+  container: { flex: 1, backgroundColor: 'white', paddingTop: 60, alignItems: 'center' },
   profileContainer: { alignItems: 'center', padding: 20 },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10 },
-  userName: { fontSize: 22, fontWeight: 'bold', color: '#2D2A6E' },
-  rating: { fontSize: 18, color: '#555' },
+  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10, marginTop: 20 },
+  userName: { fontSize: 22, fontWeight: 'bold', color: '#2D2A6E', textAlign: 'center' },
+  rating: { fontSize: 18, color: '#555', textAlign: 'center' },
   bio: { fontSize: 16, fontStyle: 'italic', color: '#777', textAlign: 'center', marginVertical: 10 },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 15, textAlign: 'center' },
   noActivities: { fontSize: 16, color: '#777', textAlign: 'center', marginVertical: 10 },
-  activityItem: { padding: 10, borderWidth: 1, borderColor: '#DDD', marginVertical: 5, borderRadius: 8, width: '90%', alignSelf: 'center' },
+  activityItem: { flexDirection: 'row', alignItems: 'center', padding: 10, borderWidth: 1, borderColor: '#DDD', marginVertical: 5, borderRadius: 8, width: '90%', alignSelf: 'center' },
+  activityImage: { width: 120, height: 120, borderRadius: 20, marginRight: 20 },
+  activityTextContainer: { flex: 1 },
   activityTitle: { fontSize: 18, fontWeight: 'bold' },
   activityDescription: { fontSize: 14, color: '#555' },
   ratingContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
