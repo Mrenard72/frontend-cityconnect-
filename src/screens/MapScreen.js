@@ -239,12 +239,8 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => {
-              if (activity.createdBy) {
-                navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
-                onClose();
-              } else {
-                Alert.alert("Erreur", "Identifiant du créateur non disponible.");
-              }
+              navigation.navigate('Profil', { screen: 'UserProfileScreen' });
+              onClose();
             }}
           >
             <Text style={styles.profileButtonText}>Voir Profil</Text>
@@ -257,12 +253,12 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
 
 // Composant principal MapScreen
 export default function MapScreen({ route, navigation }) {
-  const { filter, userLocation, category, locality } = route.params || {};
+  const { filter, userLocation, category, locality, selectedDate } = route.params || {};
   const defaultRegion = {
-    latitude: 48.8566,
-    longitude: 2.3522,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitude: 46.603354, // Centre de la France
+  longitude: 1.888334,
+  latitudeDelta: 6, // Grand zoom out
+  longitudeDelta: 6,
   };
 
   const [region, setRegion] = useState(defaultRegion);
@@ -276,6 +272,37 @@ export default function MapScreen({ route, navigation }) {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
+// recuperation des activites par dates
+
+async function fetchActivitiesByDate(date) {
+  setLoading(true); // Active le chargement
+  try {
+    const response = await fetch(`${BASE_URL}/events?date=${date}`); // 🔗 Modifie cette URL si besoin
+    const data = await response.json(); 
+    const filteredActivities = data.filter(act => {
+      const activityDate = act.date.split('T')[0]; // 🔥 Garde juste YYYY-MM-DD
+      return activityDate === date;
+    });
+    
+    setActivities(filteredActivities);
+    console.log("🎯 Activités après filtrage :", filteredActivities);
+    
+    console.log("📅 Activités récupérées pour", date, ":", data); // Vérification console
+  } catch (err) {
+    console.error("❌ Erreur lors de la récupération des activités :", err);
+  } finally {
+    setLoading(false); // Désactive le chargement
+  }
+}
+
+useEffect(() => {
+  if (selectedDate) {
+    fetchActivitiesByDate(selectedDate); // 🔥 Appelle la fonction dès que selectedDate change
+  }
+}, [selectedDate]);
+
+
 
   async function getToken() {
     try {
