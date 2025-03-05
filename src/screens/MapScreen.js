@@ -38,7 +38,6 @@ function parseLocation(locationStr) {
 
 // Modale pour créer une nouvelle activité
 const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
-  // états...
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -55,7 +54,6 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     { label: 'Culinaire', value: 'Culinaire' },
   ]);
 
-  // Fonction pour choisir une image depuis la galerie
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -79,7 +77,6 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     }
   };
 
-  // Fonction pour gérer la création d'une nouvelle activité
   const handleCreate = () => {
     if (!title || !description || !date || !category || !maxParticipants) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
@@ -97,7 +94,6 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
 
-  // Fonction pour gérer la sélection d'une date dans le calendrier
   const handleDayPress = (day) => {
     const newDate = new Date(day.dateString);
     setSelectedDate(newDate);
@@ -235,7 +231,6 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
               <Text style={styles.activityModal_buttonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
-          {/* Bouton pour naviguer vers le profil utilisateur avec style dédié */}
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => {
@@ -255,6 +250,20 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
   );
 };
 
+// Fonction pour gérer le mode création d'activité
+async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
+  if (userLocation) {
+    setRegion({
+      latitude: userLocation.latitude,
+      longitude: userLocation.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+  } else {
+    await getUserLocation();
+  }
+}
+
 // Composant principal MapScreen
 export default function MapScreen({ route, navigation }) {
   const { filter, userLocation, category, locality } = route.params || {};
@@ -268,7 +277,6 @@ export default function MapScreen({ route, navigation }) {
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
-  const [activitiesCreated, setActivitiesCreated] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
   const [showInput, setShowInput] = useState(false);
   const [latitudeInput, setLatitudeInput] = useState('');
@@ -436,7 +444,6 @@ export default function MapScreen({ route, navigation }) {
       }
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
-      // On suppose que activitiesCreated est géré ailleurs
       Alert.alert("Succès", "Activité créée !");
     } catch (error) {
       console.error("❌ Erreur lors de la création :", error);
@@ -460,23 +467,26 @@ export default function MapScreen({ route, navigation }) {
   useFocusEffect(
     useCallback(() => {
       if (filter === 'aroundMe') {
-        getUserLocation();
-        setShowInput(false);
-        fetchActivities();
+        getUserLocation().then(() => {
+          fetchActivities();
+        });
+      } else if (filter === 'activity') {
+        getUserLocation().then(() => {
+          const categoryToUse = selectedCategory || 'Sport';
+          setSelectedCategory(categoryToUse);
+          fetchActivities(categoryToUse);
+        });
       } else if (filter === 'byLocality') {
         setShowInput(true);
         handleByLocality();
         fetchActivities();
-      } else if (filter === 'activity') {
-        setShowInput(false);
-        handleActivityMode();
       } else if (filter === 'createActivity') {
         setShowInput(false);
-        handleCreateActivityMode();
+        handleCreateActivityMode(userLocation, setRegion, getUserLocation);
       }
-    }, [filter])
+    }, [filter, selectedCategory])
   );
-
+  
   function handleByLocality() {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
@@ -505,7 +515,7 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  async function handleCreateActivityMode() {
+  async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
     if (userLocation) {
       setRegion({
         latitude: userLocation.latitude,
@@ -518,16 +528,7 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  let allMarkers = [];
-  if (filter === 'createActivity') {
-    allMarkers = [
-      // ...activitiesCreated et autres activités
-      ...activities
-    ];
-  } else {
-    allMarkers = activities;
-  }
-
+  let allMarkers = activities;  
   if (loading) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
@@ -688,7 +689,6 @@ const styles = StyleSheet.create({
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   dropdownContainer: { zIndex: 2000 },
-  // Styles pour ActivityDetailsModal
   activityModal_overlay: {
     flex: 1,
     justifyContent: 'center',
@@ -768,7 +768,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
   },
-  // Nouveaux styles pour le bouton "Voir Profil"
   profileButton: {
     backgroundColor: '#007bff',
     marginTop: 10,
@@ -782,5 +781,17 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: 'bold',
   },
+  inputContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 8,
+    zIndex: 100,
+  }
 });
+
 

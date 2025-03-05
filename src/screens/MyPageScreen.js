@@ -8,7 +8,7 @@ import Header from '../components/Header'; // ✅ Ajout du composant Header
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
-const UserProfileScreen = ({ route, navigation }) => {
+const MyPageScreen = ({ route, navigation }) => {
   const { userId } = route.params;
   const [user, setUser] = useState(null);
   const [rating, setRating] = useState(0);
@@ -21,7 +21,7 @@ console.log(userId);
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/users/${userId._id}`);
+      const response = await fetch(`${BASE_URL}/users/${userId}`);
       const data = await response.json();
       if (response.ok) {
         setUser(data);
@@ -35,7 +35,7 @@ console.log(userId);
 
   const fetchUserActivities = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/users/${userId._id}/activities`);
+      const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
       const data = await response.json();
       if (response.ok) {
         setActivities(data);
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   activityTextContainer: { flex: 1 },
   activityTitle: { fontSize: 18, fontWeight: 'bold' },
   activityDescription: { fontSize: 14, color: '#555' },
-  ratingContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10, marginBottom: 20 },
+  ratingContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
 });
 
-export default UserProfileScreen;
+export default MyPageScreen;
