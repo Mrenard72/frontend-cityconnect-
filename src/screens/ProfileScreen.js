@@ -38,6 +38,7 @@ const ProfileScreen = ({ navigation }) => {
         if (response.ok) {
           setUserName(data.username);
           setProfileImage(data.photo || await AsyncStorage.getItem('profileImage')); // ✅ Vérifie AsyncStorage
+          setUserToken(data._id); // ✅ Stocke l'ID de l'utilisateur
         } else {
           console.log("Erreur récupération profil :", data.message);
           await AsyncStorage.removeItem('token');
@@ -56,7 +57,7 @@ const ProfileScreen = ({ navigation }) => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('token');
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      navigation.navigate({ name: 'Login' });
     } catch (error) {
       console.error("Erreur lors de la déconnexion :", error);
     }
@@ -193,6 +194,21 @@ formData.append('file', {
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </TouchableOpacity>
+
+        {/* 📌 Bouton pour aller à la page UserProfileScreen */}
+        <TouchableOpacity 
+  style={styles.button} 
+  activeOpacity={0.8} 
+  onPress={() => {
+    console.log("🔍 userId envoyé à UserProfileScreen :", userToken);
+    navigation.navigate('UserProfile', { userId: userToken });
+  }} 
+>
+  <Text style={styles.textButton}>Ma page</Text>
+  <FontAwesome name="user" size={24} color="white" style={styles.icon} />
+</TouchableOpacity>
+
+        
       </View>
     </ImageBackground>
   );

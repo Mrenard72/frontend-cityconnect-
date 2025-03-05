@@ -12,6 +12,7 @@ const LoginScreen = ({ navigation }) => {
   // ✅ États pour stocker les informations saisies par l'utilisateur
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
 
 
 // 📌 Configuration Google Sign-In

@@ -18,6 +18,7 @@ import ActivityScreen from '../screens/ActivityScreen';
 import SortiesScreen from '../screens/SortiesScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import RestaurantsScreen from '../screens/RestaurantsScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
 
 // ajout screen dans mes infos
 import Z_InfosScreen from '../screens/Z_InfosScreen';
@@ -95,6 +96,11 @@ const ProfileStackScreen = () => {
           component={Z2_DeleteScreen} 
           options={{ headerShown: false }} 
           />
+      <ProfileStack.Screen
+        name="UserProfile"
+        component={UserProfileScreen}
+        options={{ headerShown: false }}
+      />
     </ProfileStack.Navigator>
   );
 };
@@ -201,6 +207,10 @@ const AppNavigator = () => {
           <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Restaurants" component={RestaurantsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Sorties" component={SortiesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Services" component={ServicesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
         </>
       )}
     </Stack.Navigator>
