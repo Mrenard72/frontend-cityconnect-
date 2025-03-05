@@ -4,8 +4,10 @@ import {
   ImageBackground, Image, Alert 
 } from 'react-native';
 import * as AuthSession from "expo-auth-session"
+import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Stockage local pour gérer le token utilisateur
-
+// Associe WebBrowser avec AuthSession pour éviter les erreurs
+WebBrowser.maybeCompleteAuthSession();
 const CLIENT_ID = "994283205046-ecibtacvb02sjvtg578vj6eg5f1rledh.apps.googleusercontent.com"; // Ton Client ID Web
 // 📌 Écran de connexion (Login)
 const LoginScreen = ({ navigation }) => {
@@ -55,30 +57,28 @@ const LoginScreen = ({ navigation }) => {
   // 🔹 Fonction pour gérer la connexion Google avec Expo
   const handleGoogleLogin = async () => {
     try {
-      const redirectUri = AuthSession.makeRedirectUri(); // Génère une URI de redirection automatique
-
-      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${redirectUri}&response_type=id_token&scope=openid%20profile%20email`;
-
-      const result = await AuthSession.startAsync({
-        authUrl,
-        returnUrl: AuthSession.makeRedirectUri(),
-      });
-      
-
-      if (result.type === "success") {
-        const { id_token } = result.params;
-        setToken(id_token);
-
-        // Envoie le token Google au backend Express
-        const response = await fetch("https://backend-city-connect.vercel.app/auth/google", {
+      // 🔹 Récupérer les paramètres Google OAuth
+      const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
+      const discovery = await AuthSession.fetchDiscoveryAsync("https://accounts.google.com");
+  
+      // 🔹 Lancer l'authentification avec Google
+      const authResponse = await AuthSession.openAuthSessionAsync(
+        `${discovery.authorizationEndpoint}?client_id=${CLIENT_ID}&redirect_uri=${redirectUri}&response_type=id_token&scope=openid%20profile%20email`
+      );
+  
+      if (authResponse.type === "success") {
+        const { id_token } = authResponse.params;
+  
+        // 🔹 Envoyer le token Google au backend
+        const response = await fetch("https://backend-city-connect.vercel.app/auth/google-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idToken: id_token }),
         });
-
+  
         const data = await response.json();
         console.log("Réponse Google Backend :", data);
-
+  
         if (response.ok) {
           await AsyncStorage.setItem("token", data.token);
           navigation.reset({
@@ -96,6 +96,9 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert("Erreur", "Connexion Google échouée.");
     }
   };
+  
+  
+  
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>

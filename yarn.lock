@@ -3432,7 +3432,7 @@ expo-updates@~0.27.1:
     ignore "^5.3.1"
     resolve-from "^5.0.0"
 
-expo-web-browser@~14.0.2:
+expo-web-browser@^14.0.2, expo-web-browser@~14.0.2:
   version "14.0.2"
   resolved "https://registry.yarnpkg.com/expo-web-browser/-/expo-web-browser-14.0.2.tgz#52d53947c42fdfb225e8c230418ffe508bcf98a7"
   integrity sha512-Hncv2yojhTpHbP6SGWARBFdl7P6wBHc1O8IKaNsH0a/IEakq887o1eRhLxZ5IwztPQyRDhpqHdgJ+BjWolOnwA==
