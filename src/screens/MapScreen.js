@@ -493,25 +493,68 @@ useEffect(() => {
 
   useFocusEffect(
     useCallback(() => {
-      if (filter === 'aroundMe') {
+      // Récupérer les paramètres à chaque focus
+      const currentFilter = route.params?.filter;
+      const currentCategory = route.params?.category;
+      const currentSelectedDate = route.params?.selectedDate;
+      
+      console.log("🔄 Focus avec filtre:", currentFilter, "catégorie:", currentCategory, "date:", currentSelectedDate);
+      
+      // Réinitialiser l'activité sélectionnée
+      setSelectedActivity(null);
+      
+      // Initialiser le mode selon le filtre (par paramètres actuels, pas par état)
+      if (currentFilter === 'aroundMe') {
+        setShowInput(false);
         getUserLocation().then(() => {
           fetchActivities();
         });
-      } else if (filter === 'activity') {
-        getUserLocation().then(() => {
-          const categoryToUse = selectedCategory || 'Sport';
-          setSelectedCategory(categoryToUse);
-          fetchActivities(categoryToUse);
-        });
-      } else if (filter === 'byLocality') {
+      } 
+      else if (currentFilter === 'activity') {
+        setShowInput(false);
+        // Important: Utilisez directement currentCategory et pas selectedCategory
+        // qui pourrait contenir une ancienne valeur
+        const categoryToUse = currentCategory || 'Sport';
+        setSelectedCategory(categoryToUse);
+        fetchActivities(categoryToUse);
+      } 
+      else if (currentFilter === 'byLocality') {
         setShowInput(true);
         handleByLocality();
         fetchActivities();
-      } else if (filter === 'createActivity') {
+      } 
+      else if (currentFilter === 'createActivity') {
         setShowInput(false);
         handleCreateActivityMode(userLocation, setRegion, getUserLocation);
       }
-    }, [filter, selectedCategory])
+      else if (currentFilter === 'date' && currentSelectedDate) {
+        setShowInput(false);
+        fetchActivitiesByDate(currentSelectedDate);
+      }
+      else if (currentFilter === 'createActivity') {
+        setShowInput(false);
+        setSelectedCategory(null); // Réinitialiser la catégorie pour éviter le filtrage
+        
+        // IMPORTANT: Charger toutes les activités sans filtre de catégorie
+        fetchActivities(); // Appeler sans paramètre pour récupérer toutes les activités
+        
+        // Centrer la carte sur la position de l'utilisateur
+        if (userLocation) {
+          setRegion({
+            latitude: userLocation.latitude,
+            longitude: userLocation.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          });
+        } else {
+          getUserLocation().then(() => {
+            // Charger à nouveau les activités après avoir obtenu la position
+            // C'est utile si fetchActivities dépend de la position
+            fetchActivities();
+          });
+        }
+      }
+    }, [route.params]) // Dépendance importante: route.params (pas juste filter)
   );
   
   function handleByLocality() {
