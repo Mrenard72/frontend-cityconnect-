@@ -62,15 +62,21 @@ console.log(userId);
         },
         body: JSON.stringify({ rating: newRating }),
       });
+  
       if (response.ok) {
         setRating(newRating);
         Alert.alert("Merci !", "Votre note a été enregistrée.");
-        fetchUserProfile(); // Rafraîchir la note moyenne
+        
+        // 🚀 Forcer l'actualisation du profil
+        setTimeout(() => {
+          fetchUserProfile();
+        }, 500);
       }
     } catch (error) {
       console.error("Erreur lors de la notation :", error);
     }
   };
+  
 
   if (!user) return <Text>Chargement...</Text>;
 

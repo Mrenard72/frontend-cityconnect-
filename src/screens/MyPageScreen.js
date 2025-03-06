@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Alert
+  View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome } from '@expo/vector-icons';
 import Header from '../components/Header'; // ✅ Ajout du composant Header
+
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
@@ -62,15 +63,50 @@ console.log(userId);
         },
         body: JSON.stringify({ rating: newRating }),
       });
+  
       if (response.ok) {
         setRating(newRating);
         Alert.alert("Merci !", "Votre note a été enregistrée.");
-        fetchUserProfile(); // Rafraîchir la note moyenne
+        
+        // 🚀 Forcer l'actualisation du profil
+        setTimeout(() => {
+          fetchUserProfile();
+        }, 500);
       }
     } catch (error) {
       console.error("Erreur lors de la notation :", error);
     }
   };
+
+  const updateBio = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté pour modifier votre bio.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`${BASE_URL}/users/update-bio`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bio: user.bio }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Succès", "Bio mise à jour !");
+      } else {
+        Alert.alert("Erreur", data.message);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la bio :", error);
+    }
+  };
+  
+  
 
   if (!user) return <Text>Chargement...</Text>;
 
@@ -84,7 +120,16 @@ console.log(userId);
         <Image source={{ uri: user.photo }} style={styles.profileImage} />
         <Text style={styles.userName}>{user.username}</Text>
         <Text style={styles.rating}>Note moyenne: ⭐ {user.averageRating || "Pas encore noté"}</Text>
-        <Text style={styles.bio}>{user.bio || "Pas de bio disponible."}</Text>
+        <TextInput
+              style={styles.bioInput}
+              value={user.bio}
+              onChangeText={(text) => setUser({ ...user, bio: text })}
+              />
+        <TouchableOpacity style={styles.updateButton} onPress={updateBio}>
+        <Text style={styles.updateButtonText}>Mettre à jour</Text>
+        </TouchableOpacity>
+
+
       </View>
 
       {/* 🔹 Activités */}
@@ -135,6 +180,28 @@ const styles = StyleSheet.create({
   activityTitle: { fontSize: 18, fontWeight: 'bold' },
   activityDescription: { fontSize: 14, color: '#555' },
   ratingContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
+  bioInput: {
+    width: '90%',
+    height: 50,
+    borderColor: '#DDD',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  updateButton: {
+    backgroundColor: '#2D2A6E',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  updateButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  
 });
 
 export default MyPageScreen;
