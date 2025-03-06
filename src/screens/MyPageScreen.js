@@ -54,7 +54,7 @@ console.log(userId);
       return;
     }
     try {
-      const response = await fetch(`${BASE_URL}/users/${userId}/rate`, {
+      const response = await fetch(`${BASE_URL}/auth/${userId}/rate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
