@@ -197,6 +197,8 @@ const AppNavigator = () => {
           {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

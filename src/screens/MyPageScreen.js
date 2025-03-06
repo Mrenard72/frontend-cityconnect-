@@ -37,17 +37,18 @@ console.log(userId);
 
   const fetchUserActivities = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
-      const data = await response.json();
-      if (response.ok) {
-        setActivities(data);
-      } else {
-        Alert.alert('Erreur', "Impossible de charger les activités.");
-      }
+        const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
+        const data = await response.json();
+
+        if (response.ok) {
+            setActivities(data.length > 0 ? data : [{ message: "Aucune activité créée" }]);
+        } else {
+            console.error('Erreur lors du chargement des activités:', data);
+        }
     } catch (error) {
-      console.error("Erreur lors de la récupération des activités :", error);
+        console.error("Erreur lors de la récupération des activités :", error);
     }
-  };
+};
 
   const handleRateUser = async (newRating) => {
     const token = await AsyncStorage.getItem('token');
@@ -134,24 +135,25 @@ console.log(userId);
       </View>
 
       {/* 🔹 Activités */}
-      <Text style={styles.sectionTitle}>Activités créées</Text>
-      {activities.length === 0 ? (
-        <Text style={styles.noActivities}>Aucune activité créée.</Text>
-      ) : (
-        <FlatList
-          data={activities}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <View style={styles.activityItem}>
-                <Image source={{ uri: item.image }} style={styles.activityImage} />
-              <View style={styles.activityTextContainer}>
-                <Text style={styles.activityTitle}>{item.title}</Text>
-                <Text style={styles.activityDescription}>{item.description}</Text>
-              </View>
-            </View>
-          )}
-        />
-      )}
+<Text style={styles.sectionTitle}>Activités créées</Text>
+{!activities || activities.length === 0 ? (
+  <Text style={styles.noActivities}>Aucune activité créée.</Text>
+) : (
+  <FlatList
+    data={activities}
+    keyExtractor={(item) => item._id}
+    renderItem={({ item }) => (
+      <View style={styles.activityItem}>
+        <Image source={{ uri: item.image }} style={styles.activityImage} />
+        <View style={styles.activityTextContainer}>
+          <Text style={styles.activityTitle}>{item.title}</Text>
+          <Text style={styles.activityDescription}>{item.description}</Text>
+        </View>
+      </View>
+    )}
+  />
+)}
+
       
       
     </View>
