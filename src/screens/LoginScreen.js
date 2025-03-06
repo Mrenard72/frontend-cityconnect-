@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
   ImageBackground, Image, Alert 
@@ -17,7 +17,7 @@ const CLIENT_ID = "994283205046-ndm0i814m6c99gir9k3o4mjlm3qn1meb.apps.googleuser
 // 📌 Écran de connexion (Login)
 const LoginScreen = ({ navigation }) => {
   // ✅ États pour stocker les informations saisies par l'utilisateur
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   
   console.log("AuthSession:", AuthSession);
@@ -33,7 +33,7 @@ const LoginScreen = ({ navigation }) => {
         const response = await fetch('https://backend-city-connect.vercel.app/auth/login', {
             method: 'POST', // 📩 Envoi des données via une requête POST
             headers: { 'Content-Type': 'application/json' }, // 📌 Indique que les données envoyées sont en JSON
-            body: JSON.stringify({ email, password }), // 🔒 Envoi des identifiants utilisateur
+            body: JSON.stringify({ username, password }), // 🔒 Envoi des identifiants utilisateur
         });
 
         const data = await response.json(); // 📥 Récupération de la réponse du serveur
@@ -122,13 +122,12 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.title}>CityConnect</Text>
         <Text style={styles.subtitle}>DÉCOUVRE LA VILLE AVEC UN HABITANT</Text>
 
-        {/* 📧 Champ de saisie pour l'email */}
+        {/* 📧 Champ de saisie pour Username */}
         <TextInput 
-          placeholder="Email" 
+          placeholder="Username" 
           style={styles.input} 
-          value={email} 
-          onChangeText={setEmail} 
-          keyboardType="email-address" // 📌 Clavier adapté pour les adresses email
+          value={username}
+          onChangeText={setUsername} 
         />
 
         {/* 🔒 Champ de saisie pour le mot de passe */}
