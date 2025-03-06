@@ -7,6 +7,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import Header from '../components/Header'; // ✅ Ajout du composant Header
 
 
+
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
 const MyPageScreen = ({ route, navigation }) => {
@@ -152,15 +153,7 @@ console.log(userId);
         />
       )}
       
-      {/* 🔹 Notation */}
-      <Text style={styles.sectionTitle}>Noter cet utilisateur</Text>
-      <View style={styles.ratingContainer}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <TouchableOpacity key={star} onPress={() => handleRateUser(star)}>
-            <FontAwesome name={star <= rating ? "star" : "star-o"} size={30} color="gold" />
-          </TouchableOpacity>
-        ))}
-      </View>
+      
     </View>
   );
 };
@@ -168,39 +161,21 @@ console.log(userId);
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white', paddingTop: 60, alignItems: 'center' },
   profileContainer: { alignItems: 'center', padding: 20 },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10, marginTop: 20 },
-  userName: { fontSize: 22, fontWeight: 'bold', color: '#2D2A6E', textAlign: 'center' },
-  rating: { fontSize: 18, color: '#555', textAlign: 'center' },
+  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10, marginTop: 20, borderWidth: 4, borderColor: '#20135B',},
+  userName: { fontSize: 22, fontFamily: 'FredokaOne', color: '#2D2A6E', textAlign: 'center' },
+  rating: { fontSize: 18, color: '#555', textAlign: 'center', fontFamily: 'FredokaOne' },
   bio: { fontSize: 16, fontStyle: 'italic', color: '#777', textAlign: 'center', marginVertical: 10 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 15, textAlign: 'center' },
+  sectionTitle: { fontSize: 20, fontFamily: 'FredokaOne', marginTop: 15, textAlign: 'center' },
   noActivities: { fontSize: 16, color: '#777', textAlign: 'center', marginVertical: 10 },
   activityItem: { flexDirection: 'row', alignItems: 'center', padding: 10, borderWidth: 1, borderColor: '#DDD', marginVertical: 5, borderRadius: 8, width: '90%', alignSelf: 'center' },
   activityImage: { width: 120, height: 120, borderRadius: 20, marginRight: 20 },
   activityTextContainer: { flex: 1 },
-  activityTitle: { fontSize: 18, fontWeight: 'bold' },
-  activityDescription: { fontSize: 14, color: '#555' },
+  activityTitle: { fontSize: 18, fontFamily: 'FredokaOne' },
+  activityDescription: { fontSize: 14, color: '#555',fontFamily: 'FredokaOne' },
   ratingContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
-  bioInput: {
-    width: '90%',
-    height: 50,
-    borderColor: '#DDD',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  updateButton: {
-    backgroundColor: '#2D2A6E',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  updateButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  bioInput: { width: '90%', height: 50, borderColor: '#DDD', borderWidth: 1, borderRadius: 8, padding: 10, marginTop: 10, textAlign: 'center',},
+  updateButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, marginTop: 10, },
+  updateButtonText: {color: 'white', textAlign: 'center', fontFamily: 'FredokaOne', fontSize: 16, },
   
 });
 
