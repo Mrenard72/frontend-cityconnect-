@@ -94,32 +94,27 @@ export default function MessageBoxScreen() {
               keyExtractor={(item) => item._id.toString()}
               renderItem={({ item }) => {
                 console.log("Données de l'événement :", item.eventId);
-
+              
                 const lastMessage = item.messages?.[item.messages.length - 1];
                 const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
                 const lastTime = lastMessage
                   ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : '';
-
-                const otherParticipants = (item.participants || [])
-                  .filter(p => p._id !== userId);
-                const otherNames = otherParticipants.map(p => p.username).join(', ');
-
-                const conversationDisplayName =
-                  item.eventId?.title
-                    ? `${item.eventId.title} - ${otherNames}`
-                    : (otherNames || 'Conversation');
-
-                    const imageUrl = item.eventId?.image 
-                    ? item.eventId.image 
-                    : item.eventId?.imageUrl 
-                    ? item.eventId.imageUrl
-                    : item.eventId?.photos?.length > 0 
-                    ? item.eventId.photos[0]
-                    : null;
-                  
-                console.log("Image URL finale :", imageUrl);
-
+              
+                // ✅ Vérifier si sender existe, sinon mettre "Utilisateur inconnu"
+                const senderName = lastMessage?.sender?.username || 'Utilisateur inconnu';
+              
+                // ✅ Afficher uniquement le titre de l'événement
+                const conversationDisplayName = item.eventId?.title || 'Conversation';
+              
+                const imageUrl = item.eventId?.image 
+                  ? item.eventId.image 
+                  : item.eventId?.imageUrl 
+                  ? item.eventId.imageUrl
+                  : item.eventId?.photos?.length > 0 
+                  ? item.eventId.photos[0]
+                  : null;
+              
                 return (
                   <Swipeable
                     renderRightActions={() => (
@@ -139,12 +134,13 @@ export default function MessageBoxScreen() {
                       })}
                     >
                       <View style={styles.conversationRow}>
-                        {imageUrl && (
-                          <Image source={{ uri: imageUrl }} style={styles.eventImage} />
-                        )}
+                        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.eventImage} />}
                         <View style={styles.conversationContent}>
                           <Text style={styles.conversationName}>{conversationDisplayName}</Text>
-                          <Text style={styles.lastMessage}>{lastMessageText}</Text>
+                          <View style={styles.lastMessageContainer}>
+                            <Text style={styles.senderName}>{senderName} :</Text>
+                            <Text style={styles.lastMessage}>{lastMessageText}</Text>
+                          </View>
                         </View>
                       </View>
                       <Text style={styles.time}>{lastTime}</Text>
@@ -152,6 +148,7 @@ export default function MessageBoxScreen() {
                   </Swipeable>
                 );
               }}
+              
             />
           )}
         </View>
@@ -172,7 +169,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(118, 51, 51, 0.8)',
     alignItems: 'center',
   },
   headerTitle: {
@@ -188,7 +185,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-   
   },
   noConversationText: {
     fontSize: 18,
@@ -200,15 +196,30 @@ const styles = StyleSheet.create({
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     marginBottom: 10,
-    borderColor: '#20135B',
+    borderColor: '#ddd',
     borderWidth: 1,
-    backgroundColor: '#F1F0F0'
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  conversationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#20135B',
   },
   conversationContent: {
     flex: 1,
@@ -216,37 +227,29 @@ const styles = StyleSheet.create({
   conversationName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#000',
+    marginBottom: 4,
+  },
+  lastMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  senderName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#555',
+    marginRight: 5,
   },
   lastMessage: {
     fontSize: 14,
     color: '#777',
-    marginTop: 5,
+    flexShrink: 1,
   },
   time: {
     fontSize: 12,
     color: '#999',
-    marginLeft: 10,
+    alignSelf: 'flex-start',
+    marginLeft: -30,
   },
-  deleteButton: {
-    backgroundColor: 'red',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 80,
-    marginVertical: 10,
-    borderRadius: 10,
-  },
-  conversationRow: {
-    flexDirection: 'row', // ✅ Met l'image et le texte sur la même ligne
-    alignItems: 'center', // ✅ Aligne verticalement
-  },
-  eventImage: {
-    width: 50,  // ✅ Largeur de l’image
-    height: 50, // ✅ Hauteur de l’image
-    borderRadius: 10, // ✅ Coins arrondis
-    marginRight: 10, // ✅ Espacement entre l’image et le texte
-  },
-  
-  
-
 });
