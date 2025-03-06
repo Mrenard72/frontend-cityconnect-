@@ -122,7 +122,7 @@ export default function MessageBoxScreen() {
                       style={styles.deleteButton}
                       onPress={() => handleDeleteConversation(item._id)}
                     >
-                      <FontAwesome5 name="trash" size={24} color="white" />
+                      <FontAwesome5 name="trash" size={24} color="red" />
                     </TouchableOpacity>
                   )}
                 >
