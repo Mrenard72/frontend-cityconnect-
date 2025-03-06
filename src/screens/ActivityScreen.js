@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert 
+import {
+  View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert
 } from 'react-native';
 import Header from '../components/Header';
 import * as Location from 'expo-location';
@@ -9,7 +9,7 @@ const activities = [
   { id: 1, title: 'Sport', category: 'Sport', image: require('../../assets/sport.jpg') },
   { id: 2, title: 'Culturel', category: 'Culturel', image: require('../../assets/culturel.jpg') },
   { id: 3, title: 'Sorties', category: 'Sorties', image: require('../../assets/sorties.jpg') },
-  { id: 4, title: 'Culinaire', category : 'Culinaire', image: require('../../assets/culinaire.jpg') },
+  { id: 4, title: 'Culinaire', category: 'Culinaire', image: require('../../assets/culinaire.jpg') },
 ];
 
 const ActivityScreen = ({ navigation }) => {
@@ -29,15 +29,23 @@ const ActivityScreen = ({ navigation }) => {
     })();
   }, []);
 
-  // Navigation lors de la sélection d'une activité
+  // Navigation lors de la sélection d'une activité avec logique différente pour Culinaire
   const handleActivityPress = (activity) => {
-    // Vous pouvez choisir d'utiliser activity.title comme catégorie ou la stocker dans selectedCategory
-    // Ici, on navigue directement en passant activity.title
-    navigation.navigate('Carte', { 
-      filter: 'activity', 
-      category: activity.category, 
-      userLocation,
-    });
+    if (activity.category === 'Culinaire') {
+      // Navigation vers une carte différente pour les restaurants
+      navigation.navigate('Restaurants', {
+        filter: 'activity',
+        category: activity.category,
+        userLocation,
+      });
+    } else {
+      // Navigation vers la carte standard pour les autres catégories
+      navigation.navigate('Carte', {
+        filter: 'activity',
+        category: activity.category,
+        userLocation,
+      });
+    }
   };
 
   return (
@@ -53,9 +61,9 @@ const ActivityScreen = ({ navigation }) => {
             style={styles.activityCard}
             onPress={() => handleActivityPress(activity)}
           >
-            <ImageBackground 
-              source={activity.image} 
-              style={styles.image} 
+            <ImageBackground
+              source={activity.image}
+              style={styles.image}
               imageStyle={{ borderRadius: 10 }}
             >
               <View style={styles.overlay}>
@@ -98,7 +106,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   image: {
-    width: '100%', 
+    width: '100%',
     height: '100%',
     justifyContent: 'flex-end',
     alignItems: 'center',
