@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { 
   View, Text, TouchableOpacity, StyleSheet, ImageBackground, 
-  Alert, TextInput, Modal, Button
+  Alert, TextInput, Modal, Button, Platform
 } from 'react-native';
 import * as Location from 'expo-location';
 import Header from '../components/Header';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const ExploreScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
 
   // 📍 Obtenir la position actuelle et naviguer vers MapScreen avec le filtre 'aroundMe'
   const handleLocationSearch = async () => {
@@ -69,21 +71,38 @@ const ExploreScreen = ({ navigation }) => {
     }
   };
 
-  // 📅 Ouvrir la modale pour entrer une date
-  const handleDateSearch = () => {
-    setShowDateModal(true);
-  };
+ // 📅 Ouvrir le DatePicker
+ const handleDateSearch = () => {
+  if (Platform.OS === "android") {
+    setShowPicker(true); // Sur Android, affichage direct
+  } else {
+    setShowDateModal(true); // Sur iOS, affichage dans la modale
+  }
+};
+ // 📅 Gérer la sélection de la date
+ const onDateChange = (event, date) => {
+  if (date) {
+    setSelectedDate(date);
+  }
+  if (Platform.OS === "android") {
+    setShowPicker(false); // Fermer automatiquement sur Android
+    validateDateAndNavigate(date);
+  }
+};
 
-  // 📅 Valider la date et naviguer vers MapScreen avec le filtre 'date'
-  const validateDateAndNavigate = () => {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(selectedDate)) {
-      Alert.alert("Format incorrect", "Veuillez entrer une date au format YYYY-MM-DD");
-      return;
-    }
-    setShowDateModal(false);
-    navigation.navigate('Carte', { filter: 'date', selectedDate });
-  };
+
+
+// 📅 Valider la date et naviguer vers MapScreen
+const validateDateAndNavigate = (date) => {
+  if (!date || !(date instanceof Date)) {
+    Alert.alert("Erreur", "Veuillez sélectionner une date valide.");
+    return;
+  }
+
+  const formattedDate = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+  setShowDateModal(false);
+  navigation.navigate('Carte', { filter: 'date', selectedDate: formattedDate });
+};
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
@@ -106,47 +125,89 @@ const ExploreScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Par activité</Text>
         </TouchableOpacity>
 
-        {/* 📅 Par date */}
-        <TouchableOpacity style={styles.filterButton} onPress={handleDateSearch}>
+       {/* 📅 Bouton de recherche par date */}
+       <TouchableOpacity style={styles.filterButton} onPress={handleDateSearch}>
           <Text style={styles.buttonText}>Par date</Text>
         </TouchableOpacity>
+
+{/* 🔎 Modal pour la recherche de ville */}
+<Modal visible={showModal} transparent={true} animationType="slide">
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Rechercher une ville</Text>
+        <TextInput 
+          style={styles.searchInput}
+          placeholder="Entrez une ville..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <View style={styles.modalButtons}>
+          <Button title="Annuler" onPress={() => setShowModal(false)} />
+          <Button title="Rechercher" onPress={handleCitySearchSubmit} />
+        </View>
+      </View>
+    </View>
+  </Modal>
+
+
+        {/* 📅 DatePicker natif Android (affichage direct) */}
+        {showPicker && Platform.OS === "android" && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default" // Mode "default" pour être bien visible
+            locale="fr"
+            onChange={onDateChange}
+          />
+        )}
       </View>
 
-      {/* 🔎 Modal pour la recherche de ville */}
-      <Modal visible={showModal} transparent={true} animationType="slide">
+      {/* 📅 Modal iOS avec DatePicker intégré */}
+      <Modal visible={showDateModal} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Rechercher une ville</Text>
-            <TextInput 
-              style={styles.searchInput}
-              placeholder="Entrez une ville..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+            <Text style={styles.modalTitle}>Sélectionner une date</Text>
+
+            {/* 📅 Affichage correct du DatePicker sur iOS */}
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="inline"
+                locale="fr"
+                themeVariant="light" // ✅ Rend le fond clair et améliore la visibilité
+                onChange={onDateChange}
+              />
+            </View>
+
+
             <View style={styles.modalButtons}>
-              <Button title="Annuler" onPress={() => setShowModal(false)} />
-              <Button title="Rechercher" onPress={handleCitySearchSubmit} />
+              <Button title="Annuler" onPress={() => setShowDateModal(false)} />
+              <Button title="Valider" onPress={() => validateDateAndNavigate(selectedDate)} />
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* 📅 Modal pour entrer une date */}
+      {/* 📅 Affichage du DatePicker */}
+      {showPicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          locale="fr"
+          onChange={onDateChange}
+        />
+      )}
+
+      {/* 📅 Modal de validation */}
       <Modal visible={showDateModal} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Sélectionner une date</Text>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="YYYY-MM-DD"
-              keyboardType="numeric"
-              value={selectedDate}
-              onChangeText={setSelectedDate}
-            />
-            <View style={styles.modalButtons}>
-              <Button title="Annuler" onPress={() => setShowDateModal(false)} />
-              <Button title="Valider" onPress={validateDateAndNavigate} />
-            </View>
+
+            <Button title="Annuler" onPress={() => setShowDateModal(false)} />
+            <Button title="Valider" onPress={validateDateAndNavigate} />
           </View>
         </View>
       </Modal>
@@ -195,17 +256,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: '90%',
     backgroundColor: '#FFF',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5, // Effet d'ombre sur Android
   },
   modalTitle: {
     fontSize: 18,
     fontFamily: 'FredokaOne',
     color: '#2D2A6E',
-    marginBottom: 10,
+    marginBottom: 15,
     textAlign: 'center',
   },
   searchInput: {
@@ -224,7 +290,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
+    marginTop: 15,
+  },
+  selectedDateText: {
+    fontSize: 16,
+    marginTop: 10,
+    fontWeight: "bold",
+    color: "#2D2A6E",
+  },
+  pickerContainer: {
+    marginVertical: 15,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
   },
 });
-
 export default ExploreScreen;

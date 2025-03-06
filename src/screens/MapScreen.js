@@ -38,7 +38,6 @@ function parseLocation(locationStr) {
 
 // Modale pour créer une nouvelle activité
 const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
-  // états...
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -55,7 +54,6 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     { label: 'Culinaire', value: 'Culinaire' },
   ]);
 
-  // Fonction pour choisir une image depuis la galerie
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -79,7 +77,6 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     }
   };
 
-  // Fonction pour gérer la création d'une nouvelle activité
   const handleCreate = () => {
     if (!title || !description || !date || !category || !maxParticipants) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
@@ -97,7 +94,6 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
 
-  // Fonction pour gérer la sélection d'une date dans le calendrier
   const handleDayPress = (day) => {
     const newDate = new Date(day.dateString);
     setSelectedDate(newDate);
@@ -235,16 +231,11 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
               <Text style={styles.activityModal_buttonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
-          {/* Bouton pour naviguer vers le profil utilisateur avec style dédié */}
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => {
-              if (activity.createdBy) {
-                navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
-                onClose();
-              } else {
-                Alert.alert("Erreur", "Identifiant du créateur non disponible.");
-              }
+              navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
+              onClose();
             }}
           >
             <Text style={styles.profileButtonText}>Voir Profil</Text>
@@ -255,20 +246,33 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
   );
 };
 
+// Fonction pour gérer le mode création d'activité
+async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
+  if (userLocation) {
+    setRegion({
+      latitude: userLocation.latitude,
+      longitude: userLocation.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+  } else {
+    await getUserLocation();
+  }
+}
+
 // Composant principal MapScreen
 export default function MapScreen({ route, navigation }) {
-  const { filter, userLocation, category, locality } = route.params || {};
+  const { filter, userLocation, category, locality, selectedDate } = route.params || {};
   const defaultRegion = {
-    latitude: 48.8566,
-    longitude: 2.3522,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitude: 46.603354, // Centre de la France
+  longitude: 1.888334,
+  latitudeDelta: 6, // Grand zoom out
+  longitudeDelta: 6,
   };
 
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
-  const [activitiesCreated, setActivitiesCreated] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
   const [showInput, setShowInput] = useState(false);
   const [latitudeInput, setLatitudeInput] = useState('');
@@ -276,6 +280,37 @@ export default function MapScreen({ route, navigation }) {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
+// recuperation des activites par dates
+
+async function fetchActivitiesByDate(date) {
+  setLoading(true); // Active le chargement
+  try {
+    const response = await fetch(`${BASE_URL}/events?date=${date}`); // 🔗 Modifie cette URL si besoin
+    const data = await response.json(); 
+    const filteredActivities = data.filter(act => {
+      const activityDate = act.date.split('T')[0]; // 🔥 Garde juste YYYY-MM-DD
+      return activityDate === date;
+    });
+    
+    setActivities(filteredActivities);
+    console.log("🎯 Activités après filtrage :", filteredActivities);
+    
+    console.log("📅 Activités récupérées pour", date, ":", data); // Vérification console
+  } catch (err) {
+    console.error("❌ Erreur lors de la récupération des activités :", err);
+  } finally {
+    setLoading(false); // Désactive le chargement
+  }
+}
+
+useEffect(() => {
+  if (selectedDate) {
+    fetchActivitiesByDate(selectedDate); // 🔥 Appelle la fonction dès que selectedDate change
+  }
+}, [selectedDate]);
+
+
 
   async function getToken() {
     try {
@@ -436,7 +471,6 @@ export default function MapScreen({ route, navigation }) {
       }
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
-      // On suppose que activitiesCreated est géré ailleurs
       Alert.alert("Succès", "Activité créée !");
     } catch (error) {
       console.error("❌ Erreur lors de la création :", error);
@@ -460,23 +494,26 @@ export default function MapScreen({ route, navigation }) {
   useFocusEffect(
     useCallback(() => {
       if (filter === 'aroundMe') {
-        getUserLocation();
-        setShowInput(false);
-        fetchActivities();
+        getUserLocation().then(() => {
+          fetchActivities();
+        });
+      } else if (filter === 'activity') {
+        getUserLocation().then(() => {
+          const categoryToUse = selectedCategory || 'Sport';
+          setSelectedCategory(categoryToUse);
+          fetchActivities(categoryToUse);
+        });
       } else if (filter === 'byLocality') {
         setShowInput(true);
         handleByLocality();
         fetchActivities();
-      } else if (filter === 'activity') {
-        setShowInput(false);
-        handleActivityMode();
       } else if (filter === 'createActivity') {
         setShowInput(false);
-        handleCreateActivityMode();
+        handleCreateActivityMode(userLocation, setRegion, getUserLocation);
       }
-    }, [filter])
+    }, [filter, selectedCategory])
   );
-
+  
   function handleByLocality() {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
@@ -505,7 +542,7 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  async function handleCreateActivityMode() {
+  async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
     if (userLocation) {
       setRegion({
         latitude: userLocation.latitude,
@@ -518,16 +555,7 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  let allMarkers = [];
-  if (filter === 'createActivity') {
-    allMarkers = [
-      // ...activitiesCreated et autres activités
-      ...activities
-    ];
-  } else {
-    allMarkers = activities;
-  }
-
+  let allMarkers = activities;  
   if (loading) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
@@ -688,7 +716,6 @@ const styles = StyleSheet.create({
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   dropdownContainer: { zIndex: 2000 },
-  // Styles pour ActivityDetailsModal
   activityModal_overlay: {
     flex: 1,
     justifyContent: 'center',
@@ -768,7 +795,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
   },
-  // Nouveaux styles pour le bouton "Voir Profil"
   profileButton: {
     backgroundColor: '#007bff',
     marginTop: 10,
@@ -782,5 +808,17 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: 'bold',
   },
+  inputContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 8,
+    zIndex: 100,
+  }
 });
+
 

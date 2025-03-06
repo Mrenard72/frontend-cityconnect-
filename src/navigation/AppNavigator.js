@@ -19,6 +19,7 @@ import SortiesScreen from '../screens/SortiesScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import RestaurantsScreen from '../screens/RestaurantsScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
+import MyPageScreen from '../screens/MyPageScreen';
 
 // ajout screen dans mes infos
 import Z_InfosScreen from '../screens/Z_InfosScreen';
@@ -96,8 +97,8 @@ const ProfileStackScreen = () => {
         options={{ headerShown: false }} 
       />
       <ProfileStack.Screen
-        name="UserProfileScreen"
-        component={UserProfileScreen}
+        name="MyPageScreen"
+        component={MyPageScreen}
         options={{ headerShown: false }}
       />
     </ProfileStack.Navigator>
