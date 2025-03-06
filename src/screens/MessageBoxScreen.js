@@ -102,7 +102,7 @@ export default function MessageBoxScreen() {
                   : '';
               
                 // ✅ Vérifier si sender existe, sinon mettre "Utilisateur inconnu"
-                const senderName = lastMessage?.sender?.username || 'Utilisateur inconnu';
+                const senderName = lastMessage?.sender?.username 
               
                 // ✅ Afficher uniquement le titre de l'événement
                 const conversationDisplayName = item.eventId?.title || 'Conversation';
@@ -117,15 +117,15 @@ export default function MessageBoxScreen() {
               
                 return (
                   <Swipeable
-                    renderRightActions={() => (
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => handleDeleteConversation(item._id)}
-                      >
-                        <FontAwesome5 name="trash" size={24} color="white" />
-                      </TouchableOpacity>
-                    )}
-                  >
+                  renderRightActions={() => (
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteConversation(item._id)}
+                    >
+                      <FontAwesome5 name="trash" size={24} color="white" />
+                    </TouchableOpacity>
+                  )}
+                >
                     <TouchableOpacity
                       style={styles.conversationItem}
                       onPress={() => navigation.navigate('Messaging', {
@@ -157,6 +157,34 @@ export default function MessageBoxScreen() {
   );
 }
 
+// supprimer une conv 
+
+const handleDeleteConversation = async (conversationId) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      setConversations(prevConversations => 
+        prevConversations.filter(convo => convo._id !== conversationId)
+      );
+      Alert.alert("Succès", "Conversation supprimée !");
+    } else {
+      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+    }
+  } catch (error) {
+    console.error("Erreur suppression conversation:", error);
+    Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+  }
+};
 
 const styles = StyleSheet.create({
   safeArea: {
