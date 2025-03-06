@@ -25,6 +25,7 @@ const BASE_URL = 'https://backend-city-connect.vercel.app';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dasntwyhd/image/upload';
 const UPLOAD_PRESET = 'default_preset';
 
+
 // Fonction pour parser les coordonnées de localisation
 function parseLocation(locationStr) {
   if (!locationStr) return null;
@@ -266,7 +267,7 @@ export default function MapScreen({ route, navigation }) {
   const defaultRegion = {
     latitude: 46.603354, // Centre de la France
   longitude: 1.888334,
-  latitudeDelta: 6, // Grand zoom out
+  latitudeDelta: 6, // Grand zoom 
   longitudeDelta: 6,
   };
 
@@ -275,6 +276,7 @@ export default function MapScreen({ route, navigation }) {
   const [activities, setActivities] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
   const [showInput, setShowInput] = useState(false);
+  const [cityInput, setCityInput] = useState('');
   const [latitudeInput, setLatitudeInput] = useState('');
   const [longitudeInput, setLongitudeInput] = useState('');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
@@ -413,6 +415,31 @@ useEffect(() => {
     });
   }
 
+  function handleCitySearch() {
+    if (!cityInput) {
+      Alert.alert("Erreur", "Veuillez entrer le nom d'une ville");
+      return;
+    }
+    Location.geocodeAsync(cityInput)
+      .then(locations => {
+        if (locations && locations.length > 0) {
+          const { latitude, longitude } = locations[0];
+          setRegion({
+            latitude,
+            longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
+        } else {
+          Alert.alert("Erreur", "Aucun résultat trouvé pour cette ville");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Alert.alert("Erreur", "Impossible de géocoder la ville");
+      });
+  }
+
   function handleMapPress(e) {
     if (filter === 'createActivity') {
       const { coordinate } = e.nativeEvent;
@@ -502,10 +529,14 @@ useEffect(() => {
       
       // Réinitialiser l'activité sélectionnée
       setSelectedActivity(null);
-      
+
+      // Déterminer si on est en mode onglet ou non
+      const isTabNavigation = !currentFilter;
+
       // Initialiser le mode selon le filtre (par paramètres actuels, pas par état)
-      if (currentFilter === 'aroundMe') {
+      if (isTabNavigation || currentFilter === 'aroundMe') {
         setShowInput(false);
+        setSelectedCategory(null);
         getUserLocation().then(() => {
           fetchActivities();
         });
@@ -520,7 +551,7 @@ useEffect(() => {
       } 
       else if (currentFilter === 'byLocality') {
         setShowInput(true);
-        handleByLocality();
+        //handleByLocality();
         fetchActivities();
       } 
       else if (currentFilter === 'createActivity') {
@@ -557,7 +588,7 @@ useEffect(() => {
     }, [route.params]) // Dépendance importante: route.params (pas juste filter)
   );
   
-  function handleByLocality() {
+  /*function handleByLocality() {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
         latitude: locality.latitude,
@@ -570,7 +601,7 @@ useEffect(() => {
       setLatitudeInput('');
       setLongitudeInput('');
     }
-  }
+  }*/
 
   async function handleActivityMode() {
     if (userLocation) {
@@ -618,23 +649,15 @@ useEffect(() => {
           style={styles.inputContainer}
         >
           <TextInput
-            style={styles.input}
-            placeholder="Latitude"
-            keyboardType="numeric"
-            value={latitudeInput}
-            onChangeText={setLatitudeInput}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Longitude"
-            keyboardType="numeric"
-            value={longitudeInput}
-            onChangeText={setLongitudeInput}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleRecenterMap}>
-            <Text style={styles.buttonText}>OK</Text>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
+      style={styles.input}
+      placeholder="Nom de la ville"
+      value={cityInput}
+      onChangeText={setCityInput}
+    />
+    <TouchableOpacity style={styles.button} onPress={handleCitySearch}>
+      <Text style={styles.buttonText}>OK</Text>
+    </TouchableOpacity>
+  </KeyboardAvoidingView>
       )}
 
       <MapView style={styles.map} region={region} onPress={handleMapPress}>
