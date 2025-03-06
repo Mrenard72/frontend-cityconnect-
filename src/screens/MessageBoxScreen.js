@@ -93,7 +93,7 @@ export default function MessageBoxScreen() {
               data={conversations}
               keyExtractor={(item) => item._id.toString()}
               renderItem={({ item }) => {
-                console.log("Données de l'événement :", item.eventId);
+                
               
                 const lastMessage = item.messages?.[item.messages.length - 1];
                 const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     padding: 10,
-    backgroundColor: 'rgba(118, 51, 51, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     alignItems: 'center',
   },
   headerTitle: {
