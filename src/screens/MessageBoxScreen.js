@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
   SafeAreaView, View, Text, TouchableOpacity, FlatList,
-  StyleSheet, ActivityIndicator, Alert
+  StyleSheet, ActivityIndicator, Alert, ImageBackground, Image
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Swipeable } from 'react-native-gesture-handler';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Header from '../components/Header';
 
 const BACKEND_URL = 'https://backend-city-connect.vercel.app';
 
@@ -16,7 +17,6 @@ export default function MessageBoxScreen() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
 
-  // 1. Récupérer userId (via /auth/profile)
   const fetchUserId = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -38,8 +38,9 @@ export default function MessageBoxScreen() {
     }
   };
 
-  // 2. Charger les conversations
   const fetchConversations = async () => {
+    
+
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
@@ -53,7 +54,7 @@ export default function MessageBoxScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        setConversations(data); // Tableau de conv
+        setConversations(data);
       } else {
         console.error('Erreur API :', data.message);
       }
@@ -61,66 +62,15 @@ export default function MessageBoxScreen() {
       console.error('Erreur récupération conversations :', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  //3.2
-
-  // 3. Suppression d'une conversation
-  const handleDeleteConversation = async (conversationId) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        setConversations(prevConversations => prevConversations.filter(c => c._id !== conversationId));
-        Alert.alert("Succès", "Conversation supprimée !");
-      } else {
-        const errorMsg = await response.text();
-        Alert.alert("Erreur", errorMsg || "Impossible de supprimer la conversation.");
-      }
-    } catch (error) {
-      console.error("Erreur suppression conversation:", error);
-      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
-    }
-  };
-
-
-  // 3. useFocusEffect pour (re)charger en revenant sur cet écran
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
       fetchUserId().then(() => fetchConversations());
     }, [])
   );
-
-  // 4. Ouvrir une conversation → MessageScreen
-  const handleOpenConversation = (conversation) => {
-    // Titre, par exemple "Nom de l’événement - Participant(s)" ou un fallback
-    let conversationTitle = 'Conversation';
-    if (conversation.eventId?.title) {
-      conversationTitle = conversation.eventId.title; 
-    }
-    // Redirection
-    navigation.navigate('Messaging', {
-      conversationId: conversation._id,
-      conversationName: conversationTitle,
-    });
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchConversations();
-  };
 
   if (loading) {
     return (
@@ -132,88 +82,137 @@ export default function MessageBoxScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerContainer}>
+      <Header/>
+      <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
         <Text style={styles.headerTitle}>Mes Conversations</Text>
-      </View>
-
-      <View style={styles.container}>
-        {conversations.length === 0 ? (
-          <Text style={styles.noConversationText}>Aucune conversation pour le moment.</Text>
-        ) : (
-          <FlatList
-            data={conversations}
-            keyExtractor={(item) => item._id.toString()}
-            renderItem={({ item }) => {
-              const lastMessage = item.messages?.[item.messages.length - 1];
-              const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
-              const lastTime = lastMessage
-                ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : '';
-
-              // Récupère les noms des participants SAUF le mien
-              const otherParticipants = (item.participants || [])
-                .filter(p => p._id !== userId);
-              const otherNames = otherParticipants.map(p => p.username).join(', ');
+        <View style={styles.container}>
+          {conversations.length === 0 ? (
+            <Text style={styles.noConversationText}>Aucune conversation pour le moment.</Text>
+          ) : (
+            <FlatList
+              data={conversations}
+              keyExtractor={(item) => item._id.toString()}
+              renderItem={({ item }) => {
+                
               
-              // Exemple d’affichage : "TitreDeLEvent - Bob, Alice"
-              const conversationDisplayName =
-                item.eventId?.title
-                  ? `${item.eventId.title} - ${otherNames}`
-                  : (otherNames || 'Conversation');
-
-              return (
-                <Swipeable
-  renderRightActions={() => (
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={() => handleDeleteConversation(item._id)}
-    >
-      <FontAwesome5 name="trash" size={24} color="white" /> 
-    </TouchableOpacity>
-  )}
->
-  <TouchableOpacity
-    style={styles.conversationItem}
-    onPress={() => handleOpenConversation(item)}
-  >
-    <View style={styles.conversationContent}>
-      <Text style={styles.conversationName}>
-        {conversationDisplayName}
-      </Text>
-      <Text style={styles.lastMessage}>{lastMessageText}</Text>
-    </View>
-    <Text style={styles.time}>{lastTime}</Text>
-  </TouchableOpacity>
-</Swipeable>
-
-              );
-            }}
-          />
-        )}
-        
-      </View>
+                const lastMessage = item.messages?.[item.messages.length - 1];
+                const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
+                const lastTime = lastMessage
+                  ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : '';
+              
+                // ✅ Vérifier si sender existe, sinon mettre "Utilisateur inconnu"
+                const senderName = lastMessage?.sender?.username 
+              
+                // ✅ Afficher uniquement le titre de l'événement
+                const conversationDisplayName = item.eventId?.title || 'Conversation';
+              
+                const imageUrl = item.eventId?.image 
+                  ? item.eventId.image 
+                  : item.eventId?.imageUrl 
+                  ? item.eventId.imageUrl
+                  : item.eventId?.photos?.length > 0 
+                  ? item.eventId.photos[0]
+                  : null;
+              
+                return (
+                  <Swipeable
+                  renderRightActions={() => (
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteConversation(item._id)}
+                    >
+                      <FontAwesome5 name="trash" size={24} color="red" />
+                    </TouchableOpacity>
+                  )}
+                >
+                    <TouchableOpacity
+                      style={styles.conversationItem}
+                      onPress={() => navigation.navigate('Messaging', {
+                        conversationId: item._id,
+                        conversationName: conversationDisplayName,
+                      })}
+                    >
+                      <View style={styles.conversationRow}>
+                        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.eventImage} />}
+                        <View style={styles.conversationContent}>
+                          <Text style={styles.conversationName}>{conversationDisplayName}</Text>
+                          <View style={styles.lastMessageContainer}>
+                            <Text style={styles.senderName}>{senderName} :</Text>
+                            <Text style={styles.lastMessage}>{lastMessageText}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      <Text style={styles.time}>{lastTime}</Text>
+                    </TouchableOpacity>
+                  </Swipeable>
+                );
+              }}
+              
+            />
+          )}
+        </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
 
+// supprimer une conv 
+
+const handleDeleteConversation = async (conversationId) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      setConversations(prevConversations => 
+        prevConversations.filter(convo => convo._id !== conversationId)
+      );
+      Alert.alert("Succès", "Conversation supprimée !");
+    } else {
+      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+    }
+  } catch (error) {
+    console.error("Erreur suppression conversation:", error);
+    Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+  }
+};
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
   headerContainer: {
     padding: 10,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 20,
     color: '#20135B',
     fontWeight: 'bold',
+    padding: 10,
+    marginTop: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
   },
   container: {
     flex: 1,
-    padding: 10,
+    padding: 20,
   },
   noConversationText: {
     fontSize: 18,
@@ -225,13 +224,30 @@ const styles = StyleSheet.create({
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     marginBottom: 10,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
     elevation: 2,
+  },
+  conversationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#20135B',
   },
   conversationContent: {
     flex: 1,
@@ -239,24 +255,29 @@ const styles = StyleSheet.create({
   conversationName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#000',
+    marginBottom: 4,
+  },
+  lastMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  senderName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#555',
+    marginRight: 5,
   },
   lastMessage: {
     fontSize: 14,
     color: '#777',
-    marginTop: 5,
+    flexShrink: 1,
   },
   time: {
     fontSize: 12,
     color: '#999',
-    marginLeft: 10,
-  },
-  deleteButton: {
-    backgroundColor: 'red',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 80,
-    marginVertical: 10,
-    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginLeft: -30,
   },
 });
