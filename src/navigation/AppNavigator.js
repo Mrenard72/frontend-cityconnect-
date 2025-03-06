@@ -20,6 +20,7 @@ import ServicesScreen from '../screens/ServicesScreen';
 import RestaurantsScreen from '../screens/RestaurantsScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import MyPageScreen from '../screens/MyPageScreen';
+import DocScreen from '../screens/DocScreen';
 
 // ajout screen dans mes infos
 import Z_InfosScreen from '../screens/Z_InfosScreen';
@@ -56,6 +57,7 @@ const DashboardStack = () => {
       <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
       <DashboardStackNav.Screen name="Activity" component={ActivityScreen} />
       <DashboardStackNav.Screen name="Restaurants" component={RestaurantsScreen} />
+      <DashboardStackNav.Screen name="Doc" component={DocScreen} />
     </DashboardStackNav.Navigator>
   );
 };
@@ -212,6 +214,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Sorties" component={SortiesScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Services" component={ServicesScreen} options={{ headerShown: false }} />
           <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
         </>
       )}
     </Stack.Navigator>
