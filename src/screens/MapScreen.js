@@ -16,7 +16,7 @@ import MapView, { Marker } from 'react-native-maps';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Calendar } from 'react-native-calendars';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DropDownPicker from 'react-native-dropdown-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -24,6 +24,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dasntwyhd/image/upload';
 const UPLOAD_PRESET = 'default_preset';
+
 
 // Fonction pour parser les coordonnées de localisation
 function parseLocation(locationStr) {
@@ -36,7 +37,7 @@ function parseLocation(locationStr) {
   };
 }
 
-// Composant pour la modale de création d'activité
+// Modale pour créer une nouvelle activité
 const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -111,8 +112,21 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Créer une activité</Text>
-          <TextInput style={styles.modalInput} placeholder="Titre" placeholderTextColor="#666" value={title} onChangeText={setTitle} />
-          <TextInput style={[styles.modalInput, { height: 70 }]} multiline placeholder="Description" placeholderTextColor="#666" value={description} onChangeText={setDescription} />
+          <TextInput
+            style={styles.modalInput}
+            placeholder="Titre"
+            placeholderTextColor="#666"
+            value={title}
+            onChangeText={setTitle}
+          />
+          <TextInput
+            style={[styles.modalInput, { height: 70 }]}
+            multiline
+            placeholder="Description"
+            placeholderTextColor="#666"
+            value={description}
+            onChangeText={setDescription}
+          />
           <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.buttonText}>Choisir une image</Text>
@@ -151,7 +165,13 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
               dropDownContainerStyle={{ backgroundColor: '#FFF' }}
             />
           </View>
-          <TextInput style={styles.modalInput} placeholder="Max participants" keyboardType="numeric" value={maxParticipants} onChangeText={setMaxParticipants} />
+          <TextInput
+            style={styles.modalInput}
+            placeholder="Max participants"
+            keyboardType="numeric"
+            value={maxParticipants}
+            onChangeText={setMaxParticipants}
+          />
           <View style={styles.modalButtons}>
             <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
               <Text style={styles.buttonText}>Annuler</Text>
@@ -166,8 +186,9 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
   );
 };
 
-// Composant pour afficher les détails d'une activité
+// Modale pour afficher les détails d'une activité
 const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
+  const navigation = useNavigation();
   if (!activity) return null;
   return (
     <Modal visible={!!activity} transparent animationType="fade">
@@ -194,42 +215,104 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
             </Text>
           </View>
           <View style={styles.activityModal_buttons}>
-            <TouchableOpacity style={styles.activityModal_joinButton} onPress={() => { onJoin(activity._id); onClose(); Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit."); }}>
+            <TouchableOpacity
+              style={styles.activityModal_joinButton}
+              onPress={() => {
+                onJoin(activity._id);
+                onClose();
+                Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
+              }}
+            >
               <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.activityModal_closeButton} onPress={onClose}>
+            <TouchableOpacity
+              style={styles.activityModal_closeButton}
+              onPress={onClose}
+            >
               <Text style={styles.activityModal_buttonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => {
+              navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
+              onClose();
+            }}
+          >
+            <Text style={styles.profileButtonText}>Voir Profil</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 };
 
+// Fonction pour gérer le mode création d'activité
+async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
+  if (userLocation) {
+    setRegion({
+      latitude: userLocation.latitude,
+      longitude: userLocation.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+  } else {
+    await getUserLocation();
+  }
+}
+
 // Composant principal MapScreen
 export default function MapScreen({ route, navigation }) {
-  const { filter, userLocation, category, locality } = route.params || {};
-
+  const { filter, userLocation, category, locality, selectedDate } = route.params || {};
   const defaultRegion = {
-    latitude: 48.8566,
-    longitude: 2.3522,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitude: 46.603354, // Centre de la France
+  longitude: 1.888334,
+  latitudeDelta: 6, // Grand zoom 
+  longitudeDelta: 6,
   };
 
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
-  const [activitiesCreated, setActivitiesCreated] = useState([]);
-  // On initialise selectedCategory avec la catégorie passée en paramètre si le filtre est 'activity'
   const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
   const [showInput, setShowInput] = useState(false);
+  const [cityInput, setCityInput] = useState('');
   const [latitudeInput, setLatitudeInput] = useState('');
   const [longitudeInput, setLongitudeInput] = useState('');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
+// recuperation des activites par dates
+
+async function fetchActivitiesByDate(date) {
+  setLoading(true); // Active le chargement
+  try {
+    const response = await fetch(`${BASE_URL}/events?date=${date}`); // 🔗 Modifie cette URL si besoin
+    const data = await response.json(); 
+    const filteredActivities = data.filter(act => {
+      const activityDate = act.date.split('T')[0]; // 🔥 Garde juste YYYY-MM-DD
+      return activityDate === date;
+    });
+    
+    setActivities(filteredActivities);
+    console.log("🎯 Activités après filtrage :", filteredActivities);
+    
+    console.log("📅 Activités récupérées pour", date, ":", data); // Vérification console
+  } catch (err) {
+    console.error("❌ Erreur lors de la récupération des activités :", err);
+  } finally {
+    setLoading(false); // Désactive le chargement
+  }
+}
+
+useEffect(() => {
+  if (selectedDate) {
+    fetchActivitiesByDate(selectedDate); // 🔥 Appelle la fonction dès que selectedDate change
+  }
+}, [selectedDate]);
+
+
 
   async function getToken() {
     try {
@@ -332,6 +415,31 @@ export default function MapScreen({ route, navigation }) {
     });
   }
 
+  function handleCitySearch() {
+    if (!cityInput) {
+      Alert.alert("Erreur", "Veuillez entrer le nom d'une ville");
+      return;
+    }
+    Location.geocodeAsync(cityInput)
+      .then(locations => {
+        if (locations && locations.length > 0) {
+          const { latitude, longitude } = locations[0];
+          setRegion({
+            latitude,
+            longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
+        } else {
+          Alert.alert("Erreur", "Aucun résultat trouvé pour cette ville");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Alert.alert("Erreur", "Impossible de géocoder la ville");
+      });
+  }
+
   function handleMapPress(e) {
     if (filter === 'createActivity') {
       const { coordinate } = e.nativeEvent;
@@ -390,7 +498,6 @@ export default function MapScreen({ route, navigation }) {
       }
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
-      setActivitiesCreated([...activitiesCreated, data.event]);
       Alert.alert("Succès", "Activité créée !");
     } catch (error) {
       console.error("❌ Erreur lors de la création :", error);
@@ -413,25 +520,75 @@ export default function MapScreen({ route, navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      if (filter === 'aroundMe') {
-        getUserLocation();
-        setShowInput(false);
-        fetchActivities();
-      } else if (filter === 'byLocality') {
-        setShowInput(true);
-        handleByLocality();
-        fetchActivities();
-      } else if (filter === 'activity') {
-        setShowInput(false);
-        handleActivityMode();
-      } else if (filter === 'createActivity') {
-        setShowInput(false);
-        handleCreateActivityMode();
-      }
-    }, [filter])
-  );
+      // Récupérer les paramètres à chaque focus
+      const currentFilter = route.params?.filter;
+      const currentCategory = route.params?.category;
+      const currentSelectedDate = route.params?.selectedDate;
+      
+      console.log("🔄 Focus avec filtre:", currentFilter, "catégorie:", currentCategory, "date:", currentSelectedDate);
+      
+      // Réinitialiser l'activité sélectionnée
+      setSelectedActivity(null);
 
-  function handleByLocality() {
+      // Déterminer si on est en mode onglet ou non
+      const isTabNavigation = !currentFilter;
+
+      // Initialiser le mode selon le filtre (par paramètres actuels, pas par état)
+      if (isTabNavigation || currentFilter === 'aroundMe') {
+        setShowInput(false);
+        setSelectedCategory(null);
+        getUserLocation().then(() => {
+          fetchActivities();
+        });
+      } 
+      else if (currentFilter === 'activity') {
+        setShowInput(false);
+        // Important: Utilisez directement currentCategory et pas selectedCategory
+        // qui pourrait contenir une ancienne valeur
+        const categoryToUse = currentCategory || 'Sport';
+        setSelectedCategory(categoryToUse);
+        fetchActivities(categoryToUse);
+      } 
+      else if (currentFilter === 'byLocality') {
+        setShowInput(true);
+        //handleByLocality();
+        fetchActivities();
+      } 
+      else if (currentFilter === 'createActivity') {
+        setShowInput(false);
+        handleCreateActivityMode(userLocation, setRegion, getUserLocation);
+      }
+      else if (currentFilter === 'date' && currentSelectedDate) {
+        setShowInput(false);
+        fetchActivitiesByDate(currentSelectedDate);
+      }
+      else if (currentFilter === 'createActivity') {
+        setShowInput(false);
+        setSelectedCategory(null); // Réinitialiser la catégorie pour éviter le filtrage
+        
+        // IMPORTANT: Charger toutes les activités sans filtre de catégorie
+        fetchActivities(); // Appeler sans paramètre pour récupérer toutes les activités
+        
+        // Centrer la carte sur la position de l'utilisateur
+        if (userLocation) {
+          setRegion({
+            latitude: userLocation.latitude,
+            longitude: userLocation.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          });
+        } else {
+          getUserLocation().then(() => {
+            // Charger à nouveau les activités après avoir obtenu la position
+            // C'est utile si fetchActivities dépend de la position
+            fetchActivities();
+          });
+        }
+      }
+    }, [route.params]) // Dépendance importante: route.params (pas juste filter)
+  );
+  
+  /*function handleByLocality() {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
         latitude: locality.latitude,
@@ -444,7 +601,7 @@ export default function MapScreen({ route, navigation }) {
       setLatitudeInput('');
       setLongitudeInput('');
     }
-  }
+  }*/
 
   async function handleActivityMode() {
     if (userLocation) {
@@ -459,7 +616,7 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  async function handleCreateActivityMode() {
+  async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
     if (userLocation) {
       setRegion({
         latitude: userLocation.latitude,
@@ -472,16 +629,7 @@ export default function MapScreen({ route, navigation }) {
     }
   }
 
-  let allMarkers = [];
-  if (filter === 'createActivity') {
-    allMarkers = [
-      ...activitiesCreated,
-      ...activities.filter(a => !activitiesCreated.some(c => c._id === a._id)),
-    ];
-  } else {
-    allMarkers = activities;
-  }
-
+  let allMarkers = activities;  
   if (loading) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
@@ -501,23 +649,15 @@ export default function MapScreen({ route, navigation }) {
           style={styles.inputContainer}
         >
           <TextInput
-            style={styles.input}
-            placeholder="Latitude"
-            keyboardType="numeric"
-            value={latitudeInput}
-            onChangeText={setLatitudeInput}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Longitude"
-            keyboardType="numeric"
-            value={longitudeInput}
-            onChangeText={setLongitudeInput}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleRecenterMap}>
-            <Text style={styles.buttonText}>OK</Text>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
+      style={styles.input}
+      placeholder="Nom de la ville"
+      value={cityInput}
+      onChangeText={setCityInput}
+    />
+    <TouchableOpacity style={styles.button} onPress={handleCitySearch}>
+      <Text style={styles.buttonText}>OK</Text>
+    </TouchableOpacity>
+  </KeyboardAvoidingView>
       )}
 
       <MapView style={styles.map} region={region} onPress={handleMapPress}>
@@ -642,7 +782,6 @@ const styles = StyleSheet.create({
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
   dropdownContainer: { zIndex: 2000 },
-  // Styles pour ActivityDetailsModal
   activityModal_overlay: {
     flex: 1,
     justifyContent: 'center',
@@ -720,7 +859,32 @@ const styles = StyleSheet.create({
   activityModal_buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
+    fontSize: 18,
   },
+  profileButton: {
+    backgroundColor: '#007bff',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  profileButtonText: {
+    fontSize: 18,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 8,
+    zIndex: 100,
+  }
 });
 
 

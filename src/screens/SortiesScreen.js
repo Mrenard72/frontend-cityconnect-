@@ -2,12 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 const BACKGROUND_IMAGE = require('../../assets/background.png');
 const ITEM_BACKGROUND_IMAGE = require('../../assets/item-background.jpg');
 
-const SortiesScreen = () => {
+const SortiesScreen = ({ navigation }) => {
+
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+
   const [sorties, setSorties] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -97,7 +104,11 @@ const SortiesScreen = () => {
   };
 
   return (
+    
     <ImageBackground source={BACKGROUND_IMAGE} style={styles.background}>
+       <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
       {/* 🔹 Header bien en haut et séparé du container */}
       <Header />
 
@@ -193,6 +204,15 @@ const styles = StyleSheet.create({
     color: '#2D2A6E',
     textAlign: 'center',
     marginTop: 50, // ✅ Espace ajouté pour éviter que le texte ne soit collé en haut
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+
   },
 });
 

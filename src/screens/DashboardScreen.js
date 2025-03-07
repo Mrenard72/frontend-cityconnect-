@@ -34,6 +34,11 @@ const DashboardScreen = ({ navigation }) => {
             <Text style={styles.cardText}>Je fais découvrir</Text>
           </View>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Doc')}>
+          <View style={styles.overlay}>
+            <Text style={styles.cardTextEnSavoirPlus}>En savoir +</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );
@@ -50,7 +55,8 @@ const styles = StyleSheet.create({
   container: {
     width: '90%',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 130,
+    marginBottom: 10,
    
   },
   logo: {
@@ -62,14 +68,15 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: 'FredokaOne',
     color: '#2D2A6E',
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop: 160,
   },
   card: {
     width: '100%',
     height: 150,
     borderRadius: 10,
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom:10,
     borderColor: '#20135B',
   },
   cardImage: {
@@ -88,6 +95,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingVertical: 50,
   },
+  cardTextEnSavoirPlus: {
+    fontSize: 30,
+    fontFamily: 'FredokaOne',
+    color: '#20135B', // ✅ Couleur changée ici
+    textAlign: 'center',
+    marginTop: 'auto',
+    marginBottom: 10,
+    paddingVertical: 50,
+  }
 });
 
 export default DashboardScreen;

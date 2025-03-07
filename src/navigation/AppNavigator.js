@@ -18,6 +18,9 @@ import ActivityScreen from '../screens/ActivityScreen';
 import SortiesScreen from '../screens/SortiesScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import RestaurantsScreen from '../screens/RestaurantsScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
+import MyPageScreen from '../screens/MyPageScreen';
+import DocScreen from '../screens/DocScreen';
 
 // ajout screen dans mes infos
 import Z_InfosScreen from '../screens/Z_InfosScreen';
@@ -44,7 +47,6 @@ const MessageStack = () => {
   );
 };
 
-
 // ✅ Stack interne pour inclure `ExploreScreen` dans les onglets (et garder la navigation intacte)
 const DashboardStack = () => {
   const DashboardStackNav = createStackNavigator();
@@ -55,6 +57,7 @@ const DashboardStack = () => {
       <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
       <DashboardStackNav.Screen name="Activity" component={ActivityScreen} />
       <DashboardStackNav.Screen name="Restaurants" component={RestaurantsScreen} />
+      <DashboardStackNav.Screen name="Doc" component={DocScreen} />
     </DashboardStackNav.Navigator>
   );
 };
@@ -85,6 +88,7 @@ const ProfileStackScreen = () => {
         component={Z_InfosScreen} 
         options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
+<<<<<<< HEAD
           <ProfileStack.Screen 
           name="Z1_ModifScreen" 
           component={Z1_ModifScreen} 
@@ -95,6 +99,23 @@ const ProfileStackScreen = () => {
           component={Z2_DeleteScreen} 
           options={{ headerShown: false }} // cache le menu du haut avec la fleche
           />
+=======
+      <ProfileStack.Screen 
+        name="Z1_ModifScreen" 
+        component={Z1_ModifScreen} 
+        options={{ headerShown: false }} 
+      />
+      <ProfileStack.Screen 
+        name="Z2_DeleteScreen" 
+        component={Z2_DeleteScreen} 
+        options={{ headerShown: false }} 
+      />
+      <ProfileStack.Screen
+        name="MyPageScreen"
+        component={MyPageScreen}
+        options={{ headerShown: false }}
+      />
+>>>>>>> efe715b05ee6e071d0b3e51a4edb1b81f78a986d
     </ProfileStack.Navigator>
   );
 };
@@ -123,9 +144,9 @@ const BottomTabs = () => {
         },
       })}
     > 
-    {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
+      {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
       <Tab.Screen name="Accueil" component={DashboardStack} />
-        {/* Onglet Carte */}
+      {/* Onglet Carte */}
       <Tab.Screen name="Carte" component={MapScreen} />
       {/* 💬 Onglet Messagerie */}
       <Tab.Screen name="Messagerie" component={MessageStack} />
@@ -148,7 +169,7 @@ const AppNavigator = () => {
           return;
         }
 
-         // 🔍 Vérifier si le token est valide en appelant l'API backend
+        // 🔍 Vérifier si le token est valide en appelant l'API backend
         const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
           method: 'GET',
           headers: {
@@ -180,13 +201,17 @@ const AppNavigator = () => {
       </View>
     );
   }
-        // ✅ Gestion de la navigation selon l'état de connexion
+
+  // ✅ Gestion de la navigation selon l'état de connexion
   return (
     <Stack.Navigator>
       {isLoggedIn ? (
         <>
-         {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
+          {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>
@@ -194,18 +219,20 @@ const AppNavigator = () => {
           <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-      
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Restaurants" component={RestaurantsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Sorties" component={SortiesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Services" component={ServicesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
         </>
       )}
     </Stack.Navigator>
-
-    
   );
 };
 

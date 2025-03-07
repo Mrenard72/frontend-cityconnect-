@@ -5,16 +5,17 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Header from '../components/Header';
-
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { useAuth } from '../components/AuthContex'; // ✅ Import du contexte d'authentification
 
 // 📌 Écran du profil utilisateur
 const ProfileScreen = ({ navigation }) => {
   // ✅ États pour stocker les données utilisateur
   const [profileImage, setProfileImage] = useState(null);
-  const [userName, setUserName] = useState(''); // 🔹 Stocke le nom de l'utilisateur
+  const [userName, setUserName] = useState('');
   const [userToken, setUserToken] = useState(null);
+  const { setUser } = useAuth(); // ✅ Récupération de la fonction setUser depuis le contexte
 
   // 🚀 Fonction pour récupérer le profil utilisateur
   useEffect(() => {
@@ -37,10 +38,12 @@ const ProfileScreen = ({ navigation }) => {
         const data = await response.json();
         if (response.ok) {
           setUserName(data.username);
-          setProfileImage(data.photo || await AsyncStorage.getItem('profileImage')); // ✅ Vérifie AsyncStorage
+          setProfileImage(data.photo || await AsyncStorage.getItem('profileImage'));
+          setUserToken(data._id);
         } else {
           console.log("Erreur récupération profil :", data.message);
           await AsyncStorage.removeItem('token');
+          setUser(null); // ✅ Met à jour l'état global d'authentification
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         }
       } catch (error) {
@@ -50,95 +53,34 @@ const ProfileScreen = ({ navigation }) => {
   
     fetchUserProfile();
   }, []);
-  
 
   // 🚀 Fonction pour gérer la déconnexion
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('token');
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      await AsyncStorage.removeItem('token'); // ✅ Supprime le token
+      setUser(null); // ✅ Met à jour l'état global (déclenche un re-render)
+      navigation.navigate('Login'); // 🔙 Redirige vers l'écran de connexion
     } catch (error) {
       console.error("Erreur lors de la déconnexion :", error);
     }
   };
-  
 
   // 📷 Fonction pour ouvrir la galerie et choisir une photo, puis l’uploader
-const handleChoosePhoto = async () => {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    const selectedImageUri = result.assets[0].uri;
-    setProfileImage(selectedImageUri); // ✅ Mise à jour immédiate de l’affichage
-    await uploadImage(selectedImageUri); // ✅ Envoi de l’image après sélection !
-  }
-};
-
-const uploadImage = async (uri) => {
-  const token = await AsyncStorage.getItem('token');
-  if (!token) {
-    Alert.alert("Erreur", "Vous devez être connecté pour mettre à jour votre photo.");
-    return;
-  }
-
-  console.log("📤 Début de l'upload sur Cloudinary");
-
-  try {
-    let formData = new FormData();
-formData.append('file', {
-  uri: uri,
-  type: 'image/jpeg', // Assurez-vous que l'image a un bon type MIME
-  name: `profile_${Date.now()}.jpg`, // Nom unique
-    });
-    formData.append('upload_preset', 'default_preset'); // Assure-toi que l'upload preset existe
-    formData.append('cloud_name', 'dasntwyhd');
-
-    // 🚀 Envoie l'image sur Cloudinary
-    const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/dasntwyhd/image/upload`, {
-      method: 'POST',
-      body: formData,
+  const handleChoosePhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
     });
 
-    const cloudinaryData = await cloudinaryResponse.json();
-    if (!cloudinaryData.secure_url) {
-      throw new Error("Cloudinary n'a pas renvoyé d'URL.");
+    if (!result.canceled) {
+      const selectedImageUri = result.assets[0].uri;
+      setProfileImage(selectedImageUri);
+      await uploadImage(selectedImageUri);
     }
+  };
 
-    console.log("✅ Upload Cloudinary réussi :", cloudinaryData.secure_url);
-
-    // 🚀 Maintenant, envoie l’URL au backend
-    const backendResponse = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ photoUrl: cloudinaryData.secure_url }),
-    });
-
-    const backendData = await backendResponse.json();
-    if (!backendResponse.ok) {
-      throw new Error(backendData.message || "Erreur serveur");
-    }
-
-    console.log("✅ Backend mis à jour avec succès :", backendData);
-
-    setProfileImage(backendData.photo);
-    await AsyncStorage.setItem('profileImage', backendData.photo);
-    Alert.alert('Photo mise à jour !');
-
-  } catch (error) {
-    console.error("❌ Erreur lors de l'upload :", error);
-    Alert.alert('Erreur', 'Impossible d\'uploader l\'image');
-  }
-};
-
-  // 📸 Fonction pour afficher une alerte et changer la photo de profil
   const handleProfileImagePress = () => {
     Alert.alert(
       'Changer de photo de profil',
@@ -157,7 +99,7 @@ formData.append('file', {
         <Text style={styles.title}>Mes infos</Text>
       </View>
       <View style={styles.container}>
-        {/* 📸 Section de la photo de profil */}
+        {/* 📸 Photo de profil */}
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
             {profileImage ? (
@@ -168,30 +110,39 @@ formData.append('file', {
           </TouchableOpacity>
         </View>
 
-        {/* ✅ Affichage dynamique du nom utilisateur */}
-        <Text style={styles.userName}>{userName ? userName : "Chargement..."}</Text>
+        <Text style={styles.userName}>{userName || "Chargement..."}</Text>
 
         {/* 📌 Boutons des différentes sections */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('ServicesScreen')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ServicesScreen')}>
           <Text style={styles.textButton}>Mes services</Text>
           <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('SortiesScreen')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SortiesScreen')}>
           <Text style={styles.textButton}>Mes sorties</Text>
           <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-          {/* 📌 Bouton section "Mes infos" */}
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z_InfosScreen')} >
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Z_InfosScreen')}>
           <Text style={styles.textButton}>Mes infos</Text>
           <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-
         {/* 🔴 Bouton de déconnexion */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
+        </TouchableOpacity>
+
+        {/* 📌 Accès à la page perso */}
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={() => {
+            console.log("🔍 userId envoyé à UserProfileScreen :", userToken);
+            navigation.navigate('MyPageScreen', { userId: userToken });
+          }}
+        >
+          <Text style={styles.textButton}>Ma page</Text>
+          <FontAwesome name="user" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -199,88 +150,26 @@ formData.append('file', {
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 180,
-  },
+  background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 180 },
   imageContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 80,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    marginBottom: 20,
-    borderWidth: 4,
-    borderColor: '#20135B',
+    width: 150, height: 150, borderRadius: 80, backgroundColor: 'white',
+    justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+    marginBottom: 20, borderWidth: 4, borderColor: '#20135B',
   },
-  touchable: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  addPhotoText: {
-    color: '#888',
-    fontSize: 16,
-    justifyContent: 'center',
-  },
-  userName: {
-    fontSize: 22, // 📌 Augmenté pour plus de lisibilité
-    fontFamily: 'FredokaOne',
-    color: '#2D2A6E',
-    marginBottom: 15,
-  },
+  touchable: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
+  profileImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  addPhotoText: { color: '#888', fontSize: 16, justifyContent: 'center' },
+  userName: { fontSize: 22, fontFamily: 'FredokaOne', color: '#2D2A6E', marginBottom: 15 },
   button: {
-    flexDirection: "row", // Aligner le texte et l'icône en ligne
-    justifyContent: "center", // Pousse le texte à gauche et l'icône à droite
-    alignItems: "center", // Centre verticalement le texte et l'icône
-    backgroundColor: '#20135B',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginVertical: 10,
-    width: '70%',
-    alignItems: 'center',
+    flexDirection: "row", justifyContent: "center", alignItems: "center",
+    backgroundColor: '#20135B', paddingVertical: 12, paddingHorizontal: 20,
+    borderRadius: 8, marginVertical: 10, width: '70%',
   },
-  textButton: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontFamily: 'FredokaOne',
-  },
-  icon: {
-    marginLeft: 10,
-},
-  logoutButton: {
-    backgroundColor: '#E53935',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    width: '50%',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
-    opacity: 0.8,
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontFamily: 'FredokaOne',
-  },
+  textButton: { color: '#FFFFFF', fontSize: 20, fontFamily: 'FredokaOne' },
+  icon: { marginLeft: 10 },
+  logoutButton: { backgroundColor: '#E53935', paddingVertical: 12, borderRadius: 8, width: '50%', alignItems: 'center', position: 'absolute', bottom: 20 },
+  logoutButtonText: { color: '#FFFFFF', fontSize: 20, fontFamily: 'FredokaOne' },
 });
 
 export default ProfileScreen;

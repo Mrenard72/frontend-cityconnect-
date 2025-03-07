@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
   ImageBackground, Image, Alert 
 } from 'react-native';
+import * as AuthSession from "expo-auth-session"
+import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Stockage local pour gérer le token utilisateur
+
+
+// Associe WebBrowser avec AuthSession pour éviter les erreurs
+WebBrowser.maybeCompleteAuthSession();
+const CLIENT_ID = "994283205046-ndm0i814m6c99gir9k3o4mjlm3qn1meb.apps.googleusercontent.com"; // Ton Client ID Web
+
+
 
 // 📌 Écran de connexion (Login)
 const LoginScreen = ({ navigation }) => {
   // ✅ États pour stocker les informations saisies par l'utilisateur
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  
+  console.log("AuthSession:", AuthSession);
+
+
+// 📌 Configuration Google Sign-In
+
 
   // 🔐 Fonction pour gérer la connexion
   const handleLogin = async () => {
@@ -18,7 +33,7 @@ const LoginScreen = ({ navigation }) => {
         const response = await fetch('https://backend-city-connect.vercel.app/auth/login', {
             method: 'POST', // 📩 Envoi des données via une requête POST
             headers: { 'Content-Type': 'application/json' }, // 📌 Indique que les données envoyées sont en JSON
-            body: JSON.stringify({ email, password }), // 🔒 Envoi des identifiants utilisateur
+            body: JSON.stringify({ username, password }), // 🔒 Envoi des identifiants utilisateur
         });
 
         const data = await response.json(); // 📥 Récupération de la réponse du serveur
@@ -44,6 +59,61 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+
+  // 🔹 Fonction pour gérer la connexion Google avec Expo,  ne fonctionne pas une fois redirigé d'autorisation d'acces
+  const handleGoogleLogin = async () => {
+    try {
+      const redirectUri = AuthSession.makeRedirectUri({
+        native: "https://auth.expo.io/@TON_NOM_UTILISATEUR_EXPO/CityConnect",
+      });
+      
+  
+      const discovery = await AuthSession.fetchDiscoveryAsync("https://accounts.google.com");
+  
+      const authRequest = new AuthSession.AuthRequest({
+        clientId: CLIENT_ID,
+        redirectUri,
+        scopes: ["openid", "profile", "email"],
+        responseType: "id_token",
+      });
+  
+      const authResponse = await authRequest.promptAsync(discovery);
+  
+      if (authResponse.type === "success") {
+        const { id_token } = authResponse.params;
+  
+        // Envoie le token Google au backend
+        const response = await fetch("https://backend-city-connect.vercel.app/auth/google-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: id_token }),
+        });
+  
+        const data = await response.json();
+        console.log("Réponse Google Backend :", data);
+  
+        if (response.ok) {
+          await AsyncStorage.setItem("token", data.token);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+          });
+        } else {
+          Alert.alert("Erreur", data.message);
+        }
+      } else {
+        Alert.alert("Erreur", "Connexion Google annulée.");
+      }
+    } catch (error) {
+      console.error("Erreur Google Sign-In :", error);
+      Alert.alert("Erreur", "Connexion Google échouée.");
+    }
+  };
+  
+  
+  
+  
+
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
@@ -52,13 +122,12 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.title}>CityConnect</Text>
         <Text style={styles.subtitle}>DÉCOUVRE LA VILLE AVEC UN HABITANT</Text>
 
-        {/* 📧 Champ de saisie pour l'email */}
+        {/* 📧 Champ de saisie pour Username */}
         <TextInput 
-          placeholder="Email" 
+          placeholder="Username" 
           style={styles.input} 
-          value={email} 
-          onChangeText={setEmail} 
-          keyboardType="email-address" // 📌 Clavier adapté pour les adresses email
+          value={username}
+          onChangeText={setUsername} 
         />
 
         {/* 🔒 Champ de saisie pour le mot de passe */}
@@ -75,8 +144,8 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Se connecter</Text>
         </TouchableOpacity>
 
-        {/* 🔵 Bouton de connexion via Google (non fonctionnel pour l'instant) */}
-        <TouchableOpacity style={styles.googleButton}>
+       {/* 🔵 Connexion Google */}
+       <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
           <Text style={styles.googleButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
 
@@ -162,6 +231,23 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: '#2D2A6E',
     fontFamily: 'FredokaOne',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 12,
+    width: '100%',
+    marginTop: 20,
+    backgroundColor: '#fff',
+  },
+  googleButtonText: {
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    color: '#000',
   },
 });
 
