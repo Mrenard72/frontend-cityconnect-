@@ -88,18 +88,6 @@ const ProfileStackScreen = () => {
         component={Z_InfosScreen} 
         options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
-<<<<<<< HEAD
-          <ProfileStack.Screen 
-          name="Z1_ModifScreen" 
-          component={Z1_ModifScreen} 
-          options={{ headerShown: false }} // cache le menu du haut avec la fleche
-          />
-          <ProfileStack.Screen 
-          name="Z2_DeleteScreen" 
-          component={Z2_DeleteScreen} 
-          options={{ headerShown: false }} // cache le menu du haut avec la fleche
-          />
-=======
       <ProfileStack.Screen 
         name="Z1_ModifScreen" 
         component={Z1_ModifScreen} 
@@ -115,7 +103,6 @@ const ProfileStackScreen = () => {
         component={MyPageScreen}
         options={{ headerShown: false }}
       />
->>>>>>> efe715b05ee6e071d0b3e51a4edb1b81f78a986d
     </ProfileStack.Navigator>
   );
 };
