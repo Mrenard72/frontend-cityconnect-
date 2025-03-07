@@ -116,15 +116,19 @@ const RestaurantsScreen = () => {
                 {loading && <ActivityIndicator size="large" color="#0000ff" />}
                 {sortedRestaurants.length === 0 && !loading && <Text style={styles.noData}>Aucun restaurant disponible</Text>}
                 <FlatList
-                    data={sortedRestaurants} // ✅ Affichage trié sans modifier la carte
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <View style={styles.restaurant}>
-                            <Text style={styles.name}>{item.name} - {item.distance} km</Text>
-                            <Text>{item.address}</Text>
-                        </View>
-                    )}
-                />
+  data={sortedRestaurants}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <View style={styles.restaurant}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.name}>{item.name} - {item.distance} km</Text>
+        <View style={styles.addressContainer}>
+          <Text style={styles.addressText}>{item.address}</Text>
+        </View>
+      </View>
+    </View>
+  )}
+/>
             </View>
         </View>
     );
@@ -148,23 +152,45 @@ const styles = StyleSheet.create({
     restaurant: {
         backgroundColor: 'white',
         padding: 15,
-        marginVertical: 5,
-        borderRadius: 5,
+        marginVertical: 8,
+        borderRadius: 12, // ✅ Arrondir les coins
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    name: {
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15, // ✅ Ombre plus douce
+        shadowRadius: 5,
+        elevation: 4, // ✅ Ombre pour Android
+        flexDirection: 'row', // ✅ Permet un meilleur agencement
+        alignItems: 'center',
+        fontFamily: 'FredokaOne',
+      },
+    
+      name: {
         fontSize: 18,
-        fontWeight: 'bold',
-    },
-    noData: {
-        textAlign: 'center',
-        fontSize: 16,
-        marginTop: 10,
-        color: 'gray',
-    }
+        fontFamily: 'FredokaOne',
+        color: '#2D2A6E', // ✅ Bleu profond
+        marginBottom: 5,
+
+      },
+    
+      addressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+      },
+    
+      addressText: {
+        fontSize: 14,
+        color: '#555', // ✅ Gris doux
+        marginLeft: 5,
+        fontFamily: 'FredokaOne',
+      },
+    
+      locationIcon: {
+        width: 16,
+        height: 16,
+        tintColor: '#FF5733', // ✅ Couleur vive pour contraste
+      },
+    
 });
 
 export default RestaurantsScreen;

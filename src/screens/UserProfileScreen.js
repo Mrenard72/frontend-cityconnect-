@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Alert,
+  View, Text, Image, ImageBackground, TouchableOpacity, StyleSheet, FlatList, Alert,
   ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import Header from '../components/Header';
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
@@ -122,9 +123,19 @@ const UserProfileScreen = ({ route, navigation }) => {
     </View>
   );
 
+  // Bouton de retour
+  const handleGoBack = () => navigation.goBack();
+
   return (
+     
     <View style={styles.container}>
-      {/* Header avec bouton retour */}
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header/>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#20135B" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.headerContainer}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -132,7 +143,7 @@ const UserProfileScreen = ({ route, navigation }) => {
         >
           <Ionicons name="arrow-back" size={24} color="#2D2A6E" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profil Utilisateur</Text>
+       
         <View style={styles.placeholder} />
       </View>
 
@@ -209,6 +220,7 @@ const UserProfileScreen = ({ route, navigation }) => {
           />
         )}
       </View>
+      </ImageBackground>
       
       {/* Notation */}
       <View style={styles.ratingSection}>
@@ -226,32 +238,18 @@ const UserProfileScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' },
   container: { 
     flex: 1, 
-    backgroundColor: 'white'
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingTop: 50,
-    paddingBottom: 10,
-    paddingHorizontal: 15,
     backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0'
+    
   },
   backButton: {
     padding: 8
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2D2A6E'
-  },
   placeholder: {
-    width: 40
+    width: 40,
+    fontFamily: 'FredokaOne',
   },
   loadingContainer: {
     flex: 1,
@@ -261,31 +259,33 @@ const styles = StyleSheet.create({
   },
   profileContainer: { 
     alignItems: 'center', 
-    padding: 20 
+    padding: 20,
+    marginTop: 150,
+    fontFamily: 'FredokaOne',
   },
   profileImage: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60, 
-    marginBottom: 10, 
-    marginTop: 20,
-    backgroundColor: '#f0f0f0'
+      width: 120, height: 120, borderRadius: 80, backgroundColor: 'white',
+      justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+      marginBottom: 20, borderWidth: 4, borderColor: '#20135B',
+  
   },
   userName: { 
     fontSize: 22, 
-    fontWeight: 'bold', 
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E', 
     textAlign: 'center' 
   },
   rating: { 
     fontSize: 18, 
-    color: '#555', 
-    textAlign: 'center' 
+    color: '#2D2A6E', 
+    textAlign: 'center' ,
+    fontFamily: 'FredokaOne',
   },
   bio: { 
     fontSize: 16, 
     fontStyle: 'italic', 
-    color: '#777', 
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E', 
     textAlign: 'center', 
     marginVertical: 10,
     paddingHorizontal: 20
@@ -297,14 +297,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { 
     fontSize: 20, 
-    fontWeight: 'bold', 
+    fontFamily: 'FredokaOne',
     marginTop: 15, 
     marginBottom: 10,
     textAlign: 'center' 
   },
   noActivities: { 
     fontSize: 16, 
-    color: '#777', 
+    color: '#2D2A6E', 
     textAlign: 'center', 
     marginVertical: 10 
   },
@@ -336,7 +336,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
-    elevation: 2
+    elevation: 2,
+    fontFamily: 'FredokaOne',
   },
   activityImage: { 
     width: 80, 
@@ -357,23 +358,25 @@ const styles = StyleSheet.create({
   },
   activityTitle: { 
     fontSize: 16, 
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     color: '#2D2A6E'
   },
   activityDescription: { 
     fontSize: 14, 
-    color: '#555',
-    marginTop: 5
+    color: '#2D2A6E',
+    marginTop: 5,
+    fontFamily: 'FredokaOne',
   },
   activityMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8
+    marginTop: 8,
+    fontFamily: 'FredokaOne',
   },
   activityCategory: {
     fontSize: 12,
     color: '#2D2A6E',
-    fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
     backgroundColor: '#f0f0f0',
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -381,17 +384,27 @@ const styles = StyleSheet.create({
   },
   activityDate: {
     fontSize: 12,
-    color: '#777'
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
   },
   ratingSection: {
     padding: 15,
-    width: '100%'
+    width: '100%',
+    fontFamily: 'FredokaOne',
   },
   ratingContainer: { 
     flexDirection: 'row', 
     justifyContent: 'center', 
     marginTop: 10, 
-    marginBottom: 20 
+    marginBottom: 20 ,
+    fontFamily: 'FredokaOne'
+  },
+  backButton: {
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    zIndex: 21,
+    padding: 5,
   },
 });
 

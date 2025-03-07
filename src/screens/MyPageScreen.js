@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput
+  View, Text, Image, ImageBackground, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FontAwesome } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import Header from '../components/Header';
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
@@ -122,10 +122,19 @@ const MyPageScreen = ({ route, navigation }) => {
   
   if (!user) return <Text>Chargement...</Text>;
 
+  // Bouton de retour
+  const handleGoBack = () => navigation.goBack();
+
   return (
     <View style={styles.container}>
+       <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       {/* 🔹 Header global */}
       <Header title="Profil Utilisateur" navigation={navigation} />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#20135B" />
+        </TouchableOpacity>
+      </View>
 
       {/* 🔹 Profil */}
       <View style={styles.profileContainer}>
@@ -188,20 +197,22 @@ const MyPageScreen = ({ route, navigation }) => {
           />
         )}
       </View>
+      </ImageBackground>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+   background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' },
   container: { 
     flex: 1, 
     backgroundColor: 'white', 
-    paddingTop: 60
+    
   },
   profileContainer: { 
     alignItems: 'center', 
     padding: 20,
-    marginTop: 50, 
+    marginTop: 110, 
   },
   profileImage: { 
     width: 120, 
@@ -338,7 +349,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#777',
     fontFamily: 'FredokaOne'
-  }
+  },
+  backButton: {
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    zIndex: 21,
+    padding: 5,
+  },
 });
 
 export default MyPageScreen;
