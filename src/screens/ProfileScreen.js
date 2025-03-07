@@ -73,13 +73,71 @@ const ProfileScreen = ({ navigation }) => {
       aspect: [1, 1],
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       const selectedImageUri = result.assets[0].uri;
-      setProfileImage(selectedImageUri);
-      await uploadImage(selectedImageUri);
+      setProfileImage(selectedImageUri); // ✅ Mise à jour immédiate de l’affichage
+      await uploadImage(selectedImageUri); // ✅ Envoi de l’image après sélection !
     }
   };
+  
+  const uploadImage = async (uri) => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté pour mettre à jour votre photo.");
+      return;
+    }
+  
+    console.log("📤 Début de l'upload sur Cloudinary");
+  
+    try {
+      let formData = new FormData();
+  formData.append('file', {
+    uri: uri,
+    type: 'image/jpeg', // Assurez-vous que l'image a un bon type MIME
+    name: `profile_${Date.now()}.jpg`, // Nom unique
+  });
+  formData.append('upload_preset', 'default_preset'); // Assure-toi que l'upload preset existe
+    formData.append('cloud_name', 'dasntwyhd');
+    // 🚀 Envoie l'image sur Cloudinary
+    const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/dasntwyhd/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const cloudinaryData = await cloudinaryResponse.json();
+    if (!cloudinaryData.secure_url) {
+      throw new Error("Cloudinary n'a pas renvoyé d'URL.");
+    }
+
+    console.log("✅ Upload Cloudinary réussi :", cloudinaryData.secure_url);
+
+    // 🚀 Maintenant, envoie l’URL au backend
+    const backendResponse = await fetch('https://backend-city-connect.vercel.app/users/upload-profile-pic', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ photoUrl: cloudinaryData.secure_url }),
+    });
+
+    const backendData = await backendResponse.json();
+    if (!backendResponse.ok) {
+      throw new Error(backendData.message || "Erreur serveur");
+    }
+    console.log("✅ Backend mis à jour avec succès :", backendData);
+
+    setProfileImage(backendData.photo);
+    await AsyncStorage.setItem('profileImage', backendData.photo);
+    Alert.alert('Photo mise à jour !');
+
+  } catch (error) {
+    console.error("❌ Erreur lors de l'upload :", error);
+    Alert.alert('Erreur', 'Impossible d\'uploader l\'image');
+  }
+};
+
 
   const handleProfileImagePress = () => {
     Alert.alert(
