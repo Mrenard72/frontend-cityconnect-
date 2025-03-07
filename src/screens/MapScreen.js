@@ -568,7 +568,7 @@ useEffect(() => {
       } 
       else if (currentFilter === 'byLocality') {
         setShowInput(true);
-        //handleByLocality();
+        handleByLocality();
         fetchActivities();
       } 
       else if (currentFilter === 'createActivity') {
@@ -605,7 +605,7 @@ useEffect(() => {
     }, [route.params]) // Dépendance importante: route.params (pas juste filter)
   );
   
-  /*function handleByLocality() {
+  function handleByLocality() {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
         latitude: locality.latitude,
@@ -614,11 +614,24 @@ useEffect(() => {
         longitudeDelta: 0.05,
       });
     } else {
+      // Si la localité n'est pas définie, utiliser les valeurs entrées manuellement (si disponibles)
+      if (latitudeInput && longitudeInput) {
+        const lat = parseFloat(latitudeInput);
+        const lon = parseFloat(longitudeInput);
+        if (!isNaN(lat) && !isNaN(lon)) {
+          setRegion({
+            latitude: lat,
+            longitude: lon,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
+          return;
+        }
+      }
+      // Sinon, utiliser la région par défaut
       setRegion(defaultRegion);
-      setLatitudeInput('');
-      setLongitudeInput('');
     }
-  }*/
+  }
 
   async function handleActivityMode() {
     if (userLocation) {
