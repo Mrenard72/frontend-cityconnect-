@@ -24,6 +24,7 @@ import DocScreen from '../screens/DocScreen';
 
 // ajout screen dans mes infos
 import Z_InfosScreen from '../screens/Z_InfosScreen';
+import Z1_ModifNameUserScreen from '../screens/Z1_ModifNameUserScreen';
 import Z1_ModifScreen from '../screens/Z1_ModifScreen';
 import Z2_DeleteScreen from '../screens/Z2_DeleteScreen';
 
@@ -71,27 +72,32 @@ const ProfileStackScreen = () => {
       <ProfileStack.Screen 
         name="ProfileMain" 
         component={ProfileScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="ServicesScreen" 
         component={ServicesScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="SortiesScreen" 
         component={SortiesScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="Z_InfosScreen" 
         component={Z_InfosScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="Z1_ModifNameUserScreen" 
+        component={Z1_ModifNameUserScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="Z1_ModifScreen" 
         component={Z1_ModifScreen} 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
       />
       <ProfileStack.Screen 
         name="Z2_DeleteScreen" 

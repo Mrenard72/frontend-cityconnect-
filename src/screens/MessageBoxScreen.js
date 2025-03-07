@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Swipeable } from 'react-native-gesture-handler';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Header from '../components/Header';
 
@@ -39,8 +38,6 @@ export default function MessageBoxScreen() {
   };
 
   const fetchConversations = async () => {
-    
-
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
@@ -62,6 +59,40 @@ export default function MessageBoxScreen() {
       console.error('Erreur récupération conversations :', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ Fonction de suppression
+  const handleDeleteConversation = async (conversationId) => {
+    if (!conversationId) {
+      Alert.alert("Erreur", "ID de conversation invalide");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // ✅ Supprime la conversation de l'affichage
+        setConversations((prevConversations) => 
+          prevConversations.filter(convo => convo._id !== conversationId)
+        );
+        Alert.alert("Succès", "Conversation supprimée !");
+      } else {
+        Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+      }
+    } catch (error) {
+      console.error("Erreur suppression conversation:", error);
+      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
     }
   };
 
@@ -93,20 +124,15 @@ export default function MessageBoxScreen() {
               data={conversations}
               keyExtractor={(item) => item._id.toString()}
               renderItem={({ item }) => {
-                
-              
                 const lastMessage = item.messages?.[item.messages.length - 1];
                 const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
                 const lastTime = lastMessage
                   ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : '';
-              
-                // ✅ Vérifier si sender existe, sinon mettre "Utilisateur inconnu"
-                const senderName = lastMessage?.sender?.username 
-              
-                // ✅ Afficher uniquement le titre de l'événement
+
+                const senderName = lastMessage?.sender?.username || "Utilisateur inconnu";
                 const conversationDisplayName = item.eventId?.title || 'Conversation';
-              
+
                 const imageUrl = item.eventId?.image 
                   ? item.eventId.image 
                   : item.eventId?.imageUrl 
@@ -116,39 +142,33 @@ export default function MessageBoxScreen() {
                   : null;
               
                 return (
-                  <Swipeable
-                  renderRightActions={() => (
+                  <View style={styles.conversationItem}>
                     <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => handleDeleteConversation(item._id)}
-                    >
-                      <FontAwesome5 name="trash" size={24} color="red" />
-                    </TouchableOpacity>
-                  )}
-                >
-                    <TouchableOpacity
-                      style={styles.conversationItem}
+                      style={styles.conversationRow}
                       onPress={() => navigation.navigate('Messaging', {
                         conversationId: item._id,
                         conversationName: conversationDisplayName,
                       })}
                     >
-                      <View style={styles.conversationRow}>
-                        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.eventImage} />}
-                        <View style={styles.conversationContent}>
-                          <Text style={styles.conversationName}>{conversationDisplayName}</Text>
-                          <View style={styles.lastMessageContainer}>
-                            <Text style={styles.senderName}>{senderName} :</Text>
-                            <Text style={styles.lastMessage}>{lastMessageText}</Text>
-                          </View>
+                      {imageUrl && <Image source={{ uri: imageUrl }} style={styles.eventImage} />}
+                      <View style={styles.conversationContent}>
+                        <Text style={styles.conversationName}>{conversationDisplayName}</Text>
+                        <View style={styles.lastMessageContainer}>
+                          <Text style={styles.senderName}>{senderName} :</Text>
+                          <Text style={styles.lastMessage}>{lastMessageText}</Text>
                         </View>
                       </View>
-                      <Text style={styles.time}>{lastTime}</Text>
                     </TouchableOpacity>
-                  </Swipeable>
+                    {/* ✅ Icône poubelle cliquable */}
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteConversation(item._id)}
+                    >
+                      <FontAwesome5 name="trash" size={24} color="#20135B" />
+                    </TouchableOpacity>
+                  </View>
                 );
               }}
-              
             />
           )}
         </View>
@@ -156,6 +176,8 @@ export default function MessageBoxScreen() {
     </SafeAreaView>
   );
 }
+
+
 
 // supprimer une conv 
 
@@ -173,7 +195,8 @@ const handleDeleteConversation = async (conversationId) => {
     });
 
     if (response.ok) {
-      setConversations(prevConversations => 
+      // ✅ Supprime la conversation de l'état
+      setConversations((prevConversations) => 
         prevConversations.filter(convo => convo._id !== conversationId)
       );
       Alert.alert("Succès", "Conversation supprimée !");
@@ -185,6 +208,7 @@ const handleDeleteConversation = async (conversationId) => {
     Alert.alert("Erreur", "Impossible de supprimer la conversation.");
   }
 };
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -280,4 +304,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: -30,
   },
+  deleteButton: {
+  marginLeft: -30, // ✅ Décale légèrement l'icône vers la droite
+  padding: 10, // ✅ Ajoute un peu d'espace autour pour un clic facile
+},
+
 });

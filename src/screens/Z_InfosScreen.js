@@ -32,6 +32,12 @@ const Z_InfosScreen = ({ navigation }) => {
           <Text style={styles.title}>Mes infos</Text>
 
           {/* ✅ Boutons des différentes sections */}
+
+          <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifNameUserScreen')}>
+            <Text style={styles.textButton}>Modifier vote nom</Text>
+            <FontAwesome name="" size={24} color="white" style={styles.icon} />
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => navigation.navigate('Z1_ModifScreen')}>
             <Text style={styles.textButton}>Changer le mot de passe</Text>
             <FontAwesome name="" size={24} color="white" style={styles.icon} />
