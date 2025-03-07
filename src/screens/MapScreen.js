@@ -282,6 +282,23 @@ export default function MapScreen({ route, navigation }) {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [newActivityCoords, setNewActivityCoords] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+
+  // pop up creer une activité
+
+  useEffect(() => {
+    if (!route.params?.fromDiscover) return; // ✅ Vérifie si on vient de "Je fais découvrir"
+  
+    setShowTooltip(true); // ✅ Affiche la bulle d'info
+  
+    const timeout = setTimeout(() => {
+      setShowTooltip(false); // ✅ Masque la bulle après 3s
+    }, 5000);
+  
+    return () => clearTimeout(timeout); // ✅ Nettoie si l'utilisateur quitte l'écran
+  }, [route.params?.fromDiscover]);
+  
 
 // recuperation des activites par dates
 
@@ -659,8 +676,19 @@ useEffect(() => {
     </TouchableOpacity>
   </KeyboardAvoidingView>
       )}
-
-      <MapView style={styles.map} region={region} onPress={handleMapPress}>
+{showTooltip && (
+  <View style={styles.tooltipContainer}>
+    <Text style={styles.tooltipText}>📌 Pour créer une activité, restez appuyé sur la carte.</Text>
+    <View style={styles.tooltipArrow} />
+  </View>
+)}
+      <MapView style={styles.map} region={region} onPress={handleMapPress} // ✅ Pression normale
+  onLongPress={(e) => { // ✅ Pression longue
+    const { coordinate } = e.nativeEvent;
+    setNewActivityCoords(coordinate);
+    setIsCreateModalVisible(true); // ✅ Ouvre la modale
+  }}
+>
         {allMarkers.map((act) => {
           if (!act.location) return null;
           const coords = parseLocation(act.location);
@@ -884,7 +912,32 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     zIndex: 100,
-  }
+  },
+  tooltipContainer: {
+    position: 'absolute',
+    top: 100, // Ajuste selon ton besoin
+    left: '10%',
+    right: '10%',
+    backgroundColor: 'white', // Fond blanc pour un effet bulle
+    padding: 14,
+    borderRadius: 20, // ✅ Arrondi les bords
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10, 
+    shadowColor: "#000", // ✅ Ajoute une ombre douce
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // ✅ Ombre sur Android
+  },
+  
+  tooltipText: {
+    color: '#333', // ✅ Texte foncé pour contraste
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  
 });
 
 

@@ -36,7 +36,7 @@ const DashboardScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* 📌 Carte "Je fais découvrir" */}
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Carte', { filter: 'createActivity' })}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Carte', ({fromDiscover: true}),{ filter: 'createActivity' })}>
           <Image source={require('../../assets/discover.jpg')} style={styles.cardImage} />
           <View style={styles.overlay}>
             <Text style={styles.cardText}>{visibleLabels[1]}</Text>
