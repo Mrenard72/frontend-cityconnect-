@@ -1,25 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // ✅ Importation nécessaire pour gérer la navigation
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next'; // ✅ Importation pour la traduction
 
 const DocScreen = () => {
-  const navigation = useNavigation(); // ✅ Définition de `navigation`
+  const navigation = useNavigation();
+  const { t, i18n } = useTranslation(); // ✅ Activation de la traduction
 
+  // Étapes traduites
   const steps = [
-    "Bienvenue sur CityConnect !",
-    "📍 J'explore : ",
-    "Trouvez des événements en temps réel créés par la communauté près de chez vous ou dans la ville de votre choix.",
-    "🔎 Affinez votre recherche par localisation, type d’activité : sport, culture, gastronomie, sorties…",
-    "📅 Sélectionnez une date pour voir les événements disponibles ce jour-là.",
-    "📌 Je fais découvrir : ",
-    "Ajoutez vos propres événements et partagez avec la communauté !",
-    "🚀 Partagez vos passions et créez des rencontres enrichissantes."
+    t('docs.welcome'),
+    `📍 ${t('docs.exploreTitle')}`,
+    t('docs.exploreDescription'),
+    t('docs.exploreFilters'),
+    t('docs.exploreDate'),
+    `📌 ${t('docs.discoverTitle')}`,
+    t('docs.discoverDescription'),
+    t('docs.discoverShare')
   ];
   
   const [visibleText, setVisibleText] = useState(steps.map(() => ""));
   
   useEffect(() => {
-    steps.forEach((step, stepIndex) => {
+    const newSteps = [
+      t('docs.welcome'),
+      `📍 ${t('docs.exploreTitle')}`,
+      t('docs.exploreDescription'),
+      t('docs.exploreFilters'),
+      t('docs.exploreDate'),
+      `📌 ${t('docs.discoverTitle')}`,
+      t('docs.discoverDescription'),
+      t('docs.discoverShare')
+    ];
+    
+    setVisibleText(newSteps.map(() => "")); // Réinitialisation des textes
+
+    newSteps.forEach((step, stepIndex) => {
       step.split("").forEach((_, charIndex) => {
         setTimeout(() => {
           setVisibleText((prev) => {
@@ -30,9 +46,9 @@ const DocScreen = () => {
         }, stepIndex * 2000 + charIndex * 50);
       });
     });
-  }, []);
+  }, [i18n.language]); // 🔥 Mise à jour automatique lors du changement de langue
 
-  // ✅ Fonction qui gère le retour à la page précédente lorsqu'on appuie sur le logo
+  // ✅ Retour à la page précédente en cliquant sur le logo
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -40,7 +56,6 @@ const DocScreen = () => {
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
-        {/* ✅ Ajout de TouchableOpacity sur le logo pour permettre le retour */}
         <TouchableOpacity onPress={handleGoBack}>
           <Image source={require('../../assets/logo.png')} style={styles.logo} />
         </TouchableOpacity>
@@ -81,3 +96,4 @@ const styles = StyleSheet.create({
 });
 
 export default DocScreen;
+

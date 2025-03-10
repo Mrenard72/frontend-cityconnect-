@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { I18nextProvider } from 'react-i18next'; // ✅ Fournisseur global i18n
+import i18n from '../langue/i18n'; // ✅ Importer la config i18n
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
+
+
 
 // 📌 Import des écrans principaux de l'application
 import HomeScreen from '../screens/HomeScreen';
@@ -197,9 +201,11 @@ const AppNavigator = () => {
 
   // ✅ Gestion de la navigation selon l'état de connexion
   return (
+    <I18nextProvider i18n={i18n}>
     <Stack.Navigator>
       {isLoggedIn ? (
         <>
+        
           {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
           <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
           <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
@@ -226,7 +232,10 @@ const AppNavigator = () => {
         </>
       )}
     </Stack.Navigator>
+    </I18nextProvider>
   );
 };
+
+
 
 export default AppNavigator;
