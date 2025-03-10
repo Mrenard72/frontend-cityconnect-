@@ -29,7 +29,7 @@ const LoginScreen = ({ navigation }) => {
   // 🔐 Fonction pour gérer la connexion
   const handleLogin = async () => {
     try {
-        // 🔗 Requête vers l'API pour tenter de se connecter
+        // 🔗 Requête vers l'API pour tenter de se connecter !
         const response = await fetch('https://backend-city-connect.vercel.app/auth/login', {
             method: 'POST', // 📩 Envoi des données via une requête POST
             headers: { 'Content-Type': 'application/json' }, // 📌 Indique que les données envoyées sont en JSON
