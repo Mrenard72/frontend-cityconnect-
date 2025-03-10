@@ -86,6 +86,11 @@ const SortiesScreen = ({ navigation }) => {
     }
   };
 
+  // Nouvelle fonction pour naviguer vers le profil du guide
+  const navigateToGuideProfile = (guideId) => {
+    navigation.navigate('UserProfileScreen', { userId: { _id: guideId } });
+  };
+
   const renderItem = ({ item }) => {
     return (
       <View style={styles.itemContainer}>
@@ -94,9 +99,17 @@ const SortiesScreen = ({ navigation }) => {
             <Text style={styles.guide}>Guide: {item.createdBy.username}</Text>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.description}>{item.description}</Text>
-            <TouchableOpacity style={styles.button} onPress={() => handleLeave(item._id)}>
-              <Text style={styles.buttonText}>Quitter</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={() => handleLeave(item._id)}>
+                <Text style={styles.buttonText}>Quitter</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.profileButton} 
+                onPress={() => navigateToGuideProfile(item.createdBy._id)}
+              >
+                <Text style={styles.profileButtonText}>Profil du guide</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ImageBackground>
       </View>
@@ -169,15 +182,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     textAlign: 'center'
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+  },
   button: {
     backgroundColor: '#E53935',
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
-    alignSelf: 'center',
-    marginTop: 10,
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
   },
   buttonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontFamily: 'FredokaOne'
+  },
+  profileButton: {
+    backgroundColor: '#20135B',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+  },
+  profileButtonText: {
     color: '#FFF',
     fontSize: 14,
     fontFamily: 'FredokaOne'
@@ -212,7 +245,6 @@ const styles = StyleSheet.create({
     zIndex: 21, // Plus élevé que le zIndex du Header
     padding: 10, // Zone cliquable étendue
     backgroundColor: 'transparent', // Fond transparent pour respecter le design
-
   },
 });
 
