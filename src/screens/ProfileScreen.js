@@ -11,22 +11,30 @@ import { useAuth } from '../components/AuthContex';
 import { useTranslation } from 'react-i18next';
 
 const ProfileScreen = ({ navigation }) => {
-  const { t, i18n } = useTranslation(); // ✅ Gestion des traductions
+  // Initialisation de la traduction i18n
+  const { t, i18n } = useTranslation();
+  
+  // États pour stocker les données du profil
   const [profileImage, setProfileImage] = useState(null);
   const [userName, setUserName] = useState('');
   const [userToken, setUserToken] = useState(null);
+  
+  // Récupération de la fonction setUser depuis le contexte d'authentification
   const { setUser } = useAuth();
 
-  // 🚀 Récupération des infos utilisateur
+  // Effet qui s'exécute au chargement du composant et à chaque changement de langue
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        // Récupération du token d'authentification
         const token = await AsyncStorage.getItem('token');
         if (!token) {
+          // Redirection vers la page de connexion si aucun token n'est trouvé
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           return;
         }
 
+        // Appel API pour récupérer le profil utilisateur
         const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
           method: 'GET',
           headers: {
@@ -37,11 +45,13 @@ const ProfileScreen = ({ navigation }) => {
 
         const data = await response.json();
         if (response.ok) {
+          // Mise à jour des états avec les données du profil
           setUserName(data.username);
           setProfileImage(data.photo || await AsyncStorage.getItem('profileImage'));
           setUserToken(data._id);
         } else {
           console.log("Erreur récupération profil :", data.message);
+          // Suppression du token et redirection vers la page de connexion en cas d'erreur
           await AsyncStorage.removeItem('token');
           setUser(null);
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
@@ -52,20 +62,23 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     fetchUserProfile();
-  }, [i18n.language]); // ✅ Recharge les données si la langue change
+  }, [i18n.language]); // Dépendance à la langue pour recharger les données si la langue change
 
-  // 🚀 Déconnexion utilisateur
+  // Fonction de déconnexion
   const handleLogout = async () => {
     try {
+      // Suppression du token d'authentification
       await AsyncStorage.removeItem('token');
+      // Réinitialisation de l'état utilisateur dans le contexte d'authentification
       setUser(null);
+      // Redirection vers la page de connexion
       navigation.navigate('Login');
     } catch (error) {
       console.error("Erreur lors de la déconnexion :", error);
     }
   };
 
-  // 🚀 Gestion du changement de photo de profil
+  // Fonction pour afficher l'alerte de changement de photo de profil
   const handleProfileImagePress = () => {
     Alert.alert(
       t('profile.changePhoto'),
@@ -77,6 +90,7 @@ const ProfileScreen = ({ navigation }) => {
     );
   };
 
+  // Fonction pour sélectionner une nouvelle photo de profil
   const handleChoosePhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -86,6 +100,7 @@ const ProfileScreen = ({ navigation }) => {
     });
 
     if (!result.canceled) {
+      // Mise à jour de l'état et stockage local de la nouvelle image
       setProfileImage(result.assets[0].uri);
       await AsyncStorage.setItem('profileImage', result.assets[0].uri);
     }
@@ -95,7 +110,7 @@ const ProfileScreen = ({ navigation }) => {
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       <Header />
 
-      {/* 🌍 Sélecteur de langue */}
+      {/* Sélecteur de langue avec drapeaux */}
       <View style={styles.languageSwitcher}>
         <TouchableOpacity onPress={() => i18n.changeLanguage('fr')}>
           <Image source={require('../../assets/france.png')} style={styles.flag} />
@@ -110,7 +125,7 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.container}>
-        {/* 📸 Photo de profil */}
+        {/* Conteneur de la photo de profil */}
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
             {profileImage ? (
@@ -121,9 +136,10 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Affichage du nom d'utilisateur */}
         <Text style={styles.userName}>{userName || t('profile.loading')}</Text>
 
-        {/* 📌 Boutons avec traduction */}
+        {/* Boutons de navigation avec icônes et textes traduits */}
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ServicesScreen')}>
           <Text style={styles.textButton}>{t('profile.myServices')}</Text>
           <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
@@ -144,7 +160,7 @@ const ProfileScreen = ({ navigation }) => {
           <FontAwesome name="user" size={24} color="white" style={styles.icon} />
         </TouchableOpacity>
 
-        {/* 🔴 Déconnexion */}
+        {/* Bouton de déconnexion */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
@@ -152,7 +168,6 @@ const ProfileScreen = ({ navigation }) => {
     </ImageBackground>
   );
 };
-
 // 📌 Ajout des styles
 const styles = StyleSheet.create({
   background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' },

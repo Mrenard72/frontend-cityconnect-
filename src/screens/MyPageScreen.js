@@ -6,20 +6,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import Header from '../components/Header';
 
+// URL de base pour toutes les requêtes API
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
 const MyPageScreen = ({ route, navigation }) => {
+  // Récupération de l'ID utilisateur depuis les paramètres de navigation
   const { userId } = route.params;
+  // États pour stocker les données de l'utilisateur, sa notation et ses activités
   const [user, setUser] = useState(null);
   const [rating, setRating] = useState(0);
   const [activities, setActivities] = useState([]);
   console.log(userId);
   
+  // Effet qui s'exécute au chargement du composant
   useEffect(() => {
     fetchUserProfile();
     fetchUserActivities();
   }, []);
 
+  // Fonction pour récupérer les informations du profil utilisateur
   const fetchUserProfile = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${userId}`);
@@ -34,6 +39,7 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
 
+  // Fonction pour récupérer les activités créées par l'utilisateur
   const fetchUserActivities = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
@@ -58,17 +64,21 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
   
+  // Fonction pour naviguer vers les détails d'une activité
   const navigateToActivityDetails = (activity) => {
     navigation.navigate('ActivityDetails', { activity });
   };
 
+  // Fonction pour noter un utilisateur
   const handleRateUser = async (newRating) => {
+    // Récupération du token d'authentification
     const token = await AsyncStorage.getItem('token');
     if (!token) {
       Alert.alert("Erreur", "Vous devez être connecté pour noter cet utilisateur.");
       return;
     }
     try {
+      // Envoi de la note au serveur
       const response = await fetch(`${BASE_URL}/auth/${userId}/rate`, {
         method: 'POST',
         headers: {
@@ -82,7 +92,7 @@ const MyPageScreen = ({ route, navigation }) => {
         setRating(newRating);
         Alert.alert("Merci !", "Votre note a été enregistrée.");
         
-        // 🚀 Forcer l'actualisation du profil
+        // Actualisation du profil après un court délai
         setTimeout(() => {
           fetchUserProfile();
         }, 500);
@@ -92,7 +102,9 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
 
+  // Fonction pour mettre à jour la biographie de l'utilisateur
   const updateBio = async () => {
+    // Récupération du token d'authentification
     const token = await AsyncStorage.getItem('token');
     if (!token) {
       Alert.alert("Erreur", "Vous devez être connecté pour modifier votre bio.");
@@ -100,6 +112,7 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   
     try {
+      // Envoi de la nouvelle bio au serveur
       const response = await fetch(`${BASE_URL}/users/update-bio`, {
         method: 'PUT',
         headers: {
@@ -120,15 +133,16 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
   
+  // Affichage d'un message de chargement si les données de l'utilisateur ne sont pas encore disponibles
   if (!user) return <Text>Chargement...</Text>;
 
-  // Bouton de retour
+  // Fonction pour retourner à l'écran précédent
   const handleGoBack = () => navigation.goBack();
 
   return (
     <View style={styles.container}>
        <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
-      {/* 🔹 Header global */}
+      {/* En-tête de l'écran */}
       <Header title="Profil Utilisateur" navigation={navigation} />
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
@@ -136,7 +150,7 @@ const MyPageScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 🔹 Profil */}
+      {/* Section du profil utilisateur */}
       <View style={styles.profileContainer}>
         <Image source={{ uri: user.photo }} style={styles.profileImage} />
         <Text style={styles.userName}>{user.username}</Text>
@@ -151,7 +165,7 @@ const MyPageScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 🔹 Activités */}
+      {/* Section des activités de l'utilisateur */}
       <View style={styles.activitiesSection}>
         <Text style={styles.sectionTitle}>Activités créées</Text>
         {activities.length === 0 ? (
@@ -167,6 +181,7 @@ const MyPageScreen = ({ route, navigation }) => {
                 style={styles.activityItem}
                 onPress={() => navigateToActivityDetails(item)}
               >
+                {/* Affichage conditionnel de l'image de l'activité ou d'un placeholder */}
                 {item.image ? (
                   <Image source={{ uri: item.image }} style={styles.activityImage} />
                 ) : (
@@ -184,6 +199,7 @@ const MyPageScreen = ({ route, navigation }) => {
                       {item.category}
                     </Text>
                     <Text style={styles.activityDate}>
+                      {/* Formatage de la date en français */}
                       {item.date ? new Date(item.date).toLocaleDateString('fr-FR', {
                         day: 'numeric',
                         month: 'short',
