@@ -8,6 +8,7 @@ import Header from '../components/Header';
 
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
+// 🔹 Page de profil utilisateur
 const MyPageScreen = ({ route, navigation }) => {
   const { userId } = route.params;
   const [user, setUser] = useState(null);
@@ -15,11 +16,13 @@ const MyPageScreen = ({ route, navigation }) => {
   const [activities, setActivities] = useState([]);
   console.log(userId);
   
+  // 🚀 Effet pour charger le profil et les activités de l'utilisateur
   useEffect(() => {
     fetchUserProfile();
     fetchUserActivities();
   }, []);
 
+  // 🚀 Fonction pour récupérer le profil de l'utilisateur
   const fetchUserProfile = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${userId}`);
@@ -34,6 +37,7 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
 
+  // 🚀 Fonction pour récupérer les activités de l'utilisateur
   const fetchUserActivities = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
@@ -58,10 +62,11 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
   
+  // 🚀 Fonction pour naviguer vers les détails d'une activité
   const navigateToActivityDetails = (activity) => {
     navigation.navigate('ActivityDetails', { activity });
   };
-
+// 🚀 Fonction pour noter un utilisateur
   const handleRateUser = async (newRating) => {
     const token = await AsyncStorage.getItem('token');
     if (!token) {
@@ -91,7 +96,7 @@ const MyPageScreen = ({ route, navigation }) => {
       console.error("Erreur lors de la notation :", error);
     }
   };
-
+// 🚀 Fonction pour mettre à jour la bio de l'utilisateur
   const updateBio = async () => {
     const token = await AsyncStorage.getItem('token');
     if (!token) {
