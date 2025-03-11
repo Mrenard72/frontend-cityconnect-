@@ -31,20 +31,21 @@ const fetchRestaurants = async (coords, setRestaurants, setSortedRestaurants, se
         console.log(`🔍 Requête vers Overpass API: ${url}`);
         const response = await fetch(url);
         const data = await response.json();
-
+// verifie si element disponible
         if (data.elements && data.elements.length > 0) {
+            // transformation des données brutes en format utilisable pour l'app
             const restaurants = data.elements.map((place) => ({
                 id: place.id.toString(),
-                name: place.tags.name || "Nom inconnu",
-                address: place.tags["addr:street"] || "Adresse non disponible",
+                name: place.tags.name || "Nom inconnu", // valeur par defaut si pas trouvé
+                address: place.tags["addr:street"] || "Adresse non disponible", // same
                 latitude: place.lat,
                 longitude: place.lon,
-                distance: calculateDistance(coords.latitude, coords.longitude, place.lat, place.lon), // ✅ Ajout de la distance
+                distance: calculateDistance(coords.latitude, coords.longitude, place.lat, place.lon), // calcul de la distance 
             }));
 
             setRestaurants(restaurants); // ✅ Stocke la liste des restaurants pour la carte
 
-            // ✅ Trie une copie pour la liste, sans affecter la carte
+           // Création d'une copie triée par distance pour l'affichage en liste
             const sortedRestaurants = [...restaurants].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
             setSortedRestaurants(sortedRestaurants);
         } else {
@@ -60,8 +61,8 @@ const fetchRestaurants = async (coords, setRestaurants, setSortedRestaurants, se
 };
 
 const RestaurantsScreen = () => {
-    const [restaurants, setRestaurants] = useState([]); // ✅ Pour les marqueurs
-    const [sortedRestaurants, setSortedRestaurants] = useState([]); // ✅ Liste triée pour l'affichage
+    const [restaurants, setRestaurants] = useState([]); //  Pour les marqueurs
+    const [sortedRestaurants, setSortedRestaurants] = useState([]); //  Liste triée pour l'affichage
     const [loading, setLoading] = useState(true);
     const [location, setLocation] = useState(null);
 
@@ -134,7 +135,6 @@ const RestaurantsScreen = () => {
     );
 };
 
-// 📌 Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15, // ✅ Ombre plus douce
         shadowRadius: 5,
         elevation: 4, // ✅ Ombre pour Android
-        flexDirection: 'row', // ✅ Permet un meilleur agencement
+        flexDirection: 'row', // 
         alignItems: 'center',
         fontFamily: 'FredokaOne',
       },
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
       name: {
         fontSize: 18,
         fontFamily: 'FredokaOne',
-        color: '#2D2A6E', // ✅ Bleu profond
+        color: '#2D2A6E', 
         marginBottom: 5,
 
       },

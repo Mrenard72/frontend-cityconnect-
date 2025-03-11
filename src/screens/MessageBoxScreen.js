@@ -130,7 +130,7 @@ export default function MessageBoxScreen() {
                   ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : '';
 
-                const senderName = lastMessage?.sender?.username || "Utilisateur inconnu";
+                const senderName = lastMessage?.sender?.username ;
                 const conversationDisplayName = item.eventId?.title || 'Conversation';
 
                 const imageUrl = item.eventId?.image 
