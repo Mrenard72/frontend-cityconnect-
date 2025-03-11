@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import Header from '../components/Header';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+
 const ExploreScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);

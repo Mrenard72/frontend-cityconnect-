@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next'; // ✅ Importation pour la traduction
 
+// 📌 Page de documentation
 const DocScreen = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation(); // ✅ Activation de la traduction
@@ -19,6 +20,7 @@ const DocScreen = () => {
     t('docs.discoverShare')
   ];
   
+  // 📌 Effet pour afficher les étapes progressivement
   const [visibleText, setVisibleText] = useState(steps.map(() => ""));
   
   useEffect(() => {

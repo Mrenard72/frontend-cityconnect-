@@ -14,28 +14,32 @@ const RegisterScreen = ({ navigation }) => {
     console.log("Bouton de retour pressé");
     navigation.goBack();
   };
-
+// fonction asynchrone pour gérer l'inscription 
   const handleRegister = async () => {
+    // verifie que le mot de passe correspond 
     if (password !== confirmPassword) {
       alert("Les mots de passe ne correspondent pas !");
       return;
     }
 
     try {
+      // envoie des données d'inscription au backend 
       const response = await fetch('https://backend-city-connect.vercel.app/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
       });
-
+// recuperation et affichage de la reponse serveur 
       const data = await response.json();
       console.log("Réponse du backend :", data);
+      // incription reussi 
       if (response.ok) {
         await AsyncStorage.setItem('token', data.token);
         navigation.reset({
           index: 0,
           routes: [{ name: 'Dashboard' }],
         });
+        // affichage message erreur 
       } else {
         alert(data.message);
       }

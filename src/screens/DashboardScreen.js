@@ -11,6 +11,7 @@ const DashboardScreen = ({ navigation }) => {
   // Labels traduits
   const [visibleLabels, setVisibleLabels] = useState(["", ""]);
 
+  // 📌 Effet pour afficher les labels progressivement
   useEffect(() => {
     const labels = [t('dashboard.explore'), t('dashboard.discover')]; // Utilisation correcte des clés de traduction
     setVisibleLabels(labels.map(() => "")); // Réinitialise les labels à chaque changement de langue
