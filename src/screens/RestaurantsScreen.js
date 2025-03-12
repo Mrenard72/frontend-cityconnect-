@@ -60,35 +60,55 @@ const fetchRestaurants = async (coords, setRestaurants, setSortedRestaurants, se
     setLoading(false);
 };
 
+// Composant principal pour l'écran des restaurants
 const RestaurantsScreen = () => {
-    const [restaurants, setRestaurants] = useState([]); //  Pour les marqueurs
-    const [sortedRestaurants, setSortedRestaurants] = useState([]); //  Liste triée pour l'affichage
+    // État pour stocker tous les restaurants (pour l'affichage sur la carte)
+    const [restaurants, setRestaurants] = useState([]); 
+    // État pour stocker les restaurants triés par distance (pour l'affichage en liste)
+    const [sortedRestaurants, setSortedRestaurants] = useState([]); 
+    // État pour gérer l'affichage d'un indicateur de chargement
     const [loading, setLoading] = useState(true);
+    // État pour stocker la position actuelle de l'utilisateur
     const [location, setLocation] = useState(null);
-
+  
+    // Hook d'effet qui s'exécute une fois au montage du composant ([])
     useEffect(() => {
-        const getLocationAndRestaurants = async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Permission refusée', 'Activez la localisation pour voir les restaurants.');
-                setLoading(false);
-                return;
-            }
-
-            let userLocation = await Location.getCurrentPositionAsync({});
-            const userCoords = {
-                latitude: userLocation.coords.latitude,
-                longitude: userLocation.coords.longitude,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
-            };
-
-            setLocation(userCoords);
-            fetchRestaurants(userCoords, setRestaurants, setSortedRestaurants, setLoading);
+      // Fonction asynchrone interne pour obtenir la localisation et les restaurants
+      const getLocationAndRestaurants = async () => {
+        // Demande de permission d'accès à la localisation de l'appareil
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        
+        // Vérification si la permission a été accordée
+        if (status !== 'granted') {
+          // Alerte l'utilisateur que la fonctionnalité est limitée sans accès à la localisation
+          Alert.alert('Permission refusée', 'Activez la localisation pour voir les restaurants.');
+          // Désactive l'indicateur de chargement même si la requête n'a pas pu être effectuée
+          setLoading(false);
+          return;
+        }
+        
+        // Récupération de la position actuelle de l'utilisateur
+        let userLocation = await Location.getCurrentPositionAsync({});
+        
+        // Construction d'un objet de coordonnées avec les deltas pour définir le zoom de la carte
+        const userCoords = {
+          latitude: userLocation.coords.latitude,
+          longitude: userLocation.coords.longitude,
+          latitudeDelta: 0.05, // Niveau de zoom horizontal
+          longitudeDelta: 0.05, // Niveau de zoom vertical
         };
-
-        getLocationAndRestaurants();
-    }, []);
+        
+        // Mise à jour de l'état de localisation avec les coordonnées de l'utilisateur
+        setLocation(userCoords);
+        
+        // Appel de la fonction externe fetchRestaurants pour récupérer les restaurants à proximité
+        // Passage des setters d'état comme callbacks pour permettre de mettre à jour les données depuis la fonction
+        fetchRestaurants(userCoords, setRestaurants, setSortedRestaurants, setLoading);
+      };
+      
+      // Appel immédiat de la fonction définie ci-dessus
+      getLocationAndRestaurants();
+    }, []); // Tableau de dépendances vide - s'exécute uniquement au montage initial du composant
 
     return (
         <View style={styles.container}>

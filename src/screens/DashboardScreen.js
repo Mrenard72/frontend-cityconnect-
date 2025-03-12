@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
   languageSwitcher: {
     flexDirection: 'row',
     position: 'absolute',
-    top: 50,
-    right: 20,
+    top: 80,
+    alignItems: 'center',
   },
   flag: {
     width: 40,
@@ -139,16 +139,17 @@ const styles = StyleSheet.create({
   cardTextEnSavoirPlus: {
     fontSize: 15,
     fontFamily: 'FredokaOne',
-    color: '#20135B',
+    color: 'white',
     textAlign: 'center',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderColor: '#20135B',
     borderWidth: 2,
     borderRadius: 8,
-    backgroundColor: 'rgba(142, 204, 252, 0.6)',
+    backgroundColor: '#20135B',
     alignSelf: 'center',
     marginBottom: 10,
+    marginTop: 50,
   },
 });
 

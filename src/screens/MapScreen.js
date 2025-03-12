@@ -194,20 +194,28 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
                   />
                 )}
                 
-                <View style={{ zIndex: 3000, marginBottom: 10 }}>
-                  <DropDownPicker
-                    open={openCategory}
-                    value={category}
-                    items={items}
-                    setOpen={setOpenCategory}
-                    setValue={setCategory}
-                    setItems={setItems}
-                    placeholder="Sélectionner une catégorie"
-                    style={{ borderColor: '#CCC' }}
-                    dropDownContainerStyle={{ backgroundColor: '#FFF' }}
-                    listMode="SCROLLVIEW"
-                  />
-                </View>
+                <View style={{ marginBottom: openCategory ? 180 : 10, zIndex: 3000 }}>
+  <DropDownPicker
+    open={openCategory}
+    value={category}
+    items={items}
+    setOpen={setOpenCategory}
+    setValue={setCategory}
+    setItems={setItems}
+    placeholder="Sélectionner une catégorie"
+    style={{ borderColor: '#CCC' }}
+    dropDownContainerStyle={{ 
+      backgroundColor: '#FFF',
+      maxHeight: 150 // Hauteur maximale du menu déroulant
+    }}
+    listMode="SCROLLVIEW"
+    scrollViewProps={{
+      nestedScrollEnabled: true, // Active le défilement imbriqué
+    }}
+    zIndex={3000} // S'assure que le dropdown est au-dessus des autres éléments
+    zIndexInverse={1000} // Important pour le fonctionnement correct
+  />
+</View>
                 
                 <TextInput
                   style={styles.modalInput}
@@ -583,6 +591,9 @@ export default function MapScreen({ route, navigation }) {
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
       Alert.alert("Succès", "Activité créée !");
+      
+      // Rafraîchir la liste des activités pour afficher celle qui vient d'être créée
+      fetchActivities(selectedCategory);
     } catch (error) {
       console.error("Erreur lors de la création :", error);
       Alert.alert("Erreur", "Impossible de créer l'activité");
@@ -821,7 +832,7 @@ const styles = StyleSheet.create({
   activeButton: { backgroundColor: '#2D2A6E' },
   categoryText: { color: '#FFF', fontWeight: 'bold' },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContainer: { width: '85%', backgroundColor: '#FFF', padding: 20, borderRadius: 8 },
+  modalContainer: { width: '85%', backgroundColor: '#FFF', padding: 20, borderRadius: 8, alignSelf: 'center' },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
