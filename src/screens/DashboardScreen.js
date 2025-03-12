@@ -13,7 +13,7 @@ const DashboardScreen = ({ navigation }) => {
 
   // 📌 Effet pour afficher les labels progressivement
   useEffect(() => {
-    const labels = [t('dashboard.explore'), t('dashboard.discover')]; // ✅ Utilisation correcte des clés de traduction
+    const labels = [t('dashboard.explore'), t('dashboard.discover')]; // Utilisation correcte des clés de traduction
     setVisibleLabels(labels.map(() => "")); // Réinitialise les labels à chaque changement de langue
 
     labels.forEach((label, index) => {
@@ -27,7 +27,7 @@ const DashboardScreen = ({ navigation }) => {
         }, index * 1500 + charIndex * 70);
       });
     });
-  }, [i18n.language]); // 🔥 Met à jour les labels si la langue change
+  }, [i18n.language]); //  Met à jour les labels si la langue change
 
   // 📌 Fonction pour changer la langue
   const changeLanguage = (lang) => {

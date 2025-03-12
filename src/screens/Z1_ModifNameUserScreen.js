@@ -47,7 +47,7 @@ const Z1_ModifNameUserScreen = ({ navigation }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, // Ajout du token pour l'authentification
         },
-        body: JSON.stringify({ lastUsername, newUsername }), // Envoi de l'ancien et du nouveau nom d'utilisateur
+        body: JSON.stringify({ lastUsername, newUsername, password }), // Envoi de l'ancien et du nouveau nom d'utilisateur
       });
 
       // Récupération de la réponse du serveur
