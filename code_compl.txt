@@ -1,0 +1,5962 @@
+\n=== ./App.js ===\n
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './src/navigation/AppNavigator';
+import * as Font from 'expo-font';
+import { View, ActivityIndicator } from 'react-native';
+import { AuthProvider } from './src/components/AuthContex'; // ✅ Import du AuthProvider
+
+// Charger la police Fredoka One
+const loadFonts = async () => {
+  await Font.loadAsync({
+    'FredokaOne': require('./assets/fonts/FredokaOne-Regular.ttf'),
+  });
+};
+
+const App = () => {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    loadFonts().then(() => setFontsLoaded(true));
+  }, []);
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#2D2A6E" />
+      </View>
+    );
+  }
+
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
+    </AuthProvider>
+  );
+};
+
+export default App;
+\n=== ./index.js ===\n
+import { registerRootComponent } from 'expo';
+
+import App from './App';
+
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// It also ensures that whether you load the app in Expo Go or in a native build,
+// the environment is set up appropriately
+registerRootComponent(App);
+\n=== ./src/components/AuthContex.js ===\n
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        setUser({ token });
+      }
+    };
+    loadUser();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, setUser }}>
+      <>{children}</>
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
+\n=== ./src/components/CustomText.js ===\n
+import React from 'react';
+import { Text, StyleSheet } from 'react-native';
+
+const CustomText = ({ style, children }) => {
+  return <Text style={[styles.defaultText, style]}>{children}</Text>;
+};
+
+const styles = StyleSheet.create({
+  defaultText: {
+    fontFamily: 'FredokaOne',
+  },
+});
+
+export default CustomText;
+\n=== ./src/components/Header.js ===\n
+import React from 'react';
+import { View, Text, Image, StyleSheet, StatusBar, Platform } from 'react-native';
+
+const Header = () => {
+  return (
+    <View style={styles.container}>
+      <View style={styles.innerContainer}>
+        <Image
+          source={require('../../assets/logo.png')} // Remplacez par le chemin vers votre logo
+          style={styles.logo}
+        />
+        <Text style={styles.title}>City Connect</Text>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute', // Position absolue pour coller au haut de l'écran
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f8f9fa',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40, // Ajustement pour Android
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    zIndex: 1, // Assurez que le header est au-dessus des autres éléments
+  },
+  innerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 80, // Hauteur fixe du header
+    paddingHorizontal: 10,
+  },
+  logo: {
+    width: 70, // Taille réduite du logo pour un meilleur alignement
+    height: 50,
+    resizeMode: 'contain',
+    marginRight: 1, // Espacement entre le logo et le texte
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#20135B',
+  },
+});
+
+export default Header;
+\n=== ./src/langue/i18n.js ===\n
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import * as Localization from 'expo-localization';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// 📌 Traductions
+const resources = {
+  en: {
+    translation: {
+      dashboard: {
+        title: "Dashboard",
+        explore: "Explore",
+        discover: "Discover",
+        learnMore: "Learn More",
+      },
+      profile: {
+        title: "My Profile",
+        addPhoto: "Add profile photo",
+        loading: "Loading...",
+        myServices: "My Services",
+        myOutings: "My Outings",
+        myInfo: "My Info",
+        logout: "Logout",
+        myPage: "My Page",
+        addPhoto: "Add profile photo", // ✅ Texte affiché si pas d'image
+        changePhoto: "Change profile photo",
+        cancel: "Cancel",
+        change: "Change",
+        loading: "Loading...",
+      },
+      docs: {
+        welcome: "Welcome to CityConnect!",
+        exploreTitle: "I Explore:",
+        exploreDescription: "Find real-time events created by the community near you or in the city of your choice.",
+        exploreFilters: "🔎 Refine your search by location, activity type: sports, culture, food, outings...",
+        exploreDate: "📅 Select a date to see the events available that day.",
+        discoverTitle: "I Discover:",
+        discoverDescription: "Add your own events and share them with the community!",
+        discoverShare: "🚀 Share your passions and create meaningful connections.",
+      }
+      
+    }
+  },
+  fr: {
+    translation: {
+      dashboard: {
+        title: "Tableau de bord",
+        explore: "J'explore",
+        discover: "Je fais découvrir",
+        learnMore: "En savoir +",
+      },
+      profile: {
+        title: "Mon Profil",
+        addPhoto: "Ajouter une photo de profil",
+        loading: "Chargement...",
+        myServices: "Mes services",
+        myOutings: "Mes sorties",
+        myInfo: "Mes infos",
+        logout: "Déconnexion",
+        myPage: "Ma page",
+        addPhoto: "Ajouter une photo de profil", // ✅ Texte affiché si pas d'image
+        changePhoto: "Changer la photo de profil",
+        cancel: "Annuler",
+        change: "Changer",
+        loading: "Chargement...",
+        photoUpdated: "Photo de profil mise à jour !"
+      },
+      docs: {
+        welcome: "Bienvenue sur CityConnect !",
+        exploreTitle: "J'explore :",
+        exploreDescription: "Trouvez des événements en temps réel créés par la communauté près de chez vous ou dans la ville de votre choix.",
+        exploreFilters: "🔎 Affinez votre recherche par localisation, type d’activité : sport, culture, gastronomie, sorties…",
+        exploreDate: "📅 Sélectionnez une date pour voir les événements disponibles ce jour-là.",
+        discoverTitle: "Je fais découvrir :",
+        discoverDescription: "Ajoutez vos propres événements et partagez avec la communauté !",
+        discoverShare: "🚀 Partagez vos passions et créez des rencontres enrichissantes.",
+      }
+      
+    }
+  }
+};
+
+// 📌 Détection automatique et stockage de la langue
+const languageDetector = {
+  type: 'languageDetector',
+  async: true,
+  detect: async (callback) => {
+    try {
+      const storedLang = await AsyncStorage.getItem('appLanguage');
+      if (storedLang) {
+        callback(storedLang);
+        return;
+      }
+
+      const locale = Localization.getLocales()[0]?.languageCode || 'en';
+      const detectedLang = locale === 'fr' ? 'fr' : 'en';
+
+      await AsyncStorage.setItem('appLanguage', detectedLang);
+      callback(detectedLang);
+    } catch (error) {
+      console.error("Erreur lors de la détection de la langue:", error);
+      callback('en');
+    }
+  },
+  init: () => {},
+  cacheUserLanguage: async (lang) => {
+    try {
+      await AsyncStorage.setItem('appLanguage', lang);
+    } catch (error) {
+      console.error("Erreur lors du stockage de la langue:", error);
+    }
+  },
+};
+
+// 📌 Initialisation de i18n
+i18n
+  .use(languageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'en',
+    interpolation: { escapeValue: false },
+  });
+
+export default i18n;
+\n=== ./src/navigation/AppNavigator.js ===\n
+import React, { useEffect, useState } from 'react';
+import { I18nextProvider } from 'react-i18next'; // ✅ Fournisseur global i18n
+import i18n from '../langue/i18n'; // ✅ Importer la config i18n
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, ActivityIndicator } from 'react-native';
+
+
+
+// 📌 Import des écrans principaux de l'application
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import DashboardScreen from '../screens/DashboardScreen';
+import ExploreScreen from '../screens/ExploreScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import MapScreen from '../screens/MapScreen';
+import MessageScreen from '../screens/MessageScreen';
+import MessageBoxScreen from '../screens/MessageBoxScreen';
+import ActivityScreen from '../screens/ActivityScreen';
+import SortiesScreen from '../screens/SortiesScreen';
+import ServicesScreen from '../screens/ServicesScreen';
+import RestaurantsScreen from '../screens/RestaurantsScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
+import MyPageScreen from '../screens/MyPageScreen';
+import DocScreen from '../screens/DocScreen';
+
+// ajout screen dans mes infos
+import Z_InfosScreen from '../screens/Z_InfosScreen';
+import Z1_ModifNameUserScreen from '../screens/Z1_ModifNameUserScreen';
+import Z1_ModifScreen from '../screens/Z1_ModifScreen';
+import Z2_DeleteScreen from '../screens/Z2_DeleteScreen';
+
+// 📌 Import des icônes pour la barre de navigation
+import { Ionicons } from '@expo/vector-icons';
+
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// ✅ Nouvelle stack pour la gestion des messages
+const MessageStack = () => {
+  const MessageStackNav = createStackNavigator();
+
+  return (
+    <MessageStackNav.Navigator screenOptions={{ headerShown: false }}>
+      {/* Liste des conversations */}
+      <MessageStackNav.Screen name="MessageBox" component={MessageBoxScreen} />
+      {/* Écran individuel pour une conversation */}
+      <MessageStackNav.Screen name="Messaging" component={MessageScreen} />
+    </MessageStackNav.Navigator>
+  );
+};
+
+// ✅ Stack interne pour inclure `ExploreScreen` dans les onglets (et garder la navigation intacte)
+const DashboardStack = () => {
+  const DashboardStackNav = createStackNavigator();
+
+  return (
+    <DashboardStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <DashboardStackNav.Screen name="DashboardMain" component={DashboardScreen} />
+      <DashboardStackNav.Screen name="Explore" component={ExploreScreen} />
+      <DashboardStackNav.Screen name="Activity" component={ActivityScreen} />
+      <DashboardStackNav.Screen name="Restaurants" component={RestaurantsScreen} />
+      <DashboardStackNav.Screen name="Doc" component={DocScreen} />
+    </DashboardStackNav.Navigator>
+  );
+};
+
+// ✅ Stack pour le profil incluant les écrans supplémentaires
+const ProfileStack = createStackNavigator();
+
+const ProfileStackScreen = () => {
+  return (
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen 
+        name="ProfileMain" 
+        component={ProfileScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="ServicesScreen" 
+        component={ServicesScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="SortiesScreen" 
+        component={SortiesScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="Z_InfosScreen" 
+        component={Z_InfosScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="Z1_ModifNameUserScreen" 
+        component={Z1_ModifNameUserScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="Z1_ModifScreen" 
+        component={Z1_ModifScreen} 
+        options={{ headerShown: false }} // cache le menu du haut avec la fleche
+      />
+      <ProfileStack.Screen 
+        name="Z2_DeleteScreen" 
+        component={Z2_DeleteScreen} 
+        options={{ headerShown: false }} 
+      />
+      <ProfileStack.Screen
+        name="MyPageScreen"
+        component={MyPageScreen}
+        options={{ headerShown: false }}
+      />
+    </ProfileStack.Navigator>
+  );
+};
+
+// ✅ Barre de navigation en bas avec les onglets principaux
+const BottomTabs = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: { backgroundColor: '#FFFFFF', height: 60 }, // 📌 Style de la barre d'onglets
+        tabBarActiveTintColor: '#2D2A6E', // 📌 Couleur du texte actif
+        tabBarInactiveTintColor: 'gray', // 📌 Couleur du texte inactif
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === 'Accueil') {
+            iconName = 'home-outline'; // 🏠 Icône pour l'accueil
+          } else if (route.name === 'Carte') {
+            iconName = 'map-outline'; // Icône pour la carte
+          } else if (route.name === 'Messagerie') {
+            iconName = 'chatbubble-outline'; // 💬 Icône pour la messagerie
+          } else if (route.name === 'Profil') {
+            iconName = 'person-outline'; // 👤 Icône pour le profil
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
+    > 
+      {/* 📌 Onglet Accueil (contient aussi ExploreScreen via DashboardStack) */}
+      <Tab.Screen name="Accueil" component={DashboardStack} />
+      {/* Onglet Carte */}
+      <Tab.Screen name="Carte" component={MapScreen} />
+      {/* 💬 Onglet Messagerie */}
+      <Tab.Screen name="Messagerie" component={MessageStack} />
+      {/* 👤 Onglet Profil */}
+      <Tab.Screen name="Profil" component={ProfileStackScreen} />
+    </Tab.Navigator>
+  );
+};
+
+// ✅ Stack principal avec gestion de l'authentification
+const AppNavigator = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(null); // 📌 État pour suivre la connexion de l'utilisateur
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token'); // 🔑 Vérification du token utilisateur
+        if (!token) {
+          setIsLoggedIn(false); // 🚫 Pas de token → utilisateur non connecté
+          return;
+        }
+
+        // 🔍 Vérifier si le token est valide en appelant l'API backend
+        const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          setIsLoggedIn(true);  // ✅ Le token est valide → utilisateur connecté
+        } else {
+          await AsyncStorage.removeItem('token'); // 🚫 Supprimer un token invalide
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification du token:", error);
+        setIsLoggedIn(false);
+      }
+    };
+    
+    checkLoginStatus();
+  }, []);
+
+  // ⏳ Si l'état de connexion n'est pas encore déterminé, afficher un **loader**
+  if (isLoggedIn === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#2D2A6E" /> 
+      </View>
+    );
+  }
+
+  // ✅ Gestion de la navigation selon l'état de connexion
+  return (
+    <I18nextProvider i18n={i18n}>
+    <Stack.Navigator>
+      {isLoggedIn ? (
+        <>
+        
+          {/* 🏠 Si l'utilisateur est connecté, afficher le dashboard avec les onglets */}
+          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+        </>
+      ) : (
+        <>
+          {/* 🚪 Si l'utilisateur N'EST PAS connecté, afficher les écrans d'authentification */}
+          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Dashboard" component={BottomTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="Explore" component={ExploreScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Message" component={MessageScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Restaurants" component={RestaurantsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Sorties" component={SortiesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Services" component={ServicesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
+        </>
+      )}
+    </Stack.Navigator>
+    </I18nextProvider>
+  );
+};
+
+
+
+export default AppNavigator;
+\n=== ./src/screens/ActivityScreen.js ===\n
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert
+} from 'react-native';
+import Header from '../components/Header';
+import * as Location from 'expo-location';
+
+const activities = [
+  { id: 1, title: 'Sport', category: 'Sport', image: require('../../assets/sport.jpg') },
+  { id: 2, title: 'Culturel', category: 'Culturel', image: require('../../assets/culturel.jpg') },
+  { id: 3, title: 'Sorties', category: 'Sorties', image: require('../../assets/sorties.jpg') },
+  { id: 4, title: 'Culinaire', category: 'Culinaire', image: require('../../assets/culinaire.jpg') },
+];
+
+const ActivityScreen = ({ navigation }) => {
+  const [userLocation, setUserLocation] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Récupérer la localisation dès le montage de l'écran
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'La localisation est nécessaire pour cette fonctionnalité.');
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location.coords);
+    })();
+  }, []);
+
+  // Navigation lors de la sélection d'une activité avec logique différente pour Culinaire
+  const handleActivityPress = (activity) => {
+    if (activity.category === 'Culinaire') {
+      // Navigation vers une carte différente pour les restaurants
+      navigation.navigate('Restaurants', {
+        filter: 'activity',
+        category: activity.category,
+        userLocation,
+      });
+    } else {
+      // Navigation vers la carte standard pour les autres catégories
+      navigation.navigate('Carte', {
+        filter: 'activity',
+        category: activity.category,
+        userLocation,
+      });
+    }
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header />
+      {/* Pour éviter le chevauchement avec le Header */}
+      <View style={{ marginTop: 60 }} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Activité</Text>
+        {activities.map(activity => (
+          <TouchableOpacity
+            key={activity.id}
+            style={styles.activityCard}
+            onPress={() => handleActivityPress(activity)}
+          >
+            <ImageBackground
+              source={activity.image}
+              style={styles.image}
+              imageStyle={{ borderRadius: 10 }}
+            >
+              <View style={styles.overlay}>
+                <Text style={styles.activityText}>{activity.title}</Text>
+              </View>
+            </ImageBackground>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 30,
+    width: '100%',
+  },
+  title: {
+    fontSize: 28,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  activityCard: {
+    width: '90%',
+    height: 150,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 15,
+    alignSelf: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  overlay: {
+    width: '100%',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  activityText: {
+    fontSize: 24,
+    fontFamily: 'FredokaOne',
+    color: 'white',
+    textAlign: 'center',
+  },
+});
+
+export default ActivityScreen;\n=== ./src/screens/DashboardScreen.js ===\n
+import React, { useState, useEffect } from 'react';
+import { 
+  View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground 
+} from 'react-native';
+import Header from '../components/Header';
+import { useTranslation } from 'react-i18next';
+
+const DashboardScreen = ({ navigation }) => {
+  const { t, i18n } = useTranslation();
+  
+  // Labels traduits
+  const [visibleLabels, setVisibleLabels] = useState(["", ""]);
+
+  // 📌 Effet pour afficher les labels progressivement
+  useEffect(() => {
+    const labels = [t('dashboard.explore'), t('dashboard.discover')]; // Utilisation correcte des clés de traduction
+    setVisibleLabels(labels.map(() => "")); // Réinitialise les labels à chaque changement de langue
+
+    labels.forEach((label, index) => {
+      label.split("").forEach((_, charIndex) => {
+        setTimeout(() => {
+          setVisibleLabels((prev) => {
+            const newText = [...prev];
+            newText[index] = label.slice(0, charIndex + 1);
+            return newText;
+          });
+        }, index * 1500 + charIndex * 70);
+      });
+    });
+  }, [i18n.language]); //  Met à jour les labels si la langue change
+
+  // 📌 Fonction pour changer la langue
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header />
+      
+      {/* Drapeaux pour changer la langue */}
+      <View style={styles.languageSwitcher}>
+        <TouchableOpacity onPress={() => changeLanguage('fr')}>
+          <Image source={require('../../assets/france.png')} style={styles.flag} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => changeLanguage('en')}>
+          <Image source={require('../../assets/anglais.png')} style={styles.flag} />
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.title}>{t('dashboard.title')}</Text>
+
+      <View style={styles.container}>
+        {/* 📌 Carte "J'explore" */}
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Explore')}>
+          <Image source={require('../../assets/explore.jpg')} style={styles.cardImage} />
+          <View style={styles.overlay}>
+            <Text style={styles.cardText}>{visibleLabels[0]}</Text> 
+          </View>
+        </TouchableOpacity>
+
+        {/* 📌 Carte "Je fais découvrir" */}
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Carte', { fromDiscover: true }, { filter: 'createActivity' })}>
+          <Image source={require('../../assets/discover.jpg')} style={styles.cardImage} />
+          <View style={styles.overlay}>
+            <Text style={styles.cardText}>{visibleLabels[1]}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* 📌 Bouton "En savoir +" */}
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Doc')}>
+          <View style={styles.overlay}>
+            <Text style={styles.cardTextEnSavoirPlus}>{t('dashboard.learnMore')}</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  languageSwitcher: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 50,
+    right: 20,
+  },
+  flag: {
+    width: 40,
+    height: 30,
+    marginHorizontal: 5,
+    borderRadius: 5,
+    marginTop: 140,
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 130,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 10,
+    marginTop: 160,
+  },
+  card: {
+    width: '100%',
+    height: 150,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+    borderColor: '#20135B',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  cardText: {
+    fontSize: 30,
+    fontFamily: 'FredokaOne',
+    color: '#20135B',
+    textAlign: 'center',
+    marginTop: 'auto',
+    marginBottom: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255,255,255,0.6)'
+  },
+  cardTextEnSavoirPlus: {
+    fontSize: 15,
+    fontFamily: 'FredokaOne',
+    color: '#20135B',
+    textAlign: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderColor: '#20135B',
+    borderWidth: 2,
+    borderRadius: 8,
+    backgroundColor: 'rgba(142, 204, 252, 0.6)',
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+});
+
+export default DashboardScreen;
+\n=== ./src/screens/DocScreen.js ===\n
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next'; // ✅ Importation pour la traduction
+
+// 📌 Page de documentation
+const DocScreen = () => {
+  const navigation = useNavigation();
+  const { t, i18n } = useTranslation(); // ✅ Activation de la traduction
+
+  // Étapes traduites
+  const steps = [
+    t('docs.welcome'),
+    `📍 ${t('docs.exploreTitle')}`,
+    t('docs.exploreDescription'),
+    t('docs.exploreFilters'),
+    t('docs.exploreDate'),
+    `📌 ${t('docs.discoverTitle')}`,
+    t('docs.discoverDescription'),
+    t('docs.discoverShare')
+  ];
+  
+  // 📌 Effet pour afficher les étapes progressivement
+  const [visibleText, setVisibleText] = useState(steps.map(() => ""));
+  
+  useEffect(() => {
+    const newSteps = [
+      t('docs.welcome'),
+      `📍 ${t('docs.exploreTitle')}`,
+      t('docs.exploreDescription'),
+      t('docs.exploreFilters'),
+      t('docs.exploreDate'),
+      `📌 ${t('docs.discoverTitle')}`,
+      t('docs.discoverDescription'),
+      t('docs.discoverShare')
+    ];
+    
+    setVisibleText(newSteps.map(() => "")); // Réinitialisation des textes
+
+    newSteps.forEach((step, stepIndex) => {
+      step.split("").forEach((_, charIndex) => {
+        setTimeout(() => {
+          setVisibleText((prev) => {
+            const newText = [...prev];
+            newText[stepIndex] = step.slice(0, charIndex + 1);
+            return newText;
+          });
+        }, stepIndex * 2000 + charIndex * 50);
+      });
+    });
+  }, [i18n.language]); // 🔥 Mise à jour automatique lors du changement de langue
+
+  // ✅ Retour à la page précédente en cliquant sur le logo
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={handleGoBack}>
+          <Image source={require('../../assets/logo.png')} style={styles.logo} />
+        </TouchableOpacity>
+
+        {visibleText.map((step, index) => (
+          <Text key={index} style={styles.text}>{step}</Text>
+        ))}
+      </View>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  text: {
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 20,
+  }
+});
+
+export default DocScreen;
+
+\n=== ./src/screens/ExploreScreen.js ===\n
+import React, { useState } from 'react';
+import { 
+  View, Text, TouchableOpacity, StyleSheet, ImageBackground, 
+  Alert, TextInput, Modal, Button, Platform
+} from 'react-native';
+import * as Location from 'expo-location';
+import Header from '../components/Header';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+
+const ExploreScreen = ({ navigation }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+
+  // 📍 Obtenir la position actuelle et naviguer vers MapScreen avec le filtre 'aroundMe'
+  const handleLocationSearch = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert("Permission refusée", "L'accès à la localisation est nécessaire pour cette fonctionnalité.");
+      return;
+    }
+    try {
+      let userLocation = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = userLocation.coords;
+      navigation.navigate('Carte', { 
+        filter: 'aroundMe', 
+        latitude, 
+        longitude,
+        region: { latitude, longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+      });
+    } catch (error) {
+      Alert.alert("Erreur", "Impossible d’obtenir votre position.");
+    }
+  };
+
+  // 🔎 Ouvrir la modale pour saisir une ville dès l'appui sur "Par localisation" !
+  const handleCitySearch = () => {
+    setShowModal(true);
+  };
+
+  // 🔎 Valider la saisie d'une ville grâce au géocodage et naviguer vers MapScreen
+  const handleCitySearchSubmit = async () => {
+    if (searchQuery.trim() === '') {
+      Alert.alert("Erreur", "Veuillez entrer un nom de ville.");
+      return;
+    }
+    try {
+      const geocodeResults = await Location.geocodeAsync(searchQuery);
+      if (geocodeResults && geocodeResults.length > 0) {
+        const { latitude, longitude } = geocodeResults[0];
+        console.log("Ville trouvée :", searchQuery, "Coordonnées :", latitude, longitude);
+        setShowModal(false);
+        // Transmettre à MapScreen la région calculée ainsi que les coordonnées individuelles
+        navigation.navigate('Carte', { 
+          filter: 'byLocality', 
+          locality: { 
+            latitude, 
+            longitude, 
+            name: searchQuery 
+          },
+          region: { latitude, longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 }
+        });
+      } else {
+        Alert.alert("Erreur", "Aucune ville trouvée pour ce nom.");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erreur", "Impossible de géocoder cette ville.");
+    }
+  };
+
+ // 📅 Ouvrir le DatePicker
+ const handleDateSearch = () => {
+  if (Platform.OS === "android") {
+    setShowPicker(true); // Sur Android, affichage direct
+  } else {
+    setShowDateModal(true); // Sur iOS, affichage dans la modale
+  }
+};
+ // 📅 Gérer la sélection de la date
+ const onDateChange = (event, date) => {
+  if (date) {
+    setSelectedDate(date);
+  }
+  if (Platform.OS === "android") {
+    setShowPicker(false); // Fermer automatiquement sur Android
+    validateDateAndNavigate(date);
+  }
+};
+
+
+
+// 📅 Valider la date et naviguer vers MapScreen
+const validateDateAndNavigate = (date) => {
+  if (!date || !(date instanceof Date)) {
+    Alert.alert("Erreur", "Veuillez sélectionner une date valide.");
+    return;
+  }
+
+  const formattedDate = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+  setShowDateModal(false);
+  navigation.navigate('Carte', { filter: 'date', selectedDate: formattedDate });
+};
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header />
+      <View style={styles.container}>
+        <Text style={styles.title}>Explorer la ville</Text>
+
+        {/* 📍 Autour de moi */}
+        <TouchableOpacity style={styles.filterButton} onPress={handleLocationSearch}>
+          <Text style={styles.buttonText}>Autour de moi</Text>
+        </TouchableOpacity>
+
+        {/* 🔎 Par localisation */}
+        <TouchableOpacity style={styles.filterButton} onPress={handleCitySearch}>
+          <Text style={styles.buttonText}>Par localisation</Text>
+        </TouchableOpacity>
+
+        {/* 🎭 Par activité */}
+        <TouchableOpacity style={styles.filterButton} onPress={() => navigation.navigate('Activity')}>
+          <Text style={styles.buttonText}>Par activité</Text>
+        </TouchableOpacity>
+
+       {/* 📅 Bouton de recherche par date */}
+       <TouchableOpacity style={styles.filterButton} onPress={handleDateSearch}>
+          <Text style={styles.buttonText}>Par date</Text>
+        </TouchableOpacity>
+
+{/* 🔎 Modal pour la recherche de ville */}
+<Modal visible={showModal} transparent={true} animationType="slide">
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Rechercher une ville</Text>
+        <TextInput 
+          style={styles.searchInput}
+          placeholder="Entrez une ville..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <View style={styles.modalButtons}>
+          <Button title="Annuler" onPress={() => setShowModal(false)} />
+          <Button title="Rechercher" onPress={handleCitySearchSubmit} />
+        </View>
+      </View>
+    </View>
+  </Modal>
+
+
+        {/* 📅 DatePicker natif Android (affichage direct) */}
+        {showPicker && Platform.OS === "android" && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default" // Mode "default" pour être bien visible
+            locale="fr"
+            onChange={onDateChange}
+          />
+        )}
+      </View>
+
+      {/* 📅 Modal iOS avec DatePicker intégré */}
+      <Modal visible={showDateModal} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Sélectionner une date</Text>
+
+            {/* 📅 Affichage correct du DatePicker sur iOS */}
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="inline"
+                locale="fr"
+                themeVariant="light" // ✅ Rend le fond clair et améliore la visibilité
+                onChange={onDateChange}
+              />
+            </View>
+
+
+            <View style={styles.modalButtons}>
+              <Button title="Annuler" onPress={() => setShowDateModal(false)} />
+              <Button title="Valider" onPress={() => validateDateAndNavigate(selectedDate)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 📅 Affichage du DatePicker */}
+      {showPicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          locale="fr"
+          onChange={onDateChange}
+        />
+      )}
+
+      {/* 📅 Modal de validation */}
+      <Modal visible={showDateModal} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Sélectionner une date</Text>
+
+            <Button title="Annuler" onPress={() => setShowDateModal(false)} />
+            <Button title="Valider" onPress={validateDateAndNavigate} />
+          </View>
+        </View>
+      </Modal>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '90%',
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  filterButton: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'FredokaOne',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5, // Effet d'ombre sur Android
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  searchInput: {
+    width: '100%',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    fontSize: 16,
+    fontFamily: 'FredokaOne',
+    marginBottom: 15,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 15,
+  },
+  selectedDateText: {
+    fontSize: 16,
+    marginTop: 10,
+    fontWeight: "bold",
+    color: "#2D2A6E",
+  },
+  pickerContainer: {
+    marginVertical: 15,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+  },
+});
+export default ExploreScreen;\n=== ./src/screens/HomeScreen.js ===\n
+import React, { useEffect, useState } from 'react';
+import { 
+  View, Text, TouchableOpacity, StyleSheet, 
+  ImageBackground, Image, Alert 
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Stockage local pour gérer le token utilisateur
+
+// 📌 Écran d'accueil (HomeScreen)
+const HomeScreen = ({ navigation }) => {
+  // ✅ État pour stocker les informations du profil utilisateur
+  const [user, setUser] = useState(null);
+
+  // 🎯 Effet qui s'exécute au montage du composant (vérification du token et récupération du profil)
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        // 🔑 Récupérer le token de connexion stocké
+        const token = await AsyncStorage.getItem('token');
+        console.log("Token récupéré dans HomeScreen :", token);
+        
+        if (!token) {
+          console.log("Aucun token trouvé, redirection vers Login...");
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); // 🚪 Redirige vers l'écran de connexion si pas de token
+          return;
+        }
+
+        // 🔍 Vérification du token en appelant l'API backend
+        const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`, // 🔑 Ajoute le token dans les headers
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json(); // 📥 Récupération de la réponse du serveur
+        console.log("Réponse de /auth/profile :", data);
+
+        if (!response.ok) {
+          console.log("Token invalide, suppression et redirection...");
+          await AsyncStorage.removeItem('token'); // 🚫 Supprimer un token invalide
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); // 🚪 Redirige vers l'écran de connexion
+        } else {
+          setUser(data); // ✅ Stocker les informations du profil utilisateur
+        }
+        
+      } catch (error) {
+        console.error("❌ Erreur lors de la récupération du profil :", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []); // 🔄 S'exécute une seule fois lors du premier affichage
+
+  // 🔐 Fonction pour gérer la déconnexion
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token'); // 🚫 Supprime le token de connexion
+    navigation.navigate('Login'); // 🚪 Redirige vers la page de connexion
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        {/* 🏙️ Logo et titre de l'application */}
+        <Image source={require('../../assets/logo.png')} style={styles.logo} />
+        <Text style={styles.title}>CityConnect</Text>
+        <Text style={styles.subtitle}>DÉCOUVRE LA VILLE AVEC UN HABITANT</Text>
+
+        {/* 👤 Affichage des informations de l'utilisateur si connecté */}
+        {user ? (
+          <>
+            <Text style={styles.welcomeText}>Bienvenue, {user.username} !</Text>
+            <Text style={styles.emailText}>{user.email}</Text>
+          </>
+        ) : (
+          <Text style={styles.loadingText}>Chargement du profil...</Text> // ⏳ Affiche un message si les données sont en cours de chargement
+        )}
+
+        {/* 🔴 Bouton de déconnexion */}
+        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+          <Text style={styles.buttonText}>Déconnexion</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
+  );
+};
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  welcomeText: {
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 10,
+  },
+  emailText: {
+    fontSize: 16,
+    fontFamily: 'FredokaOne',
+    color: '#555',
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'FredokaOne',
+    color: '#999',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'FredokaOne',
+  },
+});
+
+export default HomeScreen;
+\n=== ./src/screens/LoginScreen.js ===\n
+
+import React, { useState, useEffect, use } from 'react';
+import { 
+  View, Text, TextInput, TouchableOpacity, StyleSheet, 
+  ImageBackground, Image, Alert 
+} from 'react-native';
+import * as AuthSession from "expo-auth-session"
+import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Stockage local pour gérer le token utilisateur
+
+// Associe WebBrowser avec AuthSession pour éviter les erreurs
+WebBrowser.maybeCompleteAuthSession();
+const CLIENT_ID = "994283205046-ndm0i814m6c99gir9k3o4mjlm3qn1meb.apps.googleusercontent.com"; // Ton Client ID Web
+
+// 📌 Écran de connexion (Login)
+const LoginScreen = ({ navigation }) => {
+  // ✅ États pour stocker les informations saisies par l'utilisateur
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  
+  console.log("AuthSession:", AuthSession);
+
+
+// 📌 Configuration Google Sign-In
+
+
+  // 🔐 Fonction pour gérer la connexion
+  const handleLogin = async () => {
+    try {
+        // 🔗 Requête vers l'API pour tenter de se connecter !
+        const response = await fetch('https://backend-city-connect.vercel.app/auth/login', {
+            method: 'POST', // 📩 Envoi des données via une requête POST
+            headers: { 'Content-Type': 'application/json' }, // 📌 Indique que les données envoyées sont en JSON
+            body: JSON.stringify({ username, password }), // 🔒 Envoi des identifiants utilisateur
+        });
+
+        const data = await response.json(); // 📥 Récupération de la réponse du serveur
+        console.log("Réponse du backend :", data); // 🖥️ Affiche la réponse complète du serveur dans la console
+
+        if (response.ok) {
+            // 🔑 Stocker le token dans AsyncStorage pour les futures requêtes
+            await AsyncStorage.setItem('token', data.token);
+            console.log("Token stocké :", await AsyncStorage.getItem('token')); // 🔍 Vérifie que le token est bien enregistré
+
+            // 🚀 Redirection vers le tableau de bord après connexion
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Dashboard' }],
+            });
+        } else {
+            // ⚠️ Affiche une alerte si la connexion échoue
+            Alert.alert("Erreur de connexion", data.message);
+        }
+    } catch (error) {
+        console.error('❌ Erreur lors de la connexion:', error);
+        Alert.alert("Erreur", "Impossible de se connecter. Vérifiez votre connexion internet.");
+    }
+  };
+
+
+  // 🔹 Fonction pour gérer la connexion Google avec Expo,  ne fonctionne pas une fois redirigé d'autorisation d'acces
+  const handleGoogleLogin = async () => {
+    try {
+      const redirectUri = AuthSession.makeRedirectUri({
+        native: "https://auth.expo.io/@TON_NOM_UTILISATEUR_EXPO/CityConnect",
+      });
+      
+  
+      const discovery = await AuthSession.fetchDiscoveryAsync("https://accounts.google.com");
+  
+      const authRequest = new AuthSession.AuthRequest({
+        clientId: CLIENT_ID,
+        redirectUri,
+        scopes: ["openid", "profile", "email"],
+        responseType: "id_token",
+      });
+  
+      const authResponse = await authRequest.promptAsync(discovery);
+  
+      if (authResponse.type === "success") {
+        const { id_token } = authResponse.params;
+  
+        // Envoie le token Google au backend
+        const response = await fetch("https://backend-city-connect.vercel.app/auth/google-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: id_token }),
+        });
+  
+        const data = await response.json();
+        console.log("Réponse Google Backend :", data);
+  
+        if (response.ok) {
+          await AsyncStorage.setItem("token", data.token);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+          });
+        } else {
+          Alert.alert("Erreur", data.message);
+        }
+      } else {
+        Alert.alert("Erreur", "Connexion Google annulée.");
+      }
+    } catch (error) {
+      console.error("Erreur Google Sign-In :", error);
+      Alert.alert("Erreur", "Connexion Google échouée.");
+    }
+  };
+  
+  
+  
+  
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        {/* 🏙️ Logo et titre de l'application */}
+        <Image source={require('../../assets/logo.png')} style={styles.logo} />
+        <Text style={styles.title}>CityConnect</Text>
+        <Text style={styles.subtitle}>DÉCOUVRE LA VILLE AVEC UN HABITANT</Text>
+
+        {/* 📧 Champ de saisie pour Username */}
+        <TextInput 
+          placeholder="Username" 
+          style={styles.input} 
+          value={username}
+          onChangeText={setUsername} 
+        />
+
+        {/* 🔒 Champ de saisie pour le mot de passe */}
+        <TextInput 
+          placeholder="Mot de passe" 
+          style={styles.input} 
+          secureTextEntry // 👀 Cache le mot de passe en mode sécurisé
+          value={password} 
+          onChangeText={setPassword} 
+        />
+
+        {/* 🟢 Bouton pour se connecter */}
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Se connecter</Text>
+        </TouchableOpacity>
+
+       {/* 🔵 Connexion Google */}
+       <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+          <Text style={styles.googleButtonText}>Sign up with Google</Text>
+        </TouchableOpacity>
+
+        {/* 📌 Lien pour aller à la page d'inscription */}
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.linkText}>Pas encore de compte ? Inscris-toi</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'FredokaOne',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    padding: 12,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    padding: 15,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 12,
+    width: '100%',
+    marginTop: 20,
+    backgroundColor: '#fff',
+  },
+  googleButtonText: {
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    color: '#000',
+  },
+  linkText: {
+    marginTop: 15,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 12,
+    width: '100%',
+    marginTop: 20,
+    backgroundColor: '#fff',
+  },
+  googleButtonText: {
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    color: '#000',
+  },
+});
+
+export default LoginScreen;
+\n=== ./src/screens/MapScreen.js ===\n
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
+  Image,
+  Keyboard,
+  ScrollView
+} from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
+import { Calendar } from 'react-native-calendars';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import DropDownPicker from 'react-native-dropdown-picker';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
+const BASE_URL = 'https://backend-city-connect.vercel.app';
+const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dasntwyhd/image/upload';
+const UPLOAD_PRESET = 'default_preset';
+
+// Fonction pour parser une chaîne de caractères de localisation en objet latitude/longitude
+function parseLocation(locationStr) {
+  if (!locationStr) return null;
+  const parts = locationStr.split(',');
+  if (parts.length !== 2) return null;
+  return {
+    latitude: parseFloat(parts[0]),
+    longitude: parseFloat(parts[1]),
+  };
+}
+
+// Fonction asynchrone pour récupérer le token depuis le stockage local (AsyncStorage)
+async function getToken() {
+  try {
+    return await AsyncStorage.getItem('token');
+  } catch {
+    return null;
+  }
+}
+
+// Composant modal pour créer une activité
+const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
+  // États internes pour la gestion du formulaire de création d'activité
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [category, setCategory] = useState('');
+  const [maxParticipants, setMaxParticipants] = useState('');
+  const [photoUri, setPhotoUri] = useState(null);
+  const [isCalendarVisible, setCalendarVisible] = useState(false);
+  const [openCategory, setOpenCategory] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [items, setItems] = useState([
+    { label: 'Sport', value: 'Sport' },
+    { label: 'Culturel', value: 'Culturel' },
+    { label: 'Sorties', value: 'Sorties' },
+    { label: 'Culinaire', value: 'Culinaire' },
+  ]);
+
+  // Effet pour gérer l'affichage du clavier et ajuster la hauteur en conséquence
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  // Fonction asynchrone pour choisir une image dans la galerie
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permission refusée", "Vous devez autoriser l'accès à la galerie pour sélectionner une image.");
+        return;
+      }
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        setPhotoUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Erreur", "Impossible de sélectionner une image.");
+    }
+  };
+
+  // Fonction pour valider et envoyer la création d'une activité
+  const handleCreate = () => {
+    if (!title || !description || !date || !category || !maxParticipants) {
+      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      return;
+    }
+    Keyboard.dismiss();
+    const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
+    onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
+  };
+
+  // Fonction pour gérer la sélection d'un jour dans le calendrier
+  const handleDayPress = (day) => {
+    const newDate = new Date(day.dateString);
+    setSelectedDate(newDate);
+    const formattedDate = newDate.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    setDate(formattedDate);
+    setCalendarVisible(false);
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+      >
+        <View style={styles.modalOverlay}>
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.modalContainer, { maxHeight: '90%' }]}>
+              <Text style={styles.modalTitle}>Créer une activité</Text>
+              
+              <ScrollView style={{ width: '100%' }} keyboardShouldPersistTaps="handled">
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Titre"
+                  placeholderTextColor="#666"
+                  value={title}
+                  onChangeText={setTitle}
+                />
+                <TextInput
+                  style={[styles.modalInput, { height: 70 }]}
+                  multiline
+                  placeholder="Description"
+                  placeholderTextColor="#666"
+                  value={description}
+                  onChangeText={setDescription}
+                />
+                <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.buttonText}>Choisir une image</Text>
+                    <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  </View>
+                </TouchableOpacity>
+                
+                {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
+                
+                <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={styles.buttonText}>
+                      {date ? ` ${date}` : "Choisir une date"}
+                    </Text>
+                    <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  </View>
+                </TouchableOpacity>
+                
+                {isCalendarVisible && (
+                  <Calendar
+                    onDayPress={handleDayPress}
+                    markedDates={
+                      selectedDate
+                        ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
+                        : {}
+                    }
+                  />
+                )}
+                
+                <View style={{ zIndex: 3000, marginBottom: 10 }}>
+                  <DropDownPicker
+                    open={openCategory}
+                    value={category}
+                    items={items}
+                    setOpen={setOpenCategory}
+                    setValue={setCategory}
+                    setItems={setItems}
+                    placeholder="Sélectionner une catégorie"
+                    style={{ borderColor: '#CCC' }}
+                    dropDownContainerStyle={{ backgroundColor: '#FFF' }}
+                    listMode="SCROLLVIEW"
+                  />
+                </View>
+                
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Max participants"
+                  keyboardType="numeric"
+                  value={maxParticipants}
+                  onChangeText={setMaxParticipants}
+                />
+                
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
+                    <Text style={styles.buttonText}>Annuler</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#2D2A6E' }]} onPress={handleCreate} disabled={loading}>
+                    <Text style={styles.buttonText}>Créer</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
+
+// Composant modal pour afficher les détails d'une activité et permettre de s'inscrire ou voir le profil
+const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
+  const navigation = useNavigation();
+  if (!activity) return null;
+  return (
+    <Modal visible={!!activity} transparent animationType="fade">
+      <View style={styles.activityModal_overlay}>
+        <View style={styles.activityModal_container}>
+          <Text style={styles.activityModal_title}>{activity.title}</Text>
+          <Text style={styles.activityModal_description}>{activity.description}</Text>
+          {activity.photos && activity.photos.length > 0 ? (
+            <Image source={{ uri: activity.photos[0] }} style={styles.activityModal_imagePreview} />
+          ) : (
+            <Text style={styles.activityModal_noImageText}>Aucune image disponible</Text>
+          )}
+          <View style={styles.activityModal_infoRow}>
+            <Text style={styles.activityModal_infoText}>
+              📅 {activity.date ? new Date(activity.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              }) : "Date non définie"}
+            </Text>
+            <Text style={styles.activityModal_infoText}>
+              👥 {activity.participants ? activity.participants.length : 0}/{activity.maxParticipants || '∞'}
+            </Text>
+          </View>
+          <View style={styles.activityModal_buttons}>
+            <TouchableOpacity
+              style={styles.activityModal_joinButton}
+              onPress={() => {
+                onJoin(activity._id);
+                onClose();
+                Alert.alert("Inscription réussie !", "Vous êtes maintenant inscrit.");
+              }}
+            >
+              <Text style={styles.activityModal_buttonText}>Rejoindre</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.activityModal_closeButton}
+              onPress={onClose}
+            >
+              <Text style={styles.activityModal_buttonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => {
+              navigation.navigate('UserProfileScreen', { userId: activity.createdBy });
+              onClose();
+            }}
+          >
+            <Text style={styles.profileButtonText}>Voir Profil</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// Composant principal gérant la carte et les activités
+export default function MapScreen({ route, navigation }) {
+  const { filter, userLocation, category, locality, selectedDate } = route.params || {};
+  const defaultRegion = {
+    latitude: 46.603354,
+    longitude: 1.888334,
+    latitudeDelta: 6,
+    longitudeDelta: 6,
+  };
+
+  // États locaux pour la gestion de la carte, des activités et des entrées utilisateur
+  const [region, setRegion] = useState(defaultRegion);
+  const [loading, setLoading] = useState(false);
+  const [activities, setActivities] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(filter === 'activity' ? category : null);
+  const [showInput, setShowInput] = useState(false);
+  const [cityInput, setCityInput] = useState('');
+  const [latitudeInput, setLatitudeInput] = useState('');
+  const [longitudeInput, setLongitudeInput] = useState('');
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [newActivityCoords, setNewActivityCoords] = useState(null);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Fonction pour récupérer la position de l'utilisateur et centrer la carte
+  const getUserLocation = async () => {
+    setLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permission refusée", "Activez la localisation");
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  // Fonction pour recentrer la carte en utilisant des coordonnées entrées manuellement
+  const handleRecenterMap = () => {
+    const lat = parseFloat(latitudeInput);
+    const lon = parseFloat(longitudeInput);
+    if (isNaN(lat) || isNaN(lon)) {
+      Alert.alert("Erreur", "Coordonnées invalides");
+      return;
+    }
+    setRegion({
+      latitude: lat,
+      longitude: lon,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    });
+  };
+
+  // Fonction pour chercher une ville et centrer la carte sur celle-ci
+  const handleCitySearch = () => {
+    if (!cityInput) {
+      Alert.alert("Erreur", "Veuillez entrer le nom d'une ville");
+      return;
+    }
+    Location.geocodeAsync(cityInput)
+      .then(locations => {
+        if (locations && locations.length > 0) {
+          const { latitude, longitude } = locations[0];
+          setRegion({
+            latitude,
+            longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
+        } else {
+          Alert.alert("Erreur", "Aucun résultat trouvé pour cette ville");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Alert.alert("Erreur", "Impossible de géocoder la ville");
+      });
+  };
+
+  // Fonction pour centrer la carte sur une localité donnée ou utiliser des coordonnées manuelles
+  const handleByLocality = () => {
+    if (locality?.latitude && locality?.longitude) {
+      setRegion({
+        latitude: locality.latitude,
+        longitude: locality.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    } else {
+      if (latitudeInput && longitudeInput) {
+        const lat = parseFloat(latitudeInput);
+        const lon = parseFloat(longitudeInput);
+        if (!isNaN(lat) && !isNaN(lon)) {
+          setRegion({
+            latitude: lat,
+            longitude: lon,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
+          return;
+        }
+      }
+      setRegion(defaultRegion);
+    }
+  };
+
+  // Fonction pour activer le mode de création d'activité en centrant la carte sur la position de l'utilisateur
+  const handleCreateActivityMode = async () => {
+    if (userLocation) {
+      setRegion({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    } else {
+      await getUserLocation();
+    }
+  };
+
+  // Fonction pour récupérer les activités depuis le backend, éventuellement filtrées par catégorie
+  const fetchActivities = async (cat) => {
+    try {
+      setLoading(true);
+      let url = `${BASE_URL}/events`;
+      if (cat) url += `?category=${cat}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      setActivities(data);
+    } catch (err) {
+      console.log("Erreur fetchEvents:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction pour récupérer les activités pour une date spécifique et les filtrer
+  const fetchActivitiesByDate = async (date) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/events?date=${date}`);
+      const data = await response.json();
+      const filteredActivities = data.filter(act => {
+        const activityDate = act.date.split('T')[0];
+        return activityDate === date;
+      });
+      
+      setActivities(filteredActivities);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des activités :", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction pour rejoindre un événement en envoyant une requête POST au backend
+  const handleJoinEvent = async (eventId) => {
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Token manquant, reconnectez-vous.");
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${BASE_URL}/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de réserver");
+        return;
+      }
+      
+      if (data.conversation) {
+        navigation.navigate('Messagerie', {
+          screen: 'Messaging',
+          params: {
+            conversationId: data.conversation._id,
+            conversationName: data.conversation.eventId?.title || "Conversation",
+          },
+        });
+      } else {
+        Alert.alert("Réservation", "Vous êtes inscrit à l'événement !");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erreur", "Impossible de réserver.");
+    }
+  };
+
+  // Fonction pour gérer l'appui sur la carte : si en mode création, ouvrir le modal de création d'activité
+  const handleMapPress = (e) => {
+    if (filter === 'createActivity') {
+      const { coordinate } = e.nativeEvent;
+      setNewActivityCoords(coordinate);
+      setIsCreateModalVisible(true);
+    }
+  };
+
+  // Fonction asynchrone pour uploader une image sur Cloudinary et récupérer l'URL sécurisée
+  const uploadImage = async (uri) => {
+    let formData = new FormData();
+    formData.append('file', { uri, type: 'image/jpeg', name: 'activity.jpg' });
+    formData.append('upload_preset', UPLOAD_PRESET);
+    
+    const response = await fetch(CLOUDINARY_URL, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  // Fonction pour créer une nouvelle activité en envoyant les données au backend
+  const handleCreateActivity = async (activityData) => {
+    const { title, description, date, category, maxParticipants, photoUri } = activityData;
+    
+    if (!newActivityCoords || !title || !description || !category || !maxParticipants) {
+      Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
+      return;
+    }
+    
+    setLoading(true);
+    const token = await getToken();
+    
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté");
+      setLoading(false);
+      return;
+    }
+    
+    let photoUrl = null;
+    if (photoUri) {
+      photoUrl = await uploadImage(photoUri);
+      if (!photoUrl) {
+        Alert.alert("Erreur", "Échec de l'upload de l'image.");
+        setLoading(false);
+        return;
+      }
+    }
+    
+    const payload = {
+      title,
+      description,
+      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
+      date,
+      category,
+      maxParticipants: parseInt(maxParticipants, 10),
+      photos: photoUrl ? [photoUrl] : [],
+    };
+    
+    try {
+      const res = await fetch(`${BASE_URL}/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de créer");
+        setLoading(false);
+        return;
+      }
+      
+      setIsCreateModalVisible(false);
+      setNewActivityCoords(null);
+      Alert.alert("Succès", "Activité créée !");
+    } catch (error) {
+      console.error("Erreur lors de la création :", error);
+      Alert.alert("Erreur", "Impossible de créer l'activité");
+    }
+    
+    setLoading(false);
+  };
+
+  // Effet pour afficher un tooltip lors du retour depuis l'écran Discover
+  useEffect(() => {
+    if (route.params?.fromDiscover) {
+      setShowTooltip(true);
+      
+      const timeout = setTimeout(() => {
+        setShowTooltip(false);
+      }, 5000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [route.params?.fromDiscover]);
+
+  // Effet pour récupérer les activités selon la date sélectionnée
+  useEffect(() => {
+    if (selectedDate) {
+      fetchActivitiesByDate(selectedDate);
+    }
+  }, [selectedDate]);
+
+  // Effet pour récupérer les activités selon la catégorie sélectionnée et le filtre actif
+  useEffect(() => {
+    if (filter === 'activity') {
+      fetchActivities(selectedCategory);
+    }
+  }, [selectedCategory, filter]);
+
+  // Effet lors du focus de l'écran pour gérer la navigation et les filtres selon les paramètres de route
+  useFocusEffect(
+    useCallback(() => {
+      const currentFilter = route.params?.filter;
+      const currentCategory = route.params?.category;
+      const currentSelectedDate = route.params?.selectedDate;
+      
+      setSelectedActivity(null);
+      
+      const isTabNavigation = !currentFilter;
+      
+      if (isTabNavigation || currentFilter === 'aroundMe') {
+        setShowInput(false);
+        setSelectedCategory(null);
+        getUserLocation().then(() => {
+          fetchActivities();
+        });
+      } 
+      else if (currentFilter === 'activity') {
+        setShowInput(false);
+        const categoryToUse = currentCategory || 'Sport';
+        setSelectedCategory(categoryToUse);
+        fetchActivities(categoryToUse);
+      } 
+      else if (currentFilter === 'byLocality') {
+        setShowInput(true);
+        handleByLocality();
+        fetchActivities();
+      } 
+      else if (currentFilter === 'createActivity') {
+        setShowInput(false);
+        handleCreateActivityMode();
+      }
+      else if (currentFilter === 'date' && currentSelectedDate) {
+        setShowInput(false);
+        fetchActivitiesByDate(currentSelectedDate);
+      }
+    }, [route.params])
+  );
+
+  // Affichage d'un indicateur de chargement si l'application est en cours de chargement
+  if (loading) {
+    return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
+  }
+
+  // Définition des icônes pour chaque catégorie d'activité
+  const categoryIcons = {
+    Sport: require('../../assets/Iconsport.png'),
+    Culturel: require('../../assets/Iconculturel.png'),
+    Sorties: require('../../assets/Iconsortie.png'),
+    Culinaire: require('../../assets/Iconculinaire.png'),
+  };
+
+  return (
+    <View style={styles.container}>
+      {showInput && (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.inputContainer}
+        >
+          <TextInput
+            style={styles.input}
+            placeholder="Nom de la ville"
+            value={cityInput}
+            onChangeText={setCityInput}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleCitySearch}>
+            <Text style={styles.buttonText}>OK</Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      )}
+      
+      {showTooltip && (
+        <View style={styles.tooltipContainer}>
+          <Text style={styles.tooltipText}>📌 Pour créer une activité, restez appuyé sur la carte.</Text>
+          <View style={styles.tooltipArrow} />
+        </View>
+      )}
+      
+      <MapView 
+        style={styles.map} 
+        region={region} 
+        onPress={handleMapPress}
+        onLongPress={(e) => {
+          const { coordinate } = e.nativeEvent;
+          setNewActivityCoords(coordinate);
+          setIsCreateModalVisible(true);
+        }}
+      >
+        {activities.map((act) => {
+          if (!act.location) return null;
+          const coords = parseLocation(act.location);
+          if (!coords) return null;
+          return (
+            <Marker
+              key={act._id}
+              coordinate={coords}
+              title={act.title}
+              description={act.description}
+              onPress={() => setSelectedActivity(act)}
+            >
+              <Image
+                source={categoryIcons[act.category]}
+                style={{ width: 40, height: 40, resizeMode: 'contain' }}
+              />
+            </Marker>
+          );
+        })}
+        
+        <Marker
+          coordinate={{ latitude: region.latitude, longitude: region.longitude }}
+          title={filter === 'byLocality' && locality ? locality.name : 'Position actuelle'}
+          pinColor="blue"
+        />
+      </MapView>
+
+      {selectedActivity && (
+        <ActivityDetailsModal
+          activity={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+          onJoin={handleJoinEvent}
+        />
+      )}
+
+      {filter === 'activity' && (
+        <View style={styles.categoryBar}>
+          {['Sport', 'Culturel', 'Sorties', 'Culinaire'].map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[
+                styles.categoryButton,
+                selectedCategory === cat && styles.activeButton,
+              ]}
+              onPress={() => setSelectedCategory(cat)}
+            >
+              <Text style={styles.categoryText}>{cat}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      <CreateActivityModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onCreate={handleCreateActivity}
+        loading={loading}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  map: { flex: 1 },
+  inputContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 8,
+    zIndex: 100,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#CCC',
+    marginRight: 5,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#CCC',
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 5,
+    color: '#000',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  buttonText: { color: '#FFF', fontWeight: 'bold' },
+  categoryBar: {
+    position: 'absolute',
+    bottom: 20,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  categoryButton: { backgroundColor: '#ccc', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5 },
+  activeButton: { backgroundColor: '#2D2A6E' },
+  categoryText: { color: '#FFF', fontWeight: 'bold' },
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContainer: { width: '85%', backgroundColor: '#FFF', padding: 20, borderRadius: 8 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
+  imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
+  imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
+  datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
+  dropdownContainer: { zIndex: 2000 },
+  activityModal_overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  activityModal_container: {
+    width: '85%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  activityModal_title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#2D2A6E',
+  },
+  activityModal_description: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#555',
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  activityModal_imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  activityModal_noImageText: {
+    fontSize: 14,
+    color: '#777',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  activityModal_infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 15,
+    marginBottom: 20,
+  },
+  activityModal_infoText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  activityModal_buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  activityModal_joinButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  activityModal_closeButton: {
+    backgroundColor: '#FF6347',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
+  },
+  activityModal_buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  profileButton: {
+    backgroundColor: '#007bff',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  profileButtonText: {
+    fontSize: 18,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 8,
+    zIndex: 100,
+  },
+  tooltipContainer: {
+    position: 'absolute',
+    top: 100, // Ajuste selon ton besoin
+    left: '10%',
+    right: '10%',
+    backgroundColor: 'white', // Fond blanc pour un effet bulle
+    padding: 14,
+    borderRadius: 20, // ✅ Arrondi les bords
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10, 
+    shadowColor: "#000", // ✅ Ajoute une ombre douce
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // ✅ Ombre sur Android
+  },
+  
+  tooltipText: {
+    color: '#333', // ✅ Texte foncé pour contraste
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  
+});
+\n=== ./src/screens/MessageBoxScreen.js ===\n
+import React, { useState, useCallback } from 'react';
+import {
+  SafeAreaView, View, Text, TouchableOpacity, FlatList,
+  StyleSheet, ActivityIndicator, Alert, ImageBackground, Image
+} from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Header from '../components/Header';
+
+const BACKEND_URL = 'https://backend-city-connect.vercel.app';
+
+export default function MessageBoxScreen() {
+  const navigation = useNavigation();
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+
+  const fetchUserId = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`${BACKEND_URL}/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data._id) {
+        setUserId(data._id);
+      }
+    } catch (error) {
+      console.error('Erreur fetchUserId:', error);
+    }
+  };
+
+  const fetchConversations = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${BACKEND_URL}/conversations/my-conversations`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setConversations(data);
+      } else {
+        console.error('Erreur API :', data.message);
+      }
+    } catch (error) {
+      console.error('Erreur récupération conversations :', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Fonction de suppression
+  const handleDeleteConversation = async (conversationId) => {
+    if (!conversationId) {
+      Alert.alert("Erreur", "ID de conversation invalide");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // ✅ Supprime la conversation de l'affichage
+        setConversations((prevConversations) => 
+          prevConversations.filter(convo => convo._id !== conversationId)
+        );
+        Alert.alert("Succès", "Conversation supprimée !");
+      } else {
+        Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+      }
+    } catch (error) {
+      console.error("Erreur suppression conversation:", error);
+      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchUserId().then(() => fetchConversations());
+    }, [])
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#20135B" style={{ marginTop: 20 }} />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <Header/>
+      <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+        <Text style={styles.headerTitle}>Mes Conversations</Text>
+        <View style={styles.container}>
+          {conversations.length === 0 ? (
+            <Text style={styles.noConversationText}>Aucune conversation pour le moment.</Text>
+          ) : (
+            <FlatList
+              data={conversations}
+              keyExtractor={(item) => item._id.toString()}
+              renderItem={({ item }) => {
+                const lastMessage = item.messages?.[item.messages.length - 1];
+                const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
+                const lastTime = lastMessage
+                  ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : '';
+
+                const senderName = lastMessage?.sender?.username ;
+                const conversationDisplayName = item.eventId?.title || 'Conversation';
+
+                const imageUrl = item.eventId?.image 
+                  ? item.eventId.image 
+                  : item.eventId?.imageUrl 
+                  ? item.eventId.imageUrl
+                  : item.eventId?.photos?.length > 0 
+                  ? item.eventId.photos[0]
+                  : null;
+              
+                return (
+                  <View style={styles.conversationItem}>
+                    <TouchableOpacity
+                      style={styles.conversationRow}
+                      onPress={() => navigation.navigate('Messaging', {
+                        conversationId: item._id,
+                        conversationName: conversationDisplayName,
+                      })}
+                    >
+                      {imageUrl && <Image source={{ uri: imageUrl }} style={styles.eventImage} />}
+                      <View style={styles.conversationContent}>
+                        <Text style={styles.conversationName}>{conversationDisplayName}</Text>
+                        <View style={styles.lastMessageContainer}>
+                          <Text style={styles.senderName}>{senderName} :</Text>
+                          <Text style={styles.lastMessage}>{lastMessageText}</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                    {/* ✅ Icône poubelle cliquable */}
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteConversation(item._id)}
+                    >
+                      <FontAwesome5 name="trash" size={24} color="#20135B" />
+                    </TouchableOpacity>
+                  </View>
+                );
+              }}
+            />
+          )}
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
+  );
+}
+
+
+
+// supprimer une conv 
+
+const handleDeleteConversation = async (conversationId) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      // ✅ Supprime la conversation de l'état
+      setConversations((prevConversations) => 
+        prevConversations.filter(convo => convo._id !== conversationId)
+      );
+      Alert.alert("Succès", "Conversation supprimée !");
+    } else {
+      Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+    }
+  } catch (error) {
+    console.error("Erreur suppression conversation:", error);
+    Alert.alert("Erreur", "Impossible de supprimer la conversation.");
+  }
+};
+
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  headerContainer: {
+    padding: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    color: '#20135B',
+    fontWeight: 'bold',
+    padding: 10,
+    marginTop: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  noConversationText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#777',
+    textAlign: 'center',
+    marginTop: 50,
+  },
+  conversationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    marginBottom: 10,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  conversationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#20135B',
+  },
+  conversationContent: {
+    flex: 1,
+  },
+  conversationName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 4,
+  },
+  lastMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  senderName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#555',
+    marginRight: 5,
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#777',
+    flexShrink: 1,
+  },
+  time: {
+    fontSize: 12,
+    color: '#999',
+    alignSelf: 'flex-start',
+    marginLeft: -30,
+  },
+  deleteButton: {
+  marginLeft: -30, // ✅ Décale légèrement l'icône vers la droite
+  padding: 10, // ✅ Ajoute un peu d'espace autour pour un clic facile
+},
+
+});\n=== ./src/screens/MessageScreen.js ===\n
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet,
+  KeyboardAvoidingView, Platform
+} from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
+
+const BACKEND_URL = 'https://backend-city-connect.vercel.app';
+
+export default function MessageScreen() {
+  const route = useRoute();
+  const navigation = useNavigation();
+
+  // Récupérés depuis MessageBoxScreen
+  const { conversationId = '', conversationName = 'Conversation' } = route.params || {};
+
+  const [userId, setUserId] = useState(null);
+  const [username, setUsername] = useState('');  // Nouvel état pour le pseudo
+  const [messages, setMessages] = useState([]);
+  console.log('Messages:', messages);
+  const [newMessage, setNewMessage] = useState('');
+
+  /********************************************************
+   * Étape 1 : Récupérer le userId et le username via /auth/profile
+   ********************************************************/
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch(`${BACKEND_URL}/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data._id) {
+          setUserId(data._id);
+          setUsername(data.username || 'Moi');
+        } else {
+          console.log('Impossible de récupérer userId, data:', data);
+        }
+      } catch (err) {
+        console.error('Erreur loadUser:', err);
+      }
+    }
+    loadUser();
+  }, []);
+
+  /*********************************************************
+   * Étape 2 : Charger la conversation après avoir récupéré userId
+   *********************************************************/
+  useEffect(() => {
+    if (!userId || !conversationId) return;
+
+    async function fetchConversation() {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) return;
+        const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          console.log('Echec GET conversation, status:', response.status);
+          return;
+        }
+        const conversation = await response.json();
+        console.log('Conversation récupérée :', conversation);
+
+        // On mappe les messages
+        const loaded = conversation.messages.map((m) => {
+          console.log('Message:', m); // Vérifie chaque message et `m.sender`
+          const isMe = m.sender && m.sender._id === userId;
+          return {
+            id: m._id,
+            text: m.content,
+            sender: isMe ? 'me' : 'other',
+            senderName: m.sender?.username || 'Utilisateur inconnu',
+            time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+        });
+        
+
+        setMessages(loaded);
+      } catch (err) {
+        console.error('Erreur fetchConversation:', err);
+      }
+    }
+    fetchConversation();
+  }, [userId, conversationId, username]);
+
+  /*********************************************************
+   * Étape 3 : Envoyer un message => POST /message
+   *********************************************************/
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+  
+    const tempId = Date.now().toString();
+    // Message temporaire optimiste (affiché immédiatement)
+    const localMsg = {
+      id: tempId,
+      text: newMessage,
+      sender: 'me',
+      senderName: username || 'Moi', // username stocké localement
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+  
+    setMessages((prev) => [...prev, localMsg]);
+    setNewMessage('');
+  
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+  
+      console.log("Envoi du message à", `${BACKEND_URL}/conversations/${conversationId}/message`);
+      const response = await fetch(`${BACKEND_URL}/conversations/${conversationId}/message`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: localMsg.text }),
+      });
+  
+      if (!response.ok) {
+        const status = response.status;
+        const errTxt = await response.text();
+        console.log(`Erreur POST message: status=${status}, body=`, errTxt);
+        throw new Error('Envoi message échoué');
+      }
+  
+      // Au lieu de se fier à la réponse immédiate, on recharge la conversation
+      const convRes = await fetch(`${BACKEND_URL}/conversations/${conversationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!convRes.ok) {
+        throw new Error('Impossible de recharger la conversation');
+      }
+      const convData = await convRes.json();
+      console.log("Conversation rechargée :", convData);
+  
+      // Transformer les messages récupérés pour l'affichage
+      const updatedMessages = convData.messages.map((m) => ({
+        id: m._id,
+        text: m.content,
+        sender: m.sender && m.sender._id === userId ? 'me' : 'other',
+        // Si le backend renvoie un sender peuplé, on l'utilise, sinon on utilise le username local
+        senderName: m.sender?.username || username || 'Participant',
+        time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }));
+  
+      setMessages(updatedMessages);
+    } catch (err) {
+      console.error('Erreur handleSendMessage:', err);
+      // Optionnel : retirer le message temporaire en cas d'erreur
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    }
+  };
+  
+
+  // Bouton de retour
+  const handleGoBack = () => navigation.navigate('MessageBox');
+
+  /*********************************************************
+   * Rendu
+   *********************************************************/
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Header + bouton de retour */}
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#20135B" />
+        </TouchableOpacity>
+        <Header />
+      </View>
+
+      <Text style={styles.title}>{conversationName}</Text>
+
+      <FlatList
+  data={messages}
+  keyExtractor={(item) => item.id}
+  contentContainerStyle={styles.messagesContainer}
+  renderItem={({ item }) => {
+    return (
+      <View style={[styles.messageContainer, item.sender === 'me' && styles.myMessageContainer]}>
+        {/* ✅ Aligner le nom en fonction de l'expéditeur */}
+        <Text 
+          style={[
+            styles.senderName, 
+            item.sender === 'me' ? styles.mySenderName : styles.otherSenderName
+          ]}
+        >
+          {item.senderName}
+        </Text>
+
+        {/* Bulle de message */}
+        <View
+          style={[
+            styles.messageBubble,
+            item.sender === 'me' ? styles.myMessage : styles.otherMessage,
+          ]}
+        >
+          <Text style={styles.messageText}>{item.text}</Text>
+          <Text style={styles.timeText}>{item.time}</Text>
+        </View>
+      </View>
+    );
+  }}
+/>
+
+
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Écrire un message..."
+          value={newMessage}
+          onChangeText={setNewMessage}
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+          <Text style={styles.sendButtonText}>Envoyer</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    zIndex: 21,
+    padding: 5,
+  },
+  title: {
+    marginTop: 130,
+    fontSize: 22,
+    color: '#20135B',
+    fontFamily: 'FredokaOne',
+    textAlign: 'center',
+  },
+  messagesContainer: {
+    padding: 10,
+    paddingTop: 10,
+  },
+  myMessageContainer: {
+    alignItems: 'flex-end', // ✅ Aligner le nom et la bulle de droite
+  },
+  senderName: {
+    fontSize: 12,
+    color: '#555',
+    marginBottom: 2,
+    marginLeft: 5,
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  myMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#F1F0F0',
+    borderWidth: 1,
+    borderColor: '#20135B',
+  },
+  otherMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2DFEE',
+    borderWidth: 1,
+    borderColor: '#20135B',
+  },
+  messageText: {
+    color: '#20135B',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+  },
+  timeText: {
+    fontSize: 10,
+    color: '#888',
+    alignSelf: 'flex-end',
+    marginTop: 5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  textInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    marginRight: 10,
+    backgroundColor: '#f9f9f9',
+  },
+  sendButton: {
+    backgroundColor: '#20135B',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontFamily: 'FredokaOne',
+  },
+});
+
+
+\n=== ./src/screens/MyPageScreen.js ===\n
+import React, { useEffect, useState } from 'react';
+import { 
+  View, Text, Image, ImageBackground, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import Header from '../components/Header';
+
+// URL de base pour toutes les requêtes API
+const BASE_URL = 'https://backend-city-connect.vercel.app';
+
+// 🔹 Page de profil utilisateur
+const MyPageScreen = ({ route, navigation }) => {
+  // Récupération de l'ID utilisateur depuis les paramètres de navigation
+  const { userId } = route.params;
+  // États pour stocker les données de l'utilisateur, sa notation et ses activités
+  const [user, setUser] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [activities, setActivities] = useState([]);
+  console.log(userId);
+  
+  // Effet qui s'exécute au chargement du composant
+  // 🚀 Effet pour charger le profil et les activités de l'utilisateur
+  useEffect(() => {
+    fetchUserProfile();
+    fetchUserActivities();
+  }, []);
+
+  // 🚀 Fonction pour récupérer le profil de l'utilisateur
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/users/${userId}`);
+      const data = await response.json();
+      if (response.ok) {
+        setUser(data);
+      } else {
+        Alert.alert('Erreur', data.message || "Impossible de charger le profil.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du profil :", error);
+    }
+  };
+
+  // 🚀 Fonction pour récupérer les activités de l'utilisateur
+  const fetchUserActivities = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
+      const data = await response.json();
+      if (response.ok) {
+        // Traitement pour gérer les images selon la présence de photos ou d'une image
+        const activitiesWithImages = data.map(activity => {
+          if (activity.photos && activity.photos.length > 0) {
+            return { ...activity, image: activity.photos[0] };
+          }
+          if (activity.image) {
+            return activity;
+          }
+          return { ...activity, image: null };
+        });
+        setActivities(activitiesWithImages);
+      } else {
+        console.error('Erreur lors du chargement des activités:', data);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des activités :", error);
+    }
+  };
+  
+  // 🚀 Fonction pour naviguer vers les détails d'une activité
+  const navigateToActivityDetails = (activity) => {
+    navigation.navigate('ActivityDetails', { activity });
+  };
+// 🚀 Fonction pour noter un utilisateur
+  const handleRateUser = async (newRating) => {
+    // Récupération du token d'authentification
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté pour noter cet utilisateur.");
+      return;
+    }
+    try {
+      // Envoi de la note au serveur
+      const response = await fetch(`${BASE_URL}/auth/${userId}/rate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rating: newRating }),
+      });
+  
+      if (response.ok) {
+        setRating(newRating);
+        Alert.alert("Merci !", "Votre note a été enregistrée.");
+        
+        // Actualisation du profil après un court délai
+        setTimeout(() => {
+          fetchUserProfile();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la notation :", error);
+    }
+  };
+// 🚀 Fonction pour mettre à jour la bio de l'utilisateur
+  const updateBio = async () => {
+    // Récupération du token d'authentification
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté pour modifier votre bio.");
+      return;
+    }
+  
+    try {
+      // Envoi de la nouvelle bio au serveur
+      const response = await fetch(`${BASE_URL}/users/update-bio`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bio: user.bio }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Succès", "Bio mise à jour !");
+      } else {
+        Alert.alert("Erreur", data.message);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la bio :", error);
+    }
+  };
+  
+  // Affichage d'un message de chargement si les données de l'utilisateur ne sont pas encore disponibles
+  if (!user) return <Text>Chargement...</Text>;
+
+  // Fonction pour retourner à l'écran précédent
+  const handleGoBack = () => navigation.goBack();
+
+  return (
+    <View style={styles.container}>
+       <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      {/* En-tête de l'écran */}
+      <Header title="Profil Utilisateur" navigation={navigation} />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#20135B" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Section du profil utilisateur */}
+      <View style={styles.profileContainer}>
+        <Image source={{ uri: user.photo }} style={styles.profileImage} />
+        <Text style={styles.userName}>{user.username}</Text>
+        <Text style={styles.rating}>Note moyenne: ⭐ {user.averageRating || "Pas encore noté"}</Text>
+        <TextInput
+              style={styles.bioInput}
+              value={user.bio}
+              onChangeText={(text) => setUser({ ...user, bio: text })}
+              />
+        <TouchableOpacity style={styles.updateButton} onPress={updateBio}>
+        <Text style={styles.updateButtonText}>Mettre à jour</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Section des activités de l'utilisateur */}
+      <View style={styles.activitiesSection}>
+        <Text style={styles.sectionTitle}>Activités créées</Text>
+        {activities.length === 0 ? (
+          <Text style={styles.noActivities}>Aucune activité créée.</Text>
+        ) : (
+          <FlatList
+            data={activities}
+            keyExtractor={(item, index) => item._id ? item._id : index.toString()}
+            style={styles.activityList}
+            contentContainerStyle={styles.activityListContent}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={styles.activityItem}
+                onPress={() => navigateToActivityDetails(item)}
+              >
+                {/* Affichage conditionnel de l'image de l'activité ou d'un placeholder */}
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={styles.activityImage} />
+                ) : (
+                  <View style={[styles.activityImage, styles.noImagePlaceholder]}>
+                    <FontAwesome name="image" size={24} color="#DDD" />
+                  </View>
+                )}
+                <View style={styles.activityTextContainer}>
+                  <Text style={styles.activityTitle}>{item.title}</Text>
+                  <Text style={styles.activityDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                  <View style={styles.activityMeta}>
+                    <Text style={styles.activityCategory}>
+                      {item.category}
+                    </Text>
+                    <Text style={styles.activityDate}>
+                      {/* Formatage de la date en français */}
+                      {item.date ? new Date(item.date).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      }) : "Date non définie"}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </View>
+      </ImageBackground>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+   background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' },
+  container: { 
+    flex: 1, 
+    backgroundColor: 'white', 
+    
+  },
+  profileContainer: { 
+    alignItems: 'center', 
+    padding: 20,
+    marginTop: 110, 
+  },
+  profileImage: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    marginBottom: 10, 
+    marginTop: 20, 
+    borderWidth: 4, 
+    borderColor: '#20135B'
+  },
+  userName: { 
+    fontSize: 22, 
+    fontFamily: 'FredokaOne', 
+    color: '#2D2A6E', 
+    textAlign: 'center' 
+  },
+  rating: { 
+    fontSize: 18, 
+    color: '#555', 
+    textAlign: 'center', 
+    fontFamily: 'FredokaOne' 
+  },
+  bio: { 
+    fontSize: 16, 
+    fontStyle: 'italic', 
+    color: '#777', 
+    textAlign: 'center', 
+    marginVertical: 10 
+  },
+  bioInput: { 
+    width: '90%', 
+    height: 50, 
+    borderColor: '#DDD', 
+    borderWidth: 1, 
+    borderRadius: 8, 
+    padding: 10, 
+    marginTop: 10, 
+    textAlign: 'center'
+  },
+  updateButton: { 
+    backgroundColor: '#2D2A6E', 
+    padding: 10, 
+    borderRadius: 8, 
+    marginTop: 10 
+  },
+  updateButtonText: {
+    color: 'white', 
+    textAlign: 'center', 
+    fontFamily: 'FredokaOne', 
+    fontSize: 16
+  },
+  activitiesSection: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: 15
+  },
+  sectionTitle: { 
+    fontSize: 20, 
+    fontFamily: 'FredokaOne', 
+    marginTop: 15, 
+    marginBottom: 10,
+    textAlign: 'center' 
+  },
+  noActivities: { 
+    fontSize: 16, 
+    color: '#777', 
+    textAlign: 'center', 
+    marginVertical: 10 
+  },
+  activityList: {
+    width: '100%',
+    flex: 1
+  },
+  activityListContent: {
+    paddingBottom: 20
+  },
+  activityItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10, 
+    borderWidth: 1, 
+    borderColor: '#DDD', 
+    marginVertical: 5, 
+    borderRadius: 8, 
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2
+  },
+  activityImage: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: 10, 
+    marginRight: 10
+  },
+  noImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
+    backgroundColor: '#FAFAFA'
+  },
+  activityTextContainer: { 
+    flex: 1 
+  },
+  activityTitle: { 
+    fontSize: 16, 
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E'
+  },
+  activityDescription: { 
+    fontSize: 14, 
+    color: '#555',
+    fontFamily: 'FredokaOne',
+    marginTop: 5
+  },
+  activityMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8
+  },
+  activityCategory: {
+    fontSize: 12,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10
+  },
+  activityDate: {
+    fontSize: 12,
+    color: '#777',
+    fontFamily: 'FredokaOne'
+  },
+  backButton: {
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    zIndex: 21,
+    padding: 5,
+  },
+});
+
+export default MyPageScreen;\n=== ./src/screens/ProfileScreen.js ===\n
+import React, { useEffect, useState } from 'react';
+import { 
+  View, Text, Image, TouchableOpacity, StyleSheet, 
+  Alert, ImageBackground 
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import Header from '../components/Header';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { useAuth } from '../components/AuthContex';
+import { useTranslation } from 'react-i18next';
+
+const ProfileScreen = ({ navigation }) => {
+  // Initialisation de la traduction i18n
+  const { t, i18n } = useTranslation();
+  
+  // États pour stocker les données du profil
+  const [profileImage, setProfileImage] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [userToken, setUserToken] = useState(null);
+  
+  // Récupération de la fonction setUser depuis le contexte d'authentification
+  const { setUser } = useAuth();
+
+  // Effet qui s'exécute au chargement du composant et à chaque changement de langue
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        // Récupération du token d'authentification
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          // Redirection vers la page de connexion si aucun token n'est trouvé
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          return;
+        }
+
+        // Appel API pour récupérer le profil utilisateur
+        const response = await fetch('https://backend-city-connect.vercel.app/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          // Mise à jour des états avec les données du profil
+          setUserName(data.username);
+          setProfileImage(data.photo || await AsyncStorage.getItem('profileImage'));
+          setUserToken(data._id);
+        } else {
+          console.log("Erreur récupération profil :", data.message);
+          // Suppression du token et redirection vers la page de connexion en cas d'erreur
+          await AsyncStorage.removeItem('token');
+          setUser(null);
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération du profil :", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [i18n.language]); // Dépendance à la langue pour recharger les données si la langue change
+
+  // Fonction de déconnexion
+  const handleLogout = async () => {
+    try {
+      // Suppression du token d'authentification
+      await AsyncStorage.removeItem('token');
+      // Réinitialisation de l'état utilisateur dans le contexte d'authentification
+      setUser(null);
+      // Redirection vers la page de connexion
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion :", error);
+    }
+  };
+
+  // Fonction pour afficher l'alerte de changement de photo de profil
+  const handleProfileImagePress = () => {
+    Alert.alert(
+      t('profile.changePhoto'),
+      '',
+      [
+        { text: t('profile.cancel'), style: 'cancel' },
+        { text: t('profile.change'), onPress: handleChoosePhoto },
+      ]
+    );
+  };
+
+  // Fonction pour sélectionner une nouvelle photo de profil
+  const handleChoosePhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Mise à jour de l'état et stockage local de la nouvelle image
+      setProfileImage(result.assets[0].uri);
+      await AsyncStorage.setItem('profileImage', result.assets[0].uri);
+    }
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      <Header />
+
+      {/* Sélecteur de langue avec drapeaux */}
+      <View style={styles.languageSwitcher}>
+        <TouchableOpacity onPress={() => i18n.changeLanguage('fr')}>
+          <Image source={require('../../assets/france.png')} style={styles.flag} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => i18n.changeLanguage('en')}>
+          <Image source={require('../../assets/anglais.png')} style={styles.flag} />
+        </TouchableOpacity>
+      </View>
+
+      <View>
+        <Text style={styles.title}>{t('profile.title')}</Text>
+      </View>
+
+      <View style={styles.container}>
+        {/* Conteneur de la photo de profil */}
+        <View style={styles.imageContainer}>
+          <TouchableOpacity onPress={handleProfileImagePress} style={styles.touchable}>
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+              <Text style={styles.addPhotoText}>{t('profile.addPhoto')}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Affichage du nom d'utilisateur */}
+        <Text style={styles.userName}>{userName || t('profile.loading')}</Text>
+
+        {/* Boutons de navigation avec icônes et textes traduits */}
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ServicesScreen')}>
+          <Text style={styles.textButton}>{t('profile.myServices')}</Text>
+          <FontAwesome name="list-alt" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SortiesScreen')}>
+          <Text style={styles.textButton}>{t('profile.myOutings')}</Text>
+          <FontAwesome name="calendar" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Z_InfosScreen')}>
+          <Text style={styles.textButton}>{t('profile.myInfo')}</Text>
+          <FontAwesome name="id-card" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('MyPageScreen', { userId: userToken })}>
+          <Text style={styles.textButton}>{t('profile.myPage')}</Text>
+          <FontAwesome name="user" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        {/* Bouton de déconnexion */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
+  );
+};
+// 📌 Ajout des styles
+const styles = StyleSheet.create({
+  background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' },
+  languageSwitcher: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 50,
+    right: 20,
+  },
+  flag: {
+    width: 40,
+    height: 30,
+    marginHorizontal: 5,
+  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 180 },
+  imageContainer: {
+    width: 150, height: 150, borderRadius: 80, backgroundColor: 'white',
+    justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+    marginBottom: 20, borderWidth: 4, borderColor: '#20135B',
+  },
+  touchable: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
+  profileImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  addPhotoText: { color: '#888', fontSize: 16, justifyContent: 'center' },
+  userName: { fontSize: 22, fontFamily: 'FredokaOne', color: '#2D2A6E', marginBottom: 15 },
+  button: {
+    flexDirection: "row", justifyContent: "center", alignItems: "center",
+    backgroundColor: '#20135B', paddingVertical: 12, paddingHorizontal: 20,
+    borderRadius: 8, marginVertical: 10, width: '70%',
+  },
+  textButton: { color: '#FFFFFF', fontSize: 20, fontFamily: 'FredokaOne' },
+  icon: { marginLeft: 10 },
+  logoutButton: { backgroundColor: '#E53935', paddingVertical: 12, borderRadius: 8, width: '50%', alignItems: 'center', position: 'absolute', bottom: 20 },
+  logoutButtonText: { color: '#FFFFFF', fontSize: 20, fontFamily: 'FredokaOne' },
+});
+
+export default ProfileScreen;
+\n=== ./src/screens/RegisterScreen.js ===\n
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
+import { FontAwesome } from '@expo/vector-icons'
+
+const RegisterScreen = ({ navigation }) => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+// fonction asynchrone pour gérer l'inscription 
+  const handleRegister = async () => {
+    // verifie que le mot de passe correspond 
+    if (password !== confirmPassword) {
+      alert("Les mots de passe ne correspondent pas !");
+      return;
+    }
+
+    try {
+      // envoie des données d'inscription au backend 
+      const response = await fetch('https://backend-city-connect.vercel.app/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+// recuperation et affichage de la reponse serveur 
+      const data = await response.json();
+      console.log("Réponse du backend :", data);
+      // incription reussi 
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        });
+        // affichage message erreur 
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l’inscription:', error);
+    }
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      {/* Bouton de retour placé au-dessus du Header */}
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+      <Header />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Inscription</Text>
+          <TextInput 
+            placeholder="Nom d'utilisateur" 
+            style={styles.input} 
+            value={username} 
+            onChangeText={setUsername} 
+          />
+          <TextInput 
+            placeholder="Email" 
+            style={styles.input} 
+            value={email} 
+            onChangeText={setEmail} 
+          />
+          <TextInput 
+            placeholder="Mot de passe" 
+            style={styles.input} 
+            secureTextEntry 
+            value={password} 
+            onChangeText={setPassword} 
+          />
+          <TextInput 
+            placeholder="Confirmer le mot de passe" 
+            style={styles.input} 
+            secureTextEntry 
+            value={confirmPassword} 
+            onChangeText={setConfirmPassword} 
+          />
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>S'inscrire</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.linkText}>Déjà un compte ? Connecte-toi</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50, // Ajout d'un espacement sous le header
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 30,
+  },
+  input: {
+    width: '100%',
+    padding: 14,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 25,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+  },
+  linkText: {
+    marginTop: 20,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+  },
+});
+
+export default RegisterScreen;\n=== ./src/screens/RestaurantsScreen.js ===\n
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
+import Header from '../components/Header';
+
+
+// ✅ Fonction pour calculer la distance entre 2 points GPS
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c).toFixed(1); // ✅ Distance en km arrondie à 1 décimale
+};
+
+const fetchRestaurants = async (coords, setRestaurants, setSortedRestaurants, setLoading) => {
+    const overpassQuery = `
+        [out:json];
+        node[amenity=restaurant](around:5000, ${coords.latitude}, ${coords.longitude});
+        out;
+    `;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
+
+    try {
+        console.log(`🔍 Requête vers Overpass API: ${url}`);
+        const response = await fetch(url);
+        const data = await response.json();
+// verifie si element disponible
+        if (data.elements && data.elements.length > 0) {
+            // transformation des données brutes en format utilisable pour l'app
+            const restaurants = data.elements.map((place) => ({
+                id: place.id.toString(),
+                name: place.tags.name || "Nom inconnu", // valeur par defaut si pas trouvé
+                address: place.tags["addr:street"] || "Adresse non disponible", // same
+                latitude: place.lat,
+                longitude: place.lon,
+                distance: calculateDistance(coords.latitude, coords.longitude, place.lat, place.lon), // calcul de la distance 
+            }));
+
+            setRestaurants(restaurants); // ✅ Stocke la liste des restaurants pour la carte
+
+           // Création d'une copie triée par distance pour l'affichage en liste
+            const sortedRestaurants = [...restaurants].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+            setSortedRestaurants(sortedRestaurants);
+        } else {
+            Alert.alert("Info", "Aucun restaurant trouvé dans cette zone.");
+            setRestaurants([]);
+            setSortedRestaurants([]);
+        }
+    } catch (error) {
+        console.error("❌ Erreur Overpass API:", error);
+        Alert.alert("Erreur", "Impossible de récupérer les restaurants.");
+    }
+    setLoading(false);
+};
+
+const RestaurantsScreen = () => {
+    const [restaurants, setRestaurants] = useState([]); //  Pour les marqueurs
+    const [sortedRestaurants, setSortedRestaurants] = useState([]); //  Liste triée pour l'affichage
+    const [loading, setLoading] = useState(true);
+    const [location, setLocation] = useState(null);
+
+    useEffect(() => {
+        const getLocationAndRestaurants = async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission refusée', 'Activez la localisation pour voir les restaurants.');
+                setLoading(false);
+                return;
+            }
+
+            let userLocation = await Location.getCurrentPositionAsync({});
+            const userCoords = {
+                latitude: userLocation.coords.latitude,
+                longitude: userLocation.coords.longitude,
+                latitudeDelta: 0.05,
+                longitudeDelta: 0.05,
+            };
+
+            setLocation(userCoords);
+            fetchRestaurants(userCoords, setRestaurants, setSortedRestaurants, setLoading);
+        };
+
+        getLocationAndRestaurants();
+    }, []);
+
+    return (
+        <View style={styles.container}>
+            <Header />
+            
+            {location ? (
+                <MapView 
+                    style={styles.map}
+                    initialRegion={location}
+                    showsUserLocation={true}
+                >
+                    {restaurants.map((restaurant) => (
+                        <Marker
+                            key={restaurant.id}
+                            coordinate={{ latitude: restaurant.latitude, longitude: restaurant.longitude }}
+                            title={restaurant.name}
+                            description={`${restaurant.address} - ${restaurant.distance} km`}
+                        />
+                    ))}
+                </MapView>
+            ) : (
+                <ActivityIndicator size="large" color="#0000ff" />
+            )}
+
+            <View style={styles.listContainer}>
+                {loading && <ActivityIndicator size="large" color="#0000ff" />}
+                {sortedRestaurants.length === 0 && !loading && <Text style={styles.noData}>Aucun restaurant disponible</Text>}
+                <FlatList
+  data={sortedRestaurants}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <View style={styles.restaurant}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.name}>{item.name} - {item.distance} km</Text>
+        <View style={styles.addressContainer}>
+          <Text style={styles.addressText}>{item.address}</Text>
+        </View>
+      </View>
+    </View>
+  )}
+/>
+            </View>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f8f8f8',
+    },
+    map: {
+        flex: 1,
+        height: '50%',
+    },
+    listContainer: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#ffffff',
+    },
+    restaurant: {
+        backgroundColor: 'white',
+        padding: 15,
+        marginVertical: 8,
+        borderRadius: 12, // ✅ Arrondir les coins
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15, // ✅ Ombre plus douce
+        shadowRadius: 5,
+        elevation: 4, // ✅ Ombre pour Android
+        flexDirection: 'row', // 
+        alignItems: 'center',
+        fontFamily: 'FredokaOne',
+      },
+    
+      name: {
+        fontSize: 18,
+        fontFamily: 'FredokaOne',
+        color: '#2D2A6E', 
+        marginBottom: 5,
+
+      },
+    
+      addressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+      },
+    
+      addressText: {
+        fontSize: 14,
+        color: '#555', // ✅ Gris doux
+        marginLeft: 5,
+        fontFamily: 'FredokaOne',
+      },
+    
+      locationIcon: {
+        width: 16,
+        height: 16,
+        tintColor: '#FF5733', // ✅ Couleur vive pour contraste
+      },
+    
+});
+
+export default RestaurantsScreen;
+\n=== ./src/screens/ServicesScreen.js ===\n
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ImageBackground, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TextInput } from  'react-native';
+import Header from '../components/Header';
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+
+
+const BASE_URL = 'https://backend-city-connect.vercel.app';
+const BACKGROUND_IMAGE = require('../../assets/background.png');
+const ITEM_BACKGROUND_IMAGE = require('../../assets/item-background.jpg');
+
+
+
+const ServicesScreen = ({ navigation }) => {
+
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+  
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+
+  
+
+  const getToken = async () => {
+    try {
+      return await AsyncStorage.getItem('token');
+    } catch (error) {
+      console.error("Erreur lors de la récupération du token", error);
+      return null;
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté.");
+      return;
+    }
+    try {
+      const response = await fetch(`${BASE_URL}/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setUserId(data._id);
+      } else {
+        Alert.alert("Erreur", data.message || "Impossible de récupérer le profil.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du profil:", error);
+      Alert.alert("Erreur", "Impossible de récupérer le profil.");
+    }
+  };
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/events`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        const createdEvents = data.filter(event => event.createdBy && event.createdBy._id === userId);
+        setServices(createdEvents);
+      } else {
+        Alert.alert("Erreur", data.message || "Impossible de récupérer les événements.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des événements:", error);
+      Alert.alert("Erreur", "Impossible de récupérer les événements.");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      await fetchUserProfile();
+    };
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      fetchEvents();
+    }
+  }, [userId]);
+
+  const cancelService = async (eventId) => {
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté.");
+      return;
+    }
+    try {
+      const response = await fetch(`${BASE_URL}/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setServices(prevServices => prevServices.filter(service => service._id !== eventId));
+        Alert.alert("Succès", "L'activité a été annulée.");
+      } else {
+        Alert.alert("Erreur", data.message || "Impossible d'annuler l'activité.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'annulation de l'activité:", error);
+      Alert.alert("Erreur", "Impossible d'annuler l'activité.");
+    }
+  };
+
+  const showParticipants = async (eventId) => {
+    try {
+      const token = await getToken();
+      const response = await fetch(`${BASE_URL}/events/${eventId}/participants`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedParticipants(data.participants);
+      } else {
+        setSelectedParticipants([]);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des participants:", error);
+      setSelectedParticipants([]);
+    }
+    setModalVisible(true);
+  };
+
+  const handleEditService = async () => {
+    if (!newTitle.trim() || !newDescription.trim()) {
+      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      return;
+    }
+
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/events/${selectedService._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title: newTitle, description: newDescription })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setServices(prevServices =>
+          prevServices.map(service =>
+            service._id === selectedService._id ? { ...service, title: newTitle, description: newDescription } : service
+          )
+        );
+        Alert.alert("Succès", "L'activité a été modifiée.");
+        setEditModalVisible(false);
+      } else {
+        Alert.alert("Erreur", data.message || "Impossible de modifier l'activité.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la modification de l'activité:", error);
+      Alert.alert("Erreur", "Impossible de modifier l'activité.");
+    }
+  };
+
+  return (
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background}>
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+      <Header/>
+      <View style={styles.container}>
+        
+        {loading ? (
+          <ActivityIndicator size="large" color="#2D2A6E" />
+        ) : (
+          <FlatList
+            data={services}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <View style={styles.itemContainer}>
+                <ImageBackground source={ITEM_BACKGROUND_IMAGE} style={styles.imageBackground} imageStyle={styles.imageBorder}>
+                  <View style={styles.overlay}>
+                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.description}>{item.description}</Text>
+                    <Text style={styles.participants}>Participants : {item.participants?.length || 0}</Text>
+                    <TouchableOpacity style={styles.participantButton} onPress={() => showParticipants(item._id)}>
+                      <Text style={styles.participantButtonText}>Voir Participants</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.cancelButton} onPress={() => cancelService(item._id)}>
+                      <Text style={styles.cancelButtonText}>Annuler l'activité</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.editButton} onPress={() => {
+                      setSelectedService(item);
+                      setNewTitle(item.title);
+                      setNewDescription(item.description);
+                      setEditModalVisible(true);
+                    }}>
+                  <Text style={styles.editButtonText}>Modifier</Text>
+                  </TouchableOpacity>
+
+                  </View>
+                </ImageBackground>
+              </View>
+            )}
+            ListEmptyComponent={<Text style={styles.emptyText}>Aucun service créé.</Text>}
+          />
+        )}
+      </View>
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Participants</Text>
+            {selectedParticipants.length > 0 ? selectedParticipants.map((p, index) => (
+              <Text key={index} style={styles.participantText}>{p.username}</Text>
+            )) : <Text style={styles.participantText}>Aucun participant</Text>}
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={editModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Modifier l'activité</Text>
+            <TextInput style={styles.input} value={newTitle} onChangeText={setNewTitle} placeholder="Nouveau titre" />
+            <TextInput style={[styles.input, { height: 80 }]} value={newDescription} onChangeText={setNewDescription} placeholder="Nouvelle description" multiline />
+            <TouchableOpacity onPress={handleEditService} style={styles.saveButton}>
+              <Text style={styles.saveButtonText}>Enregistrer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ImageBackground>
+  );
+};
+
+
+const styles = StyleSheet.create({
+  background: { flex: 1, width: '100%', height: '100%' },
+  container: { flex: 1, padding: 20,
+    paddingTop: 140, },
+  header: { fontSize: 24, fontFamily: 'FredokaOne', textAlign: 'center', marginBottom: 20, color: '#2D2A6E' },
+  itemContainer: { width: '100%', borderRadius: 12, marginBottom: 15, overflow: 'hidden' },
+  imageBackground: { width: '100%', justifyContent: 'center', alignItems: 'center' },
+  imageBorder: { borderRadius: 12 },
+  overlay: { backgroundColor: 'rgba(255, 255, 255, 0.6)', padding: 20, borderRadius: 12, width: '100%', alignItems: 'center' },
+  cancelButton: { backgroundColor: 'red', padding: 10, borderRadius: 8, marginTop: 10 },
+  cancelButtonText: { color: '#fff', fontSize: 14, fontFamily: 'FredokaOne' },
+  title: { fontSize: 20, fontFamily: 'FredokaOne', color: '#2D2A6E', marginTop: 10 },
+  description: { fontSize: 16, color: '#2D2A6E', marginTop: 10, fontFamily: 'FredokaOne' },
+  participants: { fontSize: 14, fontStyle: 'italic', color: '#777', marginVertical: 5 },
+  emptyText: { fontSize: 18, color: '#2D2A6E', textAlign: 'center' , marginTop: 380, },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 10,
+  },
+  participantText: {
+    fontSize: 16,
+    color: '#2D2A6E',
+    marginBottom: 5,
+  },
+  closeButton: {
+    backgroundColor: '#2D2A6E',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'FredokaOne',
+  },
+  participantButton: {
+    backgroundColor: '#2D2A6E',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  participantButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'FredokaOne',
+  },
+  editButton: { backgroundColor: '#FFA500', padding: 10, borderRadius: 8, marginTop: 10 },
+  editButtonText: { color: '#fff', fontSize: 14, fontFamily: 'FredokaOne' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, marginBottom: 10, width: '100%' },
+  saveButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, marginTop: 10 },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'FredokaOne' },
+  closeButton: { backgroundColor: 'red', padding: 10, borderRadius: 8, marginTop: 10 },
+  closeButtonText: { color: '#fff', fontSize: 14, fontFamily: 'FredokaOne' },
+  editButton: { 
+    backgroundColor: '#FFA500', 
+    padding: 10, 
+    borderRadius: 8, 
+    marginTop: 10 
+  },
+  editButtonText: { 
+    color: '#fff', 
+    fontSize: 14, 
+    fontFamily: 'FredokaOne' 
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+
+  },
+  
+
+});
+
+export default ServicesScreen;\n=== ./src/screens/SortiesScreen.js ===\n
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ImageBackground } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+
+const BASE_URL = 'https://backend-city-connect.vercel.app';
+const BACKGROUND_IMAGE = require('../../assets/background.png');
+const ITEM_BACKGROUND_IMAGE = require('../../assets/item-background.jpg');
+
+const SortiesScreen = ({ navigation }) => {
+
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+
+  const [sorties, setSorties] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert("Erreur", "Vous devez être connecté.");
+        return;
+      }
+      try {
+        const response = await fetch(`${BASE_URL}/auth/profile`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (response.ok) setUserId(data._id);
+        else Alert.alert("Erreur", data.message || "Impossible de récupérer le profil.");
+      } catch (error) {
+        console.error("Erreur profil:", error);
+        Alert.alert("Erreur", "Impossible de récupérer le profil.");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    setLoading(true);
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/events`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          const reservedEvents = data.filter(event =>
+            event.participants.includes(userId)
+          );
+          setSorties(reservedEvents);
+        } else {
+          Alert.alert("Erreur", "Impossible de récupérer les événements.");
+        }
+      } catch (error) {
+        console.error("Erreur récupération événements:", error);
+      }
+      setLoading(false);
+    };
+    fetchEvents();
+  }, [userId]);
+
+  const handleLeave = async (eventId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/events/${eventId}/leave`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`, 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSorties(sorties.filter(event => event._id !== eventId));
+      } else {
+        Alert.alert("Erreur", data.message || "Impossible de quitter l'événement.");
+      }
+    } catch (error) {
+      console.error("Erreur lors du départ de l'événement:", error);
+      Alert.alert("Erreur", "Impossible de quitter l'événement.");
+    }
+  };
+
+  // Nouvelle fonction pour naviguer vers le profil du guide
+  const navigateToGuideProfile = (guideId) => {
+    navigation.navigate('UserProfileScreen', { userId: { _id: guideId } });
+  };
+
+  const renderItem = ({ item }) => {
+    return (
+      <View style={styles.itemContainer}>
+        <ImageBackground source={ITEM_BACKGROUND_IMAGE} style={styles.imageBackground} imageStyle={styles.imageBorder}>
+          <View style={styles.overlay}>
+            <Text style={styles.guide}>Guide: {item.createdBy.username}</Text>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.description}>{item.description}</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={() => handleLeave(item._id)}>
+                <Text style={styles.buttonText}>Quitter</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.profileButton} 
+                onPress={() => navigateToGuideProfile(item.createdBy._id)}
+              >
+                <Text style={styles.profileButtonText}>Voir Profil</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ImageBackground>
+      </View>
+    );
+  };
+
+  return (
+    
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background}>
+       <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+      {/* 🔹 Header bien en haut et séparé du container */}
+      <Header />
+
+      <View style={styles.container}>
+        <Text style={styles.header}>Mes Sorties</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#2D2A6E" />
+        ) : (
+          <FlatList
+            data={sorties}
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            ListEmptyComponent={<Text style={styles.emptyText}>Aucune sortie réservée.</Text>}
+          />
+        )}
+      </View>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+    paddingTop: 90, // ✅ Espace ajouté pour éviter le chevauchement avec le Header
+  },
+  header: {
+    fontSize: 24,
+    fontFamily: 'FredokaOne',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#2D2A6E'
+  },
+  itemContainer: {
+    width: '100%',
+    borderRadius: 12,
+    marginBottom: 15,
+    overflow: 'hidden',
+  },
+  imageBackground: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageBorder: {
+    borderRadius: 12,
+  },
+  overlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    padding: 20,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    textAlign: 'center'
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+  },
+  button: {
+    backgroundColor: '#E53935',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontFamily: 'FredokaOne'
+  },
+  profileButton: {
+    backgroundColor: '#20135B',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+  },
+  profileButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontFamily: 'FredokaOne'
+  },
+  guide: {
+    fontSize: 16,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+  },
+  title: {
+    fontSize: 20,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginTop: 10,
+  },
+  description: {
+    fontSize: 16,
+    color: '#2D2A6E',
+    marginTop: 10,
+    fontFamily: 'FredokaOne',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#2D2A6E',
+    textAlign: 'center',
+    marginTop: 50, // ✅ Espace ajouté pour éviter que le texte ne soit collé en haut
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+    left: 20, // Distance par rapport au bord gauche
+    zIndex: 21, // Plus élevé que le zIndex du Header
+    padding: 10, // Zone cliquable étendue
+    backgroundColor: 'transparent', // Fond transparent pour respecter le design
+  },
+});
+
+export default SortiesScreen;\n=== ./src/screens/UserProfileScreen.js ===\n
+// Importation des modules React et React Native nécessaires
+import React, { useEffect, useState } from 'react';
+import { 
+  View, Text, Image, ImageBackground, TouchableOpacity, StyleSheet, FlatList, Alert,
+  ActivityIndicator
+} from 'react-native';
+// AsyncStorage pour stocker et récupérer des données localement
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// Icônes pour l'interface utilisateur
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
+// Composant Header personnalisé de l'application
+import Header from '../components/Header';
+
+// URL de base de l'API backend
+const BASE_URL = 'https://backend-city-connect.vercel.app';
+
+// Composant principal pour afficher le profil d'un utilisateur
+const UserProfileScreen = ({ route, navigation }) => {
+  // Récupération du userId depuis les paramètres de navigation
+  const { userId } = route.params;
+  
+  // États pour gérer les données et l'état de l'interface
+  const [user, setUser] = useState(null);          // Données de l'utilisateur
+  const [rating, setRating] = useState(0);         // Note donnée par l'utilisateur courant
+  const [activities, setActivities] = useState([]); // Liste des activités de l'utilisateur
+  const [loading, setLoading] = useState(true);    // État de chargement
+  const [error, setError] = useState(null);        // État d'erreur
+
+  // Effet qui s'exécute au chargement du composant
+  useEffect(() => {
+    fetchUserProfile();    // Récupère les informations du profil
+    fetchUserActivities(); // Récupère les activités de l'utilisateur
+  }, []);
+
+  // Fonction pour récupérer les données du profil de l'utilisateur depuis l'API
+  const fetchUserProfile = async () => {
+    try {
+      // Appel API pour récupérer les données du profil
+      const response = await fetch(`${BASE_URL}/users/${userId._id}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Mise à jour de l'état avec les données récupérées
+        setUser(data);
+      } else {
+        // Gestion des erreurs de l'API
+        setError(data.message || "Impossible de charger le profil.");
+        Alert.alert('Erreur', data.message || "Impossible de charger le profil.");
+      }
+    } catch (error) {
+      // Gestion des erreurs réseau ou autres exceptions
+      console.error("Erreur lors de la récupération du profil :", error);
+      setError("Erreur de connexion au serveur");
+    }
+  };
+
+  // Fonction pour récupérer les activités de l'utilisateur depuis l'API
+  const fetchUserActivities = async () => {
+    setLoading(true); // Indique que le chargement est en cours
+    try {
+      // Appel API pour récupérer les activités
+      const response = await fetch(`${BASE_URL}/users/${userId._id}/activities`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        console.log("Activités récupérées:", data);
+        
+        // Traitement des images d'activités pour s'assurer qu'elles sont correctement formatées
+        const activitiesWithImages = data.map(activity => {
+          // Vérification si l'activité a des photos dans le format du backend
+          if (activity.photos && activity.photos.length > 0) {
+            return {
+              ...activity,
+              image: activity.photos[0] // Utilise la première photo comme image principale
+            };
+          }
+          
+          // Si pas de photos mais une image existe déjà, on la conserve
+          if (activity.image) {
+            return activity;
+          }
+          
+          // Si aucune image n'est disponible, on définit image à null
+          return {
+            ...activity,
+            image: null
+          };
+        });
+        
+        // Mise à jour de l'état avec les activités formatées
+        setActivities(activitiesWithImages);
+      } else {
+        // Gestion des erreurs de l'API
+        setError("Impossible de charger les activités.");
+        Alert.alert('Erreur', "Impossible de charger les activités.");
+      }
+    } catch (error) {
+      // Gestion des erreurs réseau ou autres exceptions
+      console.error("Erreur lors de la récupération des activités :", error);
+      setError("Erreur de connexion au serveur");
+    } finally {
+      // Dans tous les cas, on arrête l'indicateur de chargement
+      setLoading(false);
+    }
+  };
+
+  // Fonction pour noter un utilisateur
+  const handleRateUser = async (newRating) => {
+    // Récupération du token d'authentification
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      // Vérification si l'utilisateur est connecté
+      Alert.alert("Erreur", "Vous devez être connecté pour noter cet utilisateur.");
+      return;
+    }
+    try {
+      // Envoi de la note au serveur
+      const response = await fetch(`${BASE_URL}/auth/${userId._id}/rate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rating: newRating }),
+      });
+  
+      if (response.ok) {
+        // Mise à jour de l'interface utilisateur
+        setRating(newRating);
+        Alert.alert("Merci !", "Votre note a été enregistrée.");
+        
+        // Rafraîchissement du profil après un court délai pour voir la nouvelle note moyenne
+        setTimeout(() => {
+          fetchUserProfile();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la notation :", error);
+    }
+  };
+  
+  // Fonction pour naviguer vers les détails d'une activité
+  const navigateToActivityDetails = (activity) => {
+    navigation.navigate('ActivityDetails', { activity });
+  };
+
+  // Affichage d'un indicateur de chargement si les données de l'utilisateur ne sont pas encore disponibles
+  if (!user) return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#2D2A6E" />
+      <Text>Chargement du profil...</Text>
+    </View>
+  );
+
+  // Fonction pour retourner à l'écran précédent
+  const handleGoBack = () => navigation.goBack();
+
+  // Rendu du composant
+  return (
+     
+    <View style={styles.container}>
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      {/* En-tête de l'application */}
+      <Header/>
+      
+      {/* Bouton de retour et conteneur d'en-tête */}
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#20135B" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#2D2A6E" />
+        </TouchableOpacity>
+       
+        <View style={styles.placeholder} />
+      </View>
+
+      {/* Section d'affichage du profil de l'utilisateur */}
+      <View style={styles.profileContainer}>
+        {/* Photo de profil */}
+        <Image 
+          source={{ uri: user.photo }} 
+          style={styles.profileImage}
+          //defaultSource={require('../assets/default-avatar.png')} // Image par défaut si l'URI est indisponible
+        />
+        {/* Informations du profil */}
+        <Text style={styles.userName}>{user.username}</Text>
+        <Text style={styles.rating}>Note moyenne: ⭐ {user.averageRating || "Pas encore noté"}</Text>
+        <Text style={styles.bio}>{user.bio || "Pas de bio disponible."}</Text>
+      </View>
+
+      {/* Section d'affichage des activités créées par l'utilisateur */}
+      <View style={styles.activitiesSection}>
+        <Text style={styles.sectionTitle}>Activités créées</Text>
+        
+        {/* Affichage conditionnel selon l'état du chargement et des données */}
+        {loading ? (
+          // Indicateur de chargement
+          <ActivityIndicator size="small" color="#2D2A6E" style={styles.loader} />
+        ) : error ? (
+          // Message d'erreur
+          <Text style={styles.errorText}>{error}</Text>
+        ) : activities.length === 0 ? (
+          // Message si aucune activité n'est disponible
+          <Text style={styles.noActivities}>Aucune activité créée.</Text>
+        ) : (
+          // Liste des activités
+          <FlatList
+            data={activities}
+            keyExtractor={(item) => item._id}
+            style={styles.activityList}
+            contentContainerStyle={styles.activityListContent}
+            renderItem={({ item }) => (
+              // Élément d'activité cliquable
+              <TouchableOpacity 
+                style={styles.activityItem}
+                onPress={() => navigateToActivityDetails(item)}
+              >
+                {/* Gestion conditionnelle de l'affichage des images d'activités */}
+                {item.image ? (
+                  // Si l'activité a une image définie
+                  <Image 
+                    source={{ uri: item.image }} 
+                    style={styles.activityImage}
+                  />
+                ) : item.photos && item.photos.length > 0 ? (
+                  // Si l'activité a des photos au format backend
+                  <Image 
+                    source={{ uri: item.photos[0] }} 
+                    style={styles.activityImage}
+                  />
+                ) : (
+                  // Affichage d'un placeholder si aucune image n'est disponible
+                  <View style={[styles.activityImage, styles.noImagePlaceholder]}>
+                    <FontAwesome name="image" size={24} color="#DDD" />
+                  </View>
+                )}
+                
+                {/* Conteneur des informations textuelles de l'activité */}
+                <View style={styles.activityTextContainer}>
+                  <Text style={styles.activityTitle}>{item.title}</Text>
+                  <Text style={styles.activityDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                  {/* Métadonnées de l'activité (catégorie et date) */}
+                  <View style={styles.activityMeta}>
+                    <Text style={styles.activityCategory}>
+                      {item.category}
+                    </Text>
+                    <Text style={styles.activityDate}>
+                      {item.date ? new Date(item.date).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      }) : "Date non définie"}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </View>
+      </ImageBackground>
+      
+      {/* Section de notation de l'utilisateur */}
+      <View style={styles.ratingSection}>
+        <Text style={styles.sectionTitle}>Noter cet utilisateur</Text>
+        {/* Système d'étoiles pour la notation */}
+        <View style={styles.ratingContainer}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <TouchableOpacity key={star} onPress={() => handleRateUser(star)}>
+              <FontAwesome name={star <= rating ? "star" : "star-o"} size={30} color="gold" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// Styles pour le composant
+const styles = StyleSheet.create({
+  background: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover' }, // Style pour l'image de fond
+  container: { 
+    flex: 1, 
+    backgroundColor: 'white', // Couleur de fond principale
+  },
+  backButton: {
+    padding: 8 // Espacement interne du bouton de retour
+  },
+  placeholder: {
+    width: 40,
+    fontFamily: 'FredokaOne', // Police personnalisée pour l'application
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white' // Conteneur pour l'indicateur de chargement
+  },
+  profileContainer: { 
+    alignItems: 'center', 
+    padding: 20,
+    marginTop: 150, // Marge supérieure pour positionner sous le header
+    fontFamily: 'FredokaOne',
+  },
+  profileImage: { 
+    width: 120, height: 120, borderRadius: 80, backgroundColor: 'white',
+    justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+    marginBottom: 20, borderWidth: 4, borderColor: '#20135B', // Style pour l'image de profil circulaire
+  },
+  userName: { 
+    fontSize: 22, 
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E', // Couleur principale du texte dans l'application
+    textAlign: 'center' 
+  },
+  rating: { 
+    fontSize: 18, 
+    color: '#2D2A6E', 
+    textAlign: 'center',
+    fontFamily: 'FredokaOne',
+  },
+  bio: { 
+    fontSize: 16, 
+    fontStyle: 'italic', 
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E', 
+    textAlign: 'center', 
+    marginVertical: 10,
+    paddingHorizontal: 20 // Espacement horizontal pour le texte de bio
+  },
+  activitiesSection: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: 15 // Section contenant la liste des activités
+  },
+  sectionTitle: { 
+    fontSize: 20, 
+    fontFamily: 'FredokaOne',
+    marginTop: 15, 
+    marginBottom: 10,
+    textAlign: 'center' // Titre de section
+  },
+  noActivities: { 
+    fontSize: 16, 
+    color: '#2D2A6E', 
+    textAlign: 'center', 
+    marginVertical: 10 // Message affiché quand il n'y a pas d'activités
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginVertical: 10 // Style pour les messages d'erreur
+  },
+  loader: {
+    marginVertical: 20 // Espacement pour l'indicateur de chargement
+  },
+  activityList: {
+    width: '100%',
+    flex: 1 // Liste des activités prend tout l'espace disponible
+  },
+  activityListContent: {
+    paddingBottom: 20 // Espacement en bas de la liste pour le scroll
+  },
+  activityItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10, 
+    borderWidth: 1, 
+    borderColor: '#DDD', 
+    marginVertical: 5, 
+    borderRadius: 8, 
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000', // Ombre pour effet d'élévation
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2, // Élévation pour Android
+    fontFamily: 'FredokaOne',
+  },
+  activityImage: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: 10, 
+    marginRight: 10,
+    backgroundColor: '#f0f0f0' // Image d'activité avec coins arrondis
+  },
+  noImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
+    backgroundColor: '#FAFAFA' // Placeholder quand il n'y a pas d'image
+  },
+  activityTextContainer: { 
+    flex: 1 // Conteneur de texte qui prend l'espace restant
+  },
+  activityTitle: { 
+    fontSize: 16, 
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E' // Titre de l'activité
+  },
+  activityDescription: { 
+    fontSize: 14, 
+    color: '#2D2A6E',
+    marginTop: 5,
+    fontFamily: 'FredokaOne', // Description de l'activité
+  },
+  activityMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    fontFamily: 'FredokaOne', // Métadonnées d'activité en ligne
+  },
+  activityCategory: {
+    fontSize: 12,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10 // Badge de catégorie avec fond gris clair
+  },
+  activityDate: {
+    fontSize: 12,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne', // Date de l'activité
+  },
+  ratingSection: {
+    padding: 15,
+    width: '100%',
+    fontFamily: 'FredokaOne', // Section de notation en bas
+  },
+  ratingContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    marginTop: 10, 
+    marginBottom: 20,
+    fontFamily: 'FredokaOne' // Conteneur des étoiles de notation
+  },
+  backButton: {
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    zIndex: 21, // Pour s'assurer que le bouton est au-dessus des autres éléments
+    padding: 5, // Style pour le bouton de retour en position absolue
+  },
+});
+
+// Exportation du composant pour l'utiliser dans l'application
+export default UserProfileScreen;\n=== ./src/screens/Z1_ModifNameUserScreen.js ===\n
+// Modifier le compte (Changement de nom d'utilisateur)
+
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
+import { FontAwesome } from '@expo/vector-icons';
+
+const Z1_ModifNameUserScreen = ({ navigation }) => {
+  // États pour stocker les valeurs des champs de saisie
+  const [lastUsername, setLastUsername] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  /**
+   * Fonction permettant de revenir à l'écran précédent
+   */
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+
+  /**
+   * Fonction permettant de changer le nom d'utilisateur de l'utilisateur
+   */
+  const handleChangeUsername = async () => {
+    // Vérifie si le nouveau nom d'utilisateur est identique avec l'ancien
+    if (newUsername === lastUsername) {
+      alert("Les noms d'utilisateurs sont identiques, veuillez en saisir un nouveau !");
+      return;
+    }
+
+    try {
+      // Récupération du token stocké dans AsyncStorage pour authentifier la requête
+      const token = await AsyncStorage.getItem('token');
+
+      // Vérifie si l'utilisateur est bien connecté
+      if (!token) {
+        alert("Vous devez être connecté pour changer votre nom d'utilisateur !");
+        return;
+      }
+
+      // Envoi de la requête au serveur pour modifier le nom d'utilisateur
+      const response = await fetch('https://backend-city-connect.vercel.app/auth/change-username', {
+        method: 'PUT', // Méthode PUT pour mettre à jour les données
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Ajout du token pour l'authentification
+        },
+        body: JSON.stringify({ lastUsername, newUsername, password }), // Envoi de l'ancien et du nouveau nom d'utilisateur
+      });
+
+      // Récupération de la réponse du serveur
+      const data = await response.json();
+      console.log("Réponse du backend :", data);
+
+      // Vérifie si la requête a réussi
+      if (response.ok) {
+        alert("Nom d'utilisateur modifié avec succès !");
+        navigation.navigate('Z_InfosScreen'); // Redirection vers l'écran des informations utilisateur
+      } else {
+        alert(data.message || 'Une erreur est survenue');
+      }
+
+    } catch (error) {
+      console.error("Erreur lors de la modification du nom d'utilisateur :", error);
+      alert("Erreur lors de la modification du nom d'utilisateur");
+    }
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      {/* Bouton de retour placé au-dessus du Header */}
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+
+      {/* Header de l'application */}
+      <Header />
+
+      {/* Contenu principal dans un ScrollView pour permettre le défilement */}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Changer le nom d'utilisateur</Text>
+
+          {/* Champ de saisie pour l'ancien nom d'utilisateur */}
+          <TextInput 
+            placeholder="Ancien nom d'utilisateur" 
+            style={styles.input} 
+            value={lastUsername} 
+            onChangeText={(text) => { 
+            console.log("📝 Ancien nom d'utilisateur saisi :", text); // Ajout d'un log
+            setLastUsername(text);
+      }} 
+/>
+        
+          <TextInput 
+  placeholder="Nouveau nom d'utilisateur" 
+  style={styles.input} 
+  value={newUsername} 
+  onChangeText={(text) => { 
+    console.log("📝 Nouveau nom d'utilisateur saisi :", text); // Ajout d'un log
+    setNewUsername(text);
+  }} 
+/>
+
+<TextInput 
+  placeholder="Saisir le mot de passe" 
+  style={styles.input} 
+  value={password} 
+  onChangeText={(text) => { 
+    console.log("📝 Saisir le mot de passe :", text); // Ajout d'un log
+    setPassword(text);
+  }} 
+  secureTextEntry // Masquer les caractères saisis
+/>
+
+  {/* Lien pour récupérer son nom d'utilisateur en cas d'oubli */}
+  <Text style={styles.linkText}>Mot de passe oublié ?</Text>
+
+          {/* Bouton pour valider la modification du nom d'utilisateur */}
+          <TouchableOpacity style={styles.button} onPress={handleChangeUsername}>
+            <Text style={styles.buttonText}>Valider la modification</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </ImageBackground>
+  );
+};
+
+// Styles
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 30,
+  },
+  input: {
+    width: '100%',
+    padding: 14,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 120,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+  },
+  linkText: {
+    marginTop: 20,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    marginTop: 2,
+    marginBottom: 25,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 21,
+    padding: 10,
+    backgroundColor: 'transparent',
+  },
+});
+
+export default Z1_ModifNameUserScreen;
+\n=== ./src/screens/Z1_ModifScreen.js ===\n
+// Modifier le compte (Changement de mot de passe)
+
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
+import { FontAwesome } from '@expo/vector-icons';
+
+const Z1_ModifScreen = ({ navigation }) => {
+  // États pour stocker les valeurs des champs de saisie
+  const [lastPassword, setLastPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  /**
+   * Fonction permettant de revenir à l'écran précédent
+   */
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+
+  /**
+   * Fonction permettant de changer le mot de passe de l'utilisateur
+   */
+  const handleChangePassword = async () => {
+    // Vérifie si les nouveaux mots de passe sont identiques
+    if (newPassword !== confirmNewPassword) {
+      alert("Les mots de passe ne correspondent pas !");
+      return;
+    }
+
+    try {
+      // Récupération du token stocké dans AsyncStorage pour authentifier la requête
+      const token = await AsyncStorage.getItem('token');
+
+      // Vérifie si l'utilisateur est bien connecté
+      if (!token) {
+        alert("Vous devez être connecté pour changer votre mot de passe !");
+        return;
+      }
+
+      // Envoi de la requête au serveur pour modifier le mot de passe
+      const response = await fetch('https://backend-city-connect.vercel.app/auth/change-password', {
+        method: 'PUT', // Méthode PUT pour mettre à jour les données
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Ajout du token pour l'authentification
+        },
+        body: JSON.stringify({ lastPassword, newPassword }), // Envoi de l'ancien et du nouveau mot de passe
+      });
+
+      // Récupération de la réponse du serveur
+      const data = await response.json();
+      console.log("Réponse du backend :", data);
+
+      // Vérifie si la requête a réussi
+      if (response.ok) {
+        alert("Mot de passe modifié avec succès !");
+        navigation.navigate('Z_InfosScreen'); // Redirection vers l'écran des informations utilisateur
+      } else {
+        alert(data.message || 'Une erreur est survenue');
+      }
+
+    } catch (error) {
+      console.error("Erreur lors de la modification du mot de passe :", error);
+      alert("Erreur lors de la modification du mot de passe");
+    }
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      {/* Bouton de retour placé au-dessus du Header */}
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+
+      {/* Header de l'application */}
+      <Header />
+
+      {/* Contenu principal dans un ScrollView pour permettre le défilement */}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Changer le MDP</Text>
+
+          {/* Champ de saisie pour l'ancien mot de passe */}
+          <TextInput 
+            placeholder="Ancien mot de passe" 
+            style={styles.input} 
+            value={lastPassword} 
+            onChangeText={(text) => { 
+            console.log("📝 Ancien mot de passe saisi :", text); // Ajout d'un log
+            setLastPassword(text);
+      }} 
+  secureTextEntry
+/>
+
+          {/* Lien pour récupérer son mot de passe en cas d'oubli */}
+          <Text style={styles.linkText}>Mot de passe oublié ?</Text>
+
+        
+          <TextInput 
+  placeholder="Nouveau mot de passe" 
+  style={styles.input} 
+  value={newPassword} 
+  onChangeText={(text) => { 
+    console.log("📝 Nouveau mot de passe saisi :", text); // Ajout d'un log
+    setNewPassword(text);
+  }} 
+  secureTextEntry
+/>
+
+<TextInput 
+  placeholder="Confirmer le mot de passe" 
+  style={styles.input} 
+  value={confirmNewPassword} 
+  onChangeText={(text) => { 
+    console.log("📝 Confirmation du mot de passe :", text); // Ajout d'un log
+    setConfirmNewPassword(text);
+  }} 
+  secureTextEntry
+/>
+
+          {/* Bouton pour valider la modification du mot de passe */}
+          <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
+            <Text style={styles.buttonText}>Valider la modification</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </ImageBackground>
+  );
+};
+
+// Styles
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 30,
+  },
+  input: {
+    width: '100%',
+    padding: 14,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 120,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+  },
+  linkText: {
+    marginTop: 20,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    marginTop: 2,
+    marginBottom: 25,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 21,
+    padding: 10,
+    backgroundColor: 'transparent',
+  },
+});
+
+export default Z1_ModifScreen;
+\n=== ./src/screens/Z2_DeleteScreen.js ===\n
+// Supprimer le compte
+
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from '../components/Header';
+import { FontAwesome } from '@expo/vector-icons'
+
+const Z2_DeleteScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+//============================================================
+// rajouter verification dans bdd du mot de passe
+//============================================================
+
+{/* Fleche de retour header */}
+const handleGoBack = () => {
+  console.log("Bouton de retour pressé");
+  navigation.goBack();
+};
+{/* Fleche de retour header */}
+
+  const handleRegister = async () => {
+    if (newPassword !== confirmNewPassword) {
+      alert("Les mots de passe ne correspondent pas !");
+      return;
+    }
+    try {
+      const response = await fetch('https://backend-city-connect.vercel.app/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, newPassword }),
+      });
+
+      const data = await response.json();
+      console.log("Réponse du backend :", data);
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        });
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l’inscription:', error);
+    }
+  };
+
+  return (
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      {/* Bouton de retour placé au-dessus du Header */}
+
+        {/* Fleche de retour header */}
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <FontAwesome name="arrow-left" size={25} color="#20135B" />
+        </TouchableOpacity>
+        {/* Fleche de retour header */}
+
+      <Header />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Supprimer le compte</Text>
+          <TextInput 
+            placeholder="Adresse mail" 
+            style={styles.input} 
+            value={email} 
+            onChangeText={setEmail} 
+          />
+          <TextInput 
+            placeholder="Nom d'utilisateur" 
+            style={styles.input} 
+            value={username} 
+            onChangeText={setUsername} 
+          />
+          <TextInput 
+            placeholder="Mot de passe" 
+            style={styles.input} 
+            secureTextEntry 
+            value={password} 
+            onChangeText={setPassword} 
+          />
+          <Text style={styles.linkText}>mot de passe oublié ?</Text>
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Confirmer la suppression</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </ImageBackground>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50, // Ajout d'un espacement sous le header
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 30,
+  },
+  input: {
+    width: '100%',
+    padding: 14,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#2D2A6E',
+    padding: 15,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 120,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'FredokaOne',
+  },
+  linkText: {
+    marginTop: 20,
+    color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
+    fontSize: 16,
+    marginTop: 2,
+    marginBottom: 25,
+  },
+
+// Fleche de retour header
+backButton: {
+  position: 'absolute',
+  top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
+  left: 20, // Distance par rapport au bord gauche
+  zIndex: 21, // Plus élevé que le zIndex du Header
+  padding: 10, // Zone cliquable étendue
+  backgroundColor: 'transparent', // Fond transparent pour respecter le design
+},
+// Fleche de retour header
+
+
+});
+
+export default Z2_DeleteScreen;\n=== ./src/screens/Z_InfosScreen.js ===\n
+import React from 'react';
+import { 
+  View, Text, TouchableOpacity, StyleSheet, ImageBackground 
+} from 'react-native';
+import Header from '../components/Header';
+import { FontAwesome } from '@expo/vector-icons';
+
+/**
+ * Z_InfosScreen - Écran d'informations utilisateur
+ * Ce composant affiche les options permettant à l'utilisateur de modifier ses informations personnelles
+ * @param {object} navigation - Objet de navigation fourni par React Navigation
+ */
+const Z_InfosScreen = ({ navigation }) => {
+
+  /**
+   * Gère le retour à l'écran précédent
+   * Journalise l'action et utilise la navigation pour revenir en arrière
+   */
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+
+  return (
+    // Image de fond pour tout l'écran
+    <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
+      
+      {/* 
+        Bouton de retour 
+        Positionné en haut à gauche et au-dessus du header avec un z-index élevé
+        Utilise une icône FontAwesome pour la flèche de retour
+      */}
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
+
+      {/* Composant Header réutilisable */}
+      <Header/>
+
+      {/* Conteneur principal pour le contenu de la page */}
+      <View style={styles.container}>
+
+        {/* Titre principal de la page */}
+        <Text style={styles.title}>Mes infos</Text>
+
+        {/* 
+          Boutons de navigation vers différentes sections de modification des informations
+          Chaque bouton redirige vers un écran spécifique
+        */}
+
+        {/* Bouton pour modifier le nom d'utilisateur */}
+        <TouchableOpacity 
+          style={styles.button} 
+          activeOpacity={0.8} 
+          onPress={() => navigation.navigate('Z1_ModifNameUserScreen')}
+        >
+          <Text style={styles.textButton}>Modifier vote nom</Text>
+          <FontAwesome name="" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        {/* Bouton pour changer le mot de passe */}
+        <TouchableOpacity 
+          style={styles.button} 
+          activeOpacity={0.8} 
+          onPress={() => navigation.navigate('Z1_ModifScreen')}
+        >
+          <Text style={styles.textButton}>Changer le mot de passe</Text>
+          <FontAwesome name="" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+
+        {/* Bouton pour supprimer le compte utilisateur */}
+        <TouchableOpacity 
+          style={styles.button} 
+          activeOpacity={0.8} 
+          onPress={() => navigation.navigate('Z2_DeleteScreen')}
+        >
+          <Text style={styles.textButton}>Supprimer le compte</Text>
+          <FontAwesome name="" size={24} color="white" style={styles.icon} />
+        </TouchableOpacity>
+      
+      </View>
+    </ImageBackground>
+  );
+};
+
+/**
+ * Styles pour le composant
+ * Définit l'apparence visuelle de tous les éléments de l'interface
+ */
+const styles = StyleSheet.create({
+  // Style pour l'image d'arrière-plan qui couvre tout l'écran
+  background: {
+    flex: 1,
+    width: '100%',
+    resizeMode: 'cover',
+  },
+  
+  // Style pour le titre principal de la page
+  title: {
+    fontSize: 32,
+    fontFamily: 'FredokaOne',
+    color: '#2D2A6E',
+    marginBottom: 20,
+  },
+  
+  // Conteneur principal pour centrer le contenu sur l'écran
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center', // Centre le contenu verticalement
+    paddingTop: 50, // Espace entre le header et le contenu
+  },
+  
+  // Style commun pour tous les boutons d'action
+  button: {
+    flexDirection: "row", // Affiche texte et icône sur la même ligne
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: '#20135B', // Couleur de fond bleu foncé
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8, // Coins arrondis
+    marginVertical: 10, // Espacement vertical entre les boutons
+    width: '70%', // Largeur relative à l'écran
+    alignItems: 'center',
+  },
+  
+  // Style pour le texte des boutons
+  textButton: {
+    color: '#FFFFFF', // Texte blanc
+    fontSize: 20,
+    fontFamily: 'FredokaOne', // Police personnalisée
+  },
+  
+  // Style pour le bouton de déconnexion (non utilisé dans ce composant)
+  logoutButton: {
+    backgroundColor: '#E53935', // Rouge
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    width: '50%',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 21,
+    padding: 10,
+    backgroundColor: 'transparent',
+  },
+
+  // Style pour le bouton de retour en haut à gauche
+  backButton: {
+    position: 'absolute', // Positionnement absolu par rapport au parent
+    top: 60, // Distance depuis le haut
+    left: 20, // Distance depuis la gauche
+    zIndex: 21, // Assure que le bouton est au-dessus des autres éléments
+    padding: 10, // Agrandit la zone cliquable
+    backgroundColor: 'transparent', // Fond transparent
+  },
+});
+
+export default Z_InfosScreen;
