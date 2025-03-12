@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
+    fontFamily: 'FredokaOne',
   },
   container: {
     flex: 1,
@@ -260,6 +261,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
+  
   },
   conversationRow: {
     flexDirection: 'row',
@@ -275,12 +277,14 @@ const styles = StyleSheet.create({
   },
   conversationContent: {
     flex: 1,
+  
   },
   conversationName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#20135B',
     marginBottom: 4,
+    fontFamily: 'FredokaOne',
   },
   lastMessageContainer: {
     flexDirection: 'row',
@@ -292,6 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#555',
     marginRight: 5,
+    fontFamily: 'FredokaOne',
   },
   lastMessage: {
     fontSize: 14,

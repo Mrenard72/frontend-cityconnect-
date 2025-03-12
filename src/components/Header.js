@@ -9,7 +9,7 @@ const Header = () => {
           source={require('../../assets/logo.png')} // Remplacez par le chemin vers votre logo
           style={styles.logo}
         />
-        <Text style={styles.title}>City Connect</Text>
+        <Text style={styles.title}>CityConnect</Text>
       </View>
     </View>
   );
