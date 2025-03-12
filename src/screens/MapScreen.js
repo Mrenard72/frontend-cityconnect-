@@ -155,7 +155,7 @@ return (
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.modalContainer, { maxHeight: '90%' }]}>
+        <View style={[styles.modalContainer, { maxHeight: '90%', }]}>
           <Text style={styles.modalTitle}>Créer une activité</Text>
           
           <ScrollView 
@@ -167,7 +167,7 @@ return (
             <TextInput
               style={styles.modalInput}
               placeholder="Titre"
-              placeholderTextColor="#666"
+              placeholderTextColor="#2D2A6E"
               value={title}
               onChangeText={setTitle}
             />
@@ -175,7 +175,7 @@ return (
               style={[styles.modalInput, { height: 70 }]}
               multiline
               placeholder="Description"
-              placeholderTextColor="#666"
+              placeholderTextColor="#2D2A6E"
               value={description}
               onChangeText={setDescription}
             />
@@ -220,7 +220,15 @@ return (
     style={{ borderColor: '#CCC' }}
     dropDownContainerStyle={{ 
       backgroundColor: '#FFF',
-      maxHeight: 150
+      maxHeight: 150,
+      fontFamily: 'FredokaOne',
+      
+    }}
+    textStyle={{
+      fontSize: 15,
+      color: '#2D2A6E',
+      fontFamily: 'FredokaOne', 
+      
     }}
     listMode="SCROLLVIEW"
     scrollViewProps={{ nestedScrollEnabled: true }}
@@ -231,7 +239,7 @@ return (
 
             
             {/* Dropdown pour "Max participants" */}
-            <View style={{ marginBottom: 40, zIndex: 2000 }}>
+            <View style={{ marginBottom: 10, zIndex: 2000 }}>
               <DropDownPicker
                 open={openMaxParticipants}
                 value={maxParticipants}
@@ -239,7 +247,7 @@ return (
                 setOpen={setOpenMaxParticipants}
                 setValue={setMaxParticipants}
                 setItems={() => {}}
-                placeholder="Max participants"
+                placeholder="Nombre de participants"
                 style={styles.modalInput}
                 dropDownContainerStyle={{
                   borderWidth: 1,
@@ -252,16 +260,20 @@ return (
                   shadowOpacity: 0.2,
                   shadowRadius: 4,
                   maxHeight: 250,
+                  fontFamily: 'FredokaOne',
                 }}
                 textStyle={{
-                  fontSize: 16,
-                  color: '#000',
+                  fontSize: 15,
+                  color: '#2D2A6E',
+                  fontFamily: 'FredokaOne', 
+                  
                 }}
                 listItemContainerStyle={{
                   padding: 10,
                   borderBottomWidth: 1,
                   borderBottomColor: '#EEE',
                 }}
+                
                 listItemLabelStyle={{
                   fontSize: 16,
                   color: '#000',
@@ -858,6 +870,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 5,
     color: '#000',
+    fontFamily: 'FredokaOne',
   },
   button: {
     backgroundColor: '#2D2A6E',
@@ -865,7 +878,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  buttonText: { color: '#FFF', fontWeight: 'bold' },
+  buttonText: { color: '#FFF', fontWeight: 'bold',  fontFamily: 'FredokaOne', },
   categoryBar: {
     position: 'absolute',
     bottom: 20,
@@ -877,18 +890,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  categoryButton: { backgroundColor: '#ccc', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5 },
+  categoryButton: { backgroundColor: '#ccc', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5,  fontFamily: 'FredokaOne', },
   activeButton: { backgroundColor: '#2D2A6E' },
-  categoryText: { color: '#FFF', fontWeight: 'bold' },
+  categoryText: { color: '#FFF', fontWeight: 'bold',  fontFamily: 'FredokaOne', },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContainer: { width: '90%', backgroundColor: '#FFF', padding: 20, borderRadius: 8, alignSelf: 'center', marginTop: 60 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
-  imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
+  modalTitle: { fontSize: 16, color: '#2D2A6E', marginBottom: 10,  fontFamily: 'FredokaOne', },
+  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5, fontFamily: 'FredokaOne', },
+  imagePickerButton: { backgroundColor: '#2D2A6E', padding: 12, borderRadius: 8, alignItems: 'center', fontFamily: 'FredokaOne', marginVertical: 5 },
   imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
-  datePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },
-  dropdownContainer: { zIndex: 2000 },
+  datePickerButton: { backgroundColor: '#2D2A6E', padding: 12, borderRadius: 8, alignItems: 'center', marginVertical: 5,  fontFamily: 'FredokaOne', },
+  dropdownContainer: { zIndex: 2000,  },
   activityModal_overlay: {
     flex: 1,
     justifyContent: 'center',
@@ -901,6 +914,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 15,
     alignItems: 'center',
+     fontFamily: 'FredokaOne',
   },
   activityModal_title: {
     fontSize: 22,
@@ -908,6 +922,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 5,
     color: '#2D2A6E',
+    fontFamily: 'FredokaOne',
   },
   activityModal_description: {
     fontSize: 16,
@@ -915,6 +930,7 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 15,
     paddingHorizontal: 10,
+    fontFamily: 'FredokaOne',
   },
   activityModal_imagePreview: {
     width: '100%',
@@ -935,11 +951,13 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 15,
     marginBottom: 20,
+    fontFamily: 'FredokaOne',
   },
   activityModal_infoText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'FredokaOne',
   },
   activityModal_buttons: {
     flexDirection: 'row',
@@ -954,6 +972,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     marginRight: 10,
+    
   },
   activityModal_closeButton: {
     backgroundColor: '#FF6347',
@@ -962,11 +981,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flex: 1,
     alignItems: 'center',
+    fontFamily: 'FredokaOne',
   },
   activityModal_buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 18,
+    fontFamily: 'FredokaOne',
   },
   profileButton: {
     backgroundColor: '#007bff',
@@ -975,11 +996,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     alignItems: 'center',
+    fontFamily: 'FredokaOne',
   },
   profileButtonText: {
     fontSize: 18,
     color: '#FFF',
     fontWeight: 'bold',
+    fontFamily: 'FredokaOne',
   },
   inputContainer: {
     position: 'absolute',
@@ -991,6 +1014,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     zIndex: 100,
+    fontFamily: 'FredokaOne',
   },
   tooltipContainer: {
     position: 'absolute',
@@ -1015,6 +1039,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     fontWeight: '500',
+    fontFamily: 'FredokaOne',
   },
   
 });
