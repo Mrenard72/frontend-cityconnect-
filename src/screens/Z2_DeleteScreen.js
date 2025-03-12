@@ -1,91 +1,123 @@
 // Supprimer le compte
 
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
-import { FontAwesome } from '@expo/vector-icons'
+import { FontAwesome } from '@expo/vector-icons';
 
 const Z2_DeleteScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
+  // États pour stocker les valeurs des champs de saisie
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
 
-//============================================================
-// rajouter verification dans bdd du mot de passe
-//============================================================
-
-{/* Fleche de retour header */}
-const handleGoBack = () => {
-  console.log("Bouton de retour pressé");
-  navigation.goBack();
-};
-{/* Fleche de retour header */}
-
-  const handleRegister = async () => {
-    if (newPassword !== confirmNewPassword) {
-      alert("Les mots de passe ne correspondent pas !");
-      return;
-    }
-    try {
-      const response = await fetch('https://backend-city-connect.vercel.app/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, newPassword }),
-      });
-
-      const data = await response.json();
-      console.log("Réponse du backend :", data);
-      if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Dashboard' }],
-        });
-      } else {
-        alert(data.message);
+  // Récupération du token une seule fois au chargement du composant
+  useEffect(() => {
+    const fetchToken = async () => {
+      const storedToken = await AsyncStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
       }
-    } catch (error) {
-      console.error('Erreur lors de l’inscription:', error);
-    }
+    };
+    fetchToken();
+  }, []);
+
+  /**
+   * Fonction permettant de revenir à l'écran précédent
+   */
+  const handleGoBack = () => {
+    console.log("Bouton de retour pressé");
+    navigation.goBack();
+  };
+
+  /**
+   * Fonction permettant de supprimer le compte utilisateur
+   */
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Supprimer le compte",
+      "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Confirmer",
+          onPress: async () => {
+            try {
+              if (!token) {
+                alert("Erreur : Token introuvable !");
+                return;
+              }
+
+              const response = await fetch('https://backend-city-connect.vercel.app/auth/delete', {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                },
+              });
+
+              if (response.ok) {
+                alert("Votre compte a été supprimé.");
+                await AsyncStorage.removeItem('token');
+                navigation.navigate('LoginScreen');
+              } else {
+                alert("Erreur lors de la suppression.");
+              }
+            } catch (error) {
+              alert("Erreur serveur.");
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
     <ImageBackground source={require('../../assets/background.png')} style={styles.background}>
       {/* Bouton de retour placé au-dessus du Header */}
+      <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={25} color="#20135B" />
+      </TouchableOpacity>
 
-        {/* Fleche de retour header */}
-        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-          <FontAwesome name="arrow-left" size={25} color="#20135B" />
-        </TouchableOpacity>
-        {/* Fleche de retour header */}
-
+      {/* Header de l'application */}
       <Header />
+      
+      {/* Contenu principal dans un ScrollView pour permettre le défilement */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           <Text style={styles.title}>Supprimer le compte</Text>
-          <TextInput 
-            placeholder="Adresse mail" 
-            style={styles.input} 
-            value={email} 
-            onChangeText={setEmail} 
+          
+          {/* Champ de saisie pour le nom d'utilisateur */}
+          <TextInput
+            placeholder="Nom d'utilisateur"
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
           />
-          <TextInput 
-            placeholder="Nom d'utilisateur" 
-            style={styles.input} 
-            value={username} 
-            onChangeText={setUsername} 
+
+          {/* Champ de saisie pour l'adresse email */}
+          <TextInput
+            placeholder="Email"
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
           />
-          <TextInput 
-            placeholder="Mot de passe" 
-            style={styles.input} 
-            secureTextEntry 
-            value={password} 
-            onChangeText={setPassword} 
+
+          {/* Champ de saisie pour le mot de passe */}
+          <TextInput
+            placeholder="Saisir le mot de passe"
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
           />
-          <Text style={styles.linkText}>mot de passe oublié ?</Text>
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Confirmer la suppression</Text>
+
+      
+
+          {/* Bouton pour supprimer le compte */}
+          <TouchableOpacity style={styles.button} onPress={handleDeleteAccount}>
+            <Text style={styles.buttonText}>Supprimer le compte</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -93,6 +125,7 @@ const handleGoBack = () => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -103,7 +136,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 50, // Ajout d'un espacement sous le header
+    paddingTop: 50,
   },
   container: {
     width: '90%',
@@ -150,19 +183,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 25,
   },
-
-// Fleche de retour header
-backButton: {
-  position: 'absolute',
-  top: 60, // Position relative au haut de l'écran (ajustez selon vos besoins)
-  left: 20, // Distance par rapport au bord gauche
-  zIndex: 21, // Plus élevé que le zIndex du Header
-  padding: 10, // Zone cliquable étendue
-  backgroundColor: 'transparent', // Fond transparent pour respecter le design
-},
-// Fleche de retour header
-
-
+  backButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 21,
+  },
 });
 
 export default Z2_DeleteScreen;

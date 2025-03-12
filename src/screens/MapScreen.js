@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -133,68 +133,82 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     setDate(formattedDate);
     setCalendarVisible(false);
   };
+// Dropdown pour "Max participants" allant de 1 à 100
+const [openMaxParticipants, setOpenMaxParticipants] = useState(false);
+const maxParticipantsItems = useMemo(() => {
+  return Array.from({ length: 100 }, (_, i) => ({
+    label: `${i + 1}`,
+    value: i + 1,
+  }));
+}, []);  
 
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+return (
+  <Modal visible={visible} transparent animationType="slide">
+  <KeyboardAvoidingView 
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    style={{ flex: 1 }}
+    keyboardVerticalOffset={0}
+  >
+    <View style={styles.modalOverlay}>
+      <ScrollView 
+        nestedScrollEnabled={true} // Ajouté ici
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalContainer, { maxHeight: '90%' }]}>
+          <Text style={styles.modalTitle}>Créer une activité</Text>
+          
           <ScrollView 
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            nestedScrollEnabled={true} // Et ici également
+            style={{ width: '100%' }} 
             keyboardShouldPersistTaps="handled"
           >
-            <View style={[styles.modalContainer, { maxHeight: '90%' }]}>
-              <Text style={styles.modalTitle}>Créer une activité</Text>
-              
-              <ScrollView style={{ width: '100%' }} keyboardShouldPersistTaps="handled">
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Titre"
-                  placeholderTextColor="#666"
-                  value={title}
-                  onChangeText={setTitle}
-                />
-                <TextInput
-                  style={[styles.modalInput, { height: 70 }]}
-                  multiline
-                  placeholder="Description"
-                  placeholderTextColor="#666"
-                  value={description}
-                  onChangeText={setDescription}
-                />
-                <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.buttonText}>Choisir une image</Text>
-                    <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-                  </View>
-                </TouchableOpacity>
-                
-                {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
-                
-                <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={styles.buttonText}>
-                      {date ? ` ${date}` : "Choisir une date"}
-                    </Text>
-                    <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-                  </View>
-                </TouchableOpacity>
-                
-                {isCalendarVisible && (
-                  <Calendar
-                    onDayPress={handleDayPress}
-                    markedDates={
-                      selectedDate
-                        ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
-                        : {}
-                    }
-                  />
-                )}
-                
-                <View style={{ marginBottom: openCategory ? 180 : 10, zIndex: 3000 }}>
+            {/* Vos inputs et autres composants */}
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Titre"
+              placeholderTextColor="#666"
+              value={title}
+              onChangeText={setTitle}
+            />
+            <TextInput
+              style={[styles.modalInput, { height: 70 }]}
+              multiline
+              placeholder="Description"
+              placeholderTextColor="#666"
+              value={description}
+              onChangeText={setDescription}
+            />
+            <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.buttonText}>Choisir une image</Text>
+                <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+              </View>
+            </TouchableOpacity>
+            
+            {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
+            
+            <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={styles.buttonText}>
+                  {date ? ` ${date}` : "Choisir une date"}
+                </Text>
+                <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+              </View>
+            </TouchableOpacity>
+            
+            {isCalendarVisible && (
+              <Calendar
+                onDayPress={handleDayPress}
+                markedDates={
+                  selectedDate
+                    ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
+                    : {}
+                }
+              />
+            )}
+            
+            <View style={{ marginBottom: 10, zIndex: 3000 }}>
   <DropDownPicker
     open={openCategory}
     value={category}
@@ -206,39 +220,74 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     style={{ borderColor: '#CCC' }}
     dropDownContainerStyle={{ 
       backgroundColor: '#FFF',
-      maxHeight: 150 // Hauteur maximale du menu déroulant
+      maxHeight: 150
     }}
     listMode="SCROLLVIEW"
-    scrollViewProps={{
-      nestedScrollEnabled: true, // Active le défilement imbriqué
-    }}
-    zIndex={3000} // S'assure que le dropdown est au-dessus des autres éléments
-    zIndexInverse={1000} // Important pour le fonctionnement correct
+    scrollViewProps={{ nestedScrollEnabled: true }}
+    zIndex={3000}
+    zIndexInverse={1000}
   />
 </View>
-                
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Max participants"
-                  keyboardType="numeric"
-                  value={maxParticipants}
-                  onChangeText={setMaxParticipants}
-                />
-                
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
-                    <Text style={styles.buttonText}>Annuler</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.button, { backgroundColor: '#2D2A6E' }]} onPress={handleCreate} disabled={loading}>
-                    <Text style={styles.buttonText}>Créer</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
+
+            
+            {/* Dropdown pour "Max participants" */}
+            <View style={{ marginBottom: 40, zIndex: 2000 }}>
+              <DropDownPicker
+                open={openMaxParticipants}
+                value={maxParticipants}
+                items={maxParticipantsItems}
+                setOpen={setOpenMaxParticipants}
+                setValue={setMaxParticipants}
+                setItems={() => {}}
+                placeholder="Max participants"
+                style={styles.modalInput}
+                dropDownContainerStyle={{
+                  borderWidth: 1,
+                  borderColor: '#CCC',
+                  borderRadius: 8,
+                  backgroundColor: '#FFF',
+                  elevation: 5,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  maxHeight: 250,
+                }}
+                textStyle={{
+                  fontSize: 16,
+                  color: '#000',
+                }}
+                listItemContainerStyle={{
+                  padding: 10,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#EEE',
+                }}
+                listItemLabelStyle={{
+                  fontSize: 16,
+                  color: '#000',
+                  textAlign: 'center',
+                }}
+                listMode="SCROLLVIEW"
+                zIndex={2000}
+                zIndexInverse={1000}
+              />
+            </View>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
+                <Text style={styles.buttonText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, { backgroundColor: '#2D2A6E' }]} onPress={handleCreate} disabled={loading}>
+                <Text style={styles.buttonText}>Créer</Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </ScrollView>
+    </View>
+  </KeyboardAvoidingView>
+</Modal>
+
   );
 };
 
@@ -832,7 +881,7 @@ const styles = StyleSheet.create({
   activeButton: { backgroundColor: '#2D2A6E' },
   categoryText: { color: '#FFF', fontWeight: 'bold' },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContainer: { width: '85%', backgroundColor: '#FFF', padding: 20, borderRadius: 8, alignSelf: 'center' },
+  modalContainer: { width: '90%', backgroundColor: '#FFF', padding: 20, borderRadius: 8, alignSelf: 'center', marginTop: 60 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5 },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 5 },

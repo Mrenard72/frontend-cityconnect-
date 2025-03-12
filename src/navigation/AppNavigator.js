@@ -211,6 +211,7 @@ const AppNavigator = () => {
           <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Doc" component={DocScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+          
         </>
       ) : (
         <>
