@@ -9,6 +9,7 @@ import Header from '../components/Header';
 // URL de base pour toutes les requêtes API
 const BASE_URL = 'https://backend-city-connect.vercel.app';
 
+// 🔹 Page de profil utilisateur
 const MyPageScreen = ({ route, navigation }) => {
   // Récupération de l'ID utilisateur depuis les paramètres de navigation
   const { userId } = route.params;
@@ -19,12 +20,13 @@ const MyPageScreen = ({ route, navigation }) => {
   console.log(userId);
   
   // Effet qui s'exécute au chargement du composant
+  // 🚀 Effet pour charger le profil et les activités de l'utilisateur
   useEffect(() => {
     fetchUserProfile();
     fetchUserActivities();
   }, []);
 
-  // Fonction pour récupérer les informations du profil utilisateur
+  // 🚀 Fonction pour récupérer le profil de l'utilisateur
   const fetchUserProfile = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${userId}`);
@@ -39,7 +41,7 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
 
-  // Fonction pour récupérer les activités créées par l'utilisateur
+  // 🚀 Fonction pour récupérer les activités de l'utilisateur
   const fetchUserActivities = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${userId}/activities`);
@@ -64,12 +66,11 @@ const MyPageScreen = ({ route, navigation }) => {
     }
   };
   
-  // Fonction pour naviguer vers les détails d'une activité
+  // 🚀 Fonction pour naviguer vers les détails d'une activité
   const navigateToActivityDetails = (activity) => {
     navigation.navigate('ActivityDetails', { activity });
   };
-
-  // Fonction pour noter un utilisateur
+// 🚀 Fonction pour noter un utilisateur
   const handleRateUser = async (newRating) => {
     // Récupération du token d'authentification
     const token = await AsyncStorage.getItem('token');
@@ -101,8 +102,7 @@ const MyPageScreen = ({ route, navigation }) => {
       console.error("Erreur lors de la notation :", error);
     }
   };
-
-  // Fonction pour mettre à jour la biographie de l'utilisateur
+// 🚀 Fonction pour mettre à jour la bio de l'utilisateur
   const updateBio = async () => {
     // Récupération du token d'authentification
     const token = await AsyncStorage.getItem('token');

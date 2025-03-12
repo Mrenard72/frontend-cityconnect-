@@ -10,7 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Image
+  Image,
+  Keyboard,
+  ScrollView
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as ImagePicker from 'expo-image-picker';
@@ -25,8 +27,7 @@ const BASE_URL = 'https://backend-city-connect.vercel.app';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dasntwyhd/image/upload';
 const UPLOAD_PRESET = 'default_preset';
 
-
-// Fonction pour parser les coordonnées de localisation
+// Fonction pour parser une chaîne de caractères de localisation en objet latitude/longitude
 function parseLocation(locationStr) {
   if (!locationStr) return null;
   const parts = locationStr.split(',');
@@ -37,8 +38,18 @@ function parseLocation(locationStr) {
   };
 }
 
-// Modale pour créer une nouvelle activité
+// Fonction asynchrone pour récupérer le token depuis le stockage local (AsyncStorage)
+async function getToken() {
+  try {
+    return await AsyncStorage.getItem('token');
+  } catch {
+    return null;
+  }
+}
+
+// Composant modal pour créer une activité
 const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
+  // États internes pour la gestion du formulaire de création d'activité
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -48,6 +59,7 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
   const [photoUri, setPhotoUri] = useState(null);
   const [isCalendarVisible, setCalendarVisible] = useState(false);
   const [openCategory, setOpenCategory] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [items, setItems] = useState([
     { label: 'Sport', value: 'Sport' },
     { label: 'Culturel', value: 'Culturel' },
@@ -55,6 +67,28 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
     { label: 'Culinaire', value: 'Culinaire' },
   ]);
 
+  // Effet pour gérer l'affichage du clavier et ajuster la hauteur en conséquence
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  // Fonction asynchrone pour choisir une image dans la galerie
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,33 +102,26 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
         aspect: [4, 3],
         quality: 1,
       });
-      console.log("Résultat de la sélection d'image :", result);
       if (!result.canceled) {
         setPhotoUri(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Erreur lors de la sélection de l'image :", error);
       Alert.alert("Erreur", "Impossible de sélectionner une image.");
     }
   };
 
+  // Fonction pour valider et envoyer la création d'une activité
   const handleCreate = () => {
     if (!title || !description || !date || !category || !maxParticipants) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
       return;
     }
+    Keyboard.dismiss();
     const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
-    console.log("📤 Données envoyées par handleCreate :", {
-      title,
-      description,
-      date: formattedDate,
-      category,
-      maxParticipants,
-      photoUri,
-    });
     onCreate({ title, description, date: formattedDate, category, maxParticipants, photoUri });
   };
 
+  // Fonction pour gérer la sélection d'un jour dans le calendrier
   const handleDayPress = (day) => {
     const newDate = new Date(day.dateString);
     setSelectedDate(newDate);
@@ -109,84 +136,105 @@ const CreateActivityModal = ({ visible, onClose, onCreate, loading }) => {
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Créer une activité</Text>
-          <TextInput
-            style={styles.modalInput}
-            placeholder="Titre"
-            placeholderTextColor="#666"
-            value={title}
-            onChangeText={setTitle}
-          />
-          <TextInput
-            style={[styles.modalInput, { height: 70 }]}
-            multiline
-            placeholder="Description"
-            placeholderTextColor="#666"
-            value={description}
-            onChangeText={setDescription}
-          />
-          <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.buttonText}>Choisir une image</Text>
-              <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+      >
+        <View style={styles.modalOverlay}>
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.modalContainer, { maxHeight: '90%' }]}>
+              <Text style={styles.modalTitle}>Créer une activité</Text>
+              
+              <ScrollView style={{ width: '100%' }} keyboardShouldPersistTaps="handled">
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Titre"
+                  placeholderTextColor="#666"
+                  value={title}
+                  onChangeText={setTitle}
+                />
+                <TextInput
+                  style={[styles.modalInput, { height: 70 }]}
+                  multiline
+                  placeholder="Description"
+                  placeholderTextColor="#666"
+                  value={description}
+                  onChangeText={setDescription}
+                />
+                <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.buttonText}>Choisir une image</Text>
+                    <FontAwesome5 name="image" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  </View>
+                </TouchableOpacity>
+                
+                {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
+                
+                <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={styles.buttonText}>
+                      {date ? ` ${date}` : "Choisir une date"}
+                    </Text>
+                    <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  </View>
+                </TouchableOpacity>
+                
+                {isCalendarVisible && (
+                  <Calendar
+                    onDayPress={handleDayPress}
+                    markedDates={
+                      selectedDate
+                        ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
+                        : {}
+                    }
+                  />
+                )}
+                
+                <View style={{ zIndex: 3000, marginBottom: 10 }}>
+                  <DropDownPicker
+                    open={openCategory}
+                    value={category}
+                    items={items}
+                    setOpen={setOpenCategory}
+                    setValue={setCategory}
+                    setItems={setItems}
+                    placeholder="Sélectionner une catégorie"
+                    style={{ borderColor: '#CCC' }}
+                    dropDownContainerStyle={{ backgroundColor: '#FFF' }}
+                    listMode="SCROLLVIEW"
+                  />
+                </View>
+                
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Max participants"
+                  keyboardType="numeric"
+                  value={maxParticipants}
+                  onChangeText={setMaxParticipants}
+                />
+                
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
+                    <Text style={styles.buttonText}>Annuler</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#2D2A6E' }]} onPress={handleCreate} disabled={loading}>
+                    <Text style={styles.buttonText}>Créer</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
             </View>
-          </TouchableOpacity>
-          {photoUri && <Image source={{ uri: photoUri }} style={styles.imagePreview} />}
-          <TouchableOpacity onPress={() => setCalendarVisible(true)} style={styles.datePickerButton}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={styles.buttonText}>
-                {date ? ` ${date}` : "Choisir une date"}
-              </Text>
-              <FontAwesome5 name="calendar" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-            </View>
-          </TouchableOpacity>
-          {isCalendarVisible && (
-            <Calendar
-              onDayPress={handleDayPress}
-              markedDates={
-                selectedDate
-                  ? { [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2D2A6E' } }
-                  : {}
-              }
-            />
-          )}
-          <View style={{ zIndex: 3000, marginBottom: 10 }}>
-            <DropDownPicker
-              open={openCategory}
-              value={category}
-              items={items}
-              setOpen={setOpenCategory}
-              setValue={setCategory}
-              setItems={setItems}
-              placeholder="Sélectionner une catégorie"
-              style={{ borderColor: '#CCC' }}
-              dropDownContainerStyle={{ backgroundColor: '#FFF' }}
-            />
-          </View>
-          <TextInput
-            style={styles.modalInput}
-            placeholder="Max participants"
-            keyboardType="numeric"
-            value={maxParticipants}
-            onChangeText={setMaxParticipants}
-          />
-          <View style={styles.modalButtons}>
-            <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
-              <Text style={styles.buttonText}>Annuler</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, { backgroundColor: '#2D2A6E' }]} onPress={handleCreate} disabled={loading}>
-              <Text style={styles.buttonText}>Créer</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
 
-// Modale pour afficher les détails d'une activité
+// Composant modal pour afficher les détails d'une activité et permettre de s'inscrire ou voir le profil
 const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
   const navigation = useNavigation();
   if (!activity) return null;
@@ -247,30 +295,17 @@ const ActivityDetailsModal = ({ activity, onClose, onJoin }) => {
   );
 };
 
-// Fonction pour gérer le mode création d'activité
-async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
-  if (userLocation) {
-    setRegion({
-      latitude: userLocation.latitude,
-      longitude: userLocation.longitude,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    });
-  } else {
-    await getUserLocation();
-  }
-}
-
-// Composant principal MapScreen
+// Composant principal gérant la carte et les activités
 export default function MapScreen({ route, navigation }) {
   const { filter, userLocation, category, locality, selectedDate } = route.params || {};
   const defaultRegion = {
-    latitude: 46.603354, // Centre de la France
-  longitude: 1.888334,
-  latitudeDelta: 6, // Grand zoom 
-  longitudeDelta: 6,
+    latitude: 46.603354,
+    longitude: 1.888334,
+    latitudeDelta: 6,
+    longitudeDelta: 6,
   };
 
+  // États locaux pour la gestion de la carte, des activités et des entrées utilisateur
   const [region, setRegion] = useState(defaultRegion);
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -284,119 +319,8 @@ export default function MapScreen({ route, navigation }) {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
-
-  // pop up creer une activité
-
-  useEffect(() => {
-    if (!route.params?.fromDiscover) return; // ✅ Vérifie si on vient de "Je fais découvrir"
-  
-    setShowTooltip(true); // ✅ Affiche la bulle d'info
-  
-    const timeout = setTimeout(() => {
-      setShowTooltip(false); // ✅ Masque la bulle après 3s
-    }, 5000);
-  
-    return () => clearTimeout(timeout); // ✅ Nettoie si l'utilisateur quitte l'écran
-  }, [route.params?.fromDiscover]);
-  
-
-// recuperation des activites par dates
-
-async function fetchActivitiesByDate(date) {
-  setLoading(true); // Active le chargement
-  try {
-    const response = await fetch(`${BASE_URL}/events?date=${date}`); // 🔗 Modifie cette URL si besoin
-    const data = await response.json(); 
-    const filteredActivities = data.filter(act => {
-      const activityDate = act.date.split('T')[0]; // 🔥 Garde juste YYYY-MM-DD
-      return activityDate === date;
-    });
-    
-    setActivities(filteredActivities);
-    console.log("🎯 Activités après filtrage :", filteredActivities);
-    
-    console.log("📅 Activités récupérées pour", date, ":", data); // Vérification console
-  } catch (err) {
-    console.error("❌ Erreur lors de la récupération des activités :", err);
-  } finally {
-    setLoading(false); // Désactive le chargement
-  }
-}
-
-useEffect(() => {
-  if (selectedDate) {
-    fetchActivitiesByDate(selectedDate); // 🔥 Appelle la fonction dès que selectedDate change
-  }
-}, [selectedDate]);
-
-
-
-  async function getToken() {
-    try {
-      return await AsyncStorage.getItem('token');
-    } catch {
-      return null;
-    }
-  }
-
-  async function handleJoinEvent(eventId) {
-    const token = await getToken();
-    if (!token) {
-      Alert.alert("Erreur", "Token manquant, reconnectez-vous.");
-      return;
-    }
-    try {
-      const res = await fetch(`${BASE_URL}/events/${eventId}/join`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        Alert.alert("Erreur", data.message || "Impossible de réserver");
-        return;
-      }
-      if (data.conversation) {
-        navigation.navigate('Messagerie', {
-          screen: 'Messaging',
-          params: {
-            conversationId: data.conversation._id,
-            conversationName: data.conversation.eventId?.title || "Conversation",
-          },
-        });
-      } else {
-        Alert.alert("Réservation", "Vous êtes inscrit à l'événement !");
-      }
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Erreur", "Impossible de réserver.");
-    }
-  }
-
-  async function fetchActivities(cat) {
-    try {
-      setLoading(true);
-      let url = `${BASE_URL}/events`;
-      if (cat) url += `?category=${cat}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      setActivities(data);
-    } catch (err) {
-      console.log("Erreur fetchEvents:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (filter === 'activity') {
-      fetchActivities(selectedCategory);
-    }
-  }, [selectedCategory, filter]);
-
-  async function getUserLocation() {
+  // Fonction pour récupérer la position de l'utilisateur et centrer la carte
+  const getUserLocation = async () => {
     setLoading(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -415,9 +339,10 @@ useEffect(() => {
       console.error(err);
     }
     setLoading(false);
-  }
+  };
 
-  function handleRecenterMap() {
+  // Fonction pour recentrer la carte en utilisant des coordonnées entrées manuellement
+  const handleRecenterMap = () => {
     const lat = parseFloat(latitudeInput);
     const lon = parseFloat(longitudeInput);
     if (isNaN(lat) || isNaN(lon)) {
@@ -430,9 +355,10 @@ useEffect(() => {
       latitudeDelta: 0.05,
       longitudeDelta: 0.05,
     });
-  }
+  };
 
-  function handleCitySearch() {
+  // Fonction pour chercher une ville et centrer la carte sur celle-ci
+  const handleCitySearch = () => {
     if (!cityInput) {
       Alert.alert("Erreur", "Veuillez entrer le nom d'une ville");
       return;
@@ -455,157 +381,10 @@ useEffect(() => {
         console.error(err);
         Alert.alert("Erreur", "Impossible de géocoder la ville");
       });
-  }
-
-  function handleMapPress(e) {
-    if (filter === 'createActivity') {
-      const { coordinate } = e.nativeEvent;
-      setNewActivityCoords(coordinate);
-      setIsCreateModalVisible(true);
-    }
-  }
-
-  const handleCreateActivity = async (activityData) => {
-    const { title, description, date, category, maxParticipants, photoUri } = activityData;
-    if (!newActivityCoords || !title || !description || !category || !maxParticipants) {
-      Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
-      return;
-    }
-    setLoading(true);
-    const token = await getToken();
-    if (!token) {
-      Alert.alert("Erreur", "Vous devez être connecté");
-      return;
-    }
-    let photoUrl = null;
-    if (photoUri) {
-      console.log("📤 Upload de l'image...");
-      photoUrl = await uploadImage(photoUri);
-      if (!photoUrl) {
-        Alert.alert("Erreur", "Échec de l'upload de l'image.");
-        setLoading(false);
-        return;
-      }
-    }
-    const payload = {
-      title,
-      description,
-      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
-      date,
-      category,
-      maxParticipants: parseInt(maxParticipants, 10),
-      photos: photoUrl ? [photoUrl] : [],
-    };
-    console.log("📤 Données envoyées au backend :", JSON.stringify(payload, null, 2));
-    try {
-      const res = await fetch(`${BASE_URL}/events`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      console.log("📩 Réponse du backend :", data);
-      if (!res.ok) {
-        Alert.alert("Erreur", data.message || "Impossible de créer");
-        setLoading(false);
-        return;
-      }
-      setIsCreateModalVisible(false);
-      setNewActivityCoords(null);
-      Alert.alert("Succès", "Activité créée !");
-    } catch (error) {
-      console.error("❌ Erreur lors de la création :", error);
-      Alert.alert("Erreur", "Impossible de créer l'activité");
-    }
-    setLoading(false);
   };
 
-  const uploadImage = async (uri) => {
-    let formData = new FormData();
-    formData.append('file', { uri, type: 'image/jpeg', name: 'activity.jpg' });
-    formData.append('upload_preset', UPLOAD_PRESET);
-    const response = await fetch(CLOUDINARY_URL, {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await response.json();
-    return data.secure_url;
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      // Récupérer les paramètres à chaque focus
-      const currentFilter = route.params?.filter;
-      const currentCategory = route.params?.category;
-      const currentSelectedDate = route.params?.selectedDate;
-      
-      console.log("🔄 Focus avec filtre:", currentFilter, "catégorie:", currentCategory, "date:", currentSelectedDate);
-      
-      // Réinitialiser l'activité sélectionnée
-      setSelectedActivity(null);
-
-      // Déterminer si on est en mode onglet ou non
-      const isTabNavigation = !currentFilter;
-
-      // Initialiser le mode selon le filtre (par paramètres actuels, pas par état)
-      if (isTabNavigation || currentFilter === 'aroundMe') {
-        setShowInput(false);
-        setSelectedCategory(null);
-        getUserLocation().then(() => {
-          fetchActivities();
-        });
-      } 
-      else if (currentFilter === 'activity') {
-        setShowInput(false);
-        // Important: Utilisez directement currentCategory et pas selectedCategory
-        // qui pourrait contenir une ancienne valeur
-        const categoryToUse = currentCategory || 'Sport';
-        setSelectedCategory(categoryToUse);
-        fetchActivities(categoryToUse);
-      } 
-      else if (currentFilter === 'byLocality') {
-        setShowInput(true);
-        handleByLocality();
-        fetchActivities();
-      } 
-      else if (currentFilter === 'createActivity') {
-        setShowInput(false);
-        handleCreateActivityMode(userLocation, setRegion, getUserLocation);
-      }
-      else if (currentFilter === 'date' && currentSelectedDate) {
-        setShowInput(false);
-        fetchActivitiesByDate(currentSelectedDate);
-      }
-      else if (currentFilter === 'createActivity') {
-        setShowInput(false);
-        setSelectedCategory(null); // Réinitialiser la catégorie pour éviter le filtrage
-        
-        // IMPORTANT: Charger toutes les activités sans filtre de catégorie
-        fetchActivities(); // Appeler sans paramètre pour récupérer toutes les activités
-        
-        // Centrer la carte sur la position de l'utilisateur
-        if (userLocation) {
-          setRegion({
-            latitude: userLocation.latitude,
-            longitude: userLocation.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          });
-        } else {
-          getUserLocation().then(() => {
-            // Charger à nouveau les activités après avoir obtenu la position
-            // C'est utile si fetchActivities dépend de la position
-            fetchActivities();
-          });
-        }
-      }
-    }, [route.params]) // Dépendance importante: route.params (pas juste filter)
-  );
-  
-  function handleByLocality() {
+  // Fonction pour centrer la carte sur une localité donnée ou utiliser des coordonnées manuelles
+  const handleByLocality = () => {
     if (locality?.latitude && locality?.longitude) {
       setRegion({
         latitude: locality.latitude,
@@ -614,7 +393,6 @@ useEffect(() => {
         longitudeDelta: 0.05,
       });
     } else {
-      // Si la localité n'est pas définie, utiliser les valeurs entrées manuellement (si disponibles)
       if (latitudeInput && longitudeInput) {
         const lat = parseFloat(latitudeInput);
         const lon = parseFloat(longitudeInput);
@@ -628,12 +406,12 @@ useEffect(() => {
           return;
         }
       }
-      // Sinon, utiliser la région par défaut
       setRegion(defaultRegion);
     }
-  }
+  };
 
-  async function handleActivityMode() {
+  // Fonction pour activer le mode de création d'activité en centrant la carte sur la position de l'utilisateur
+  const handleCreateActivityMode = async () => {
     if (userLocation) {
       setRegion({
         latitude: userLocation.latitude,
@@ -644,26 +422,251 @@ useEffect(() => {
     } else {
       await getUserLocation();
     }
-  }
+  };
 
-  async function handleCreateActivityMode(userLocation, setRegion, getUserLocation) {
-    if (userLocation) {
-      setRegion({
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      });
-    } else {
-      await getUserLocation();
+  // Fonction pour récupérer les activités depuis le backend, éventuellement filtrées par catégorie
+  const fetchActivities = async (cat) => {
+    try {
+      setLoading(true);
+      let url = `${BASE_URL}/events`;
+      if (cat) url += `?category=${cat}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      setActivities(data);
+    } catch (err) {
+      console.log("Erreur fetchEvents:", err);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  let allMarkers = activities;  
+  // Fonction pour récupérer les activités pour une date spécifique et les filtrer
+  const fetchActivitiesByDate = async (date) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/events?date=${date}`);
+      const data = await response.json();
+      const filteredActivities = data.filter(act => {
+        const activityDate = act.date.split('T')[0];
+        return activityDate === date;
+      });
+      
+      setActivities(filteredActivities);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des activités :", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction pour rejoindre un événement en envoyant une requête POST au backend
+  const handleJoinEvent = async (eventId) => {
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Erreur", "Token manquant, reconnectez-vous.");
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${BASE_URL}/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de réserver");
+        return;
+      }
+      
+      if (data.conversation) {
+        navigation.navigate('Messagerie', {
+          screen: 'Messaging',
+          params: {
+            conversationId: data.conversation._id,
+            conversationName: data.conversation.eventId?.title || "Conversation",
+          },
+        });
+      } else {
+        Alert.alert("Réservation", "Vous êtes inscrit à l'événement !");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erreur", "Impossible de réserver.");
+    }
+  };
+
+  // Fonction pour gérer l'appui sur la carte : si en mode création, ouvrir le modal de création d'activité
+  const handleMapPress = (e) => {
+    if (filter === 'createActivity') {
+      const { coordinate } = e.nativeEvent;
+      setNewActivityCoords(coordinate);
+      setIsCreateModalVisible(true);
+    }
+  };
+
+  // Fonction asynchrone pour uploader une image sur Cloudinary et récupérer l'URL sécurisée
+  const uploadImage = async (uri) => {
+    let formData = new FormData();
+    formData.append('file', { uri, type: 'image/jpeg', name: 'activity.jpg' });
+    formData.append('upload_preset', UPLOAD_PRESET);
+    
+    const response = await fetch(CLOUDINARY_URL, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  // Fonction pour créer une nouvelle activité en envoyant les données au backend
+  const handleCreateActivity = async (activityData) => {
+    const { title, description, date, category, maxParticipants, photoUri } = activityData;
+    
+    if (!newActivityCoords || !title || !description || !category || !maxParticipants) {
+      Alert.alert("Champs manquants", "Veuillez remplir tous les champs");
+      return;
+    }
+    
+    setLoading(true);
+    const token = await getToken();
+    
+    if (!token) {
+      Alert.alert("Erreur", "Vous devez être connecté");
+      setLoading(false);
+      return;
+    }
+    
+    let photoUrl = null;
+    if (photoUri) {
+      photoUrl = await uploadImage(photoUri);
+      if (!photoUrl) {
+        Alert.alert("Erreur", "Échec de l'upload de l'image.");
+        setLoading(false);
+        return;
+      }
+    }
+    
+    const payload = {
+      title,
+      description,
+      location: `${newActivityCoords.latitude}, ${newActivityCoords.longitude}`,
+      date,
+      category,
+      maxParticipants: parseInt(maxParticipants, 10),
+      photos: photoUrl ? [photoUrl] : [],
+    };
+    
+    try {
+      const res = await fetch(`${BASE_URL}/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        Alert.alert("Erreur", data.message || "Impossible de créer");
+        setLoading(false);
+        return;
+      }
+      
+      setIsCreateModalVisible(false);
+      setNewActivityCoords(null);
+      Alert.alert("Succès", "Activité créée !");
+      
+      // Rafraîchir la liste des activités pour afficher celle qui vient d'être créée
+      fetchActivities(selectedCategory);
+    } catch (error) {
+      console.error("Erreur lors de la création :", error);
+      Alert.alert("Erreur", "Impossible de créer l'activité");
+    }
+    
+    setLoading(false);
+  };
+
+  // Effet pour afficher un tooltip lors du retour depuis l'écran Discover
+  useEffect(() => {
+    if (route.params?.fromDiscover) {
+      setShowTooltip(true);
+      
+      const timeout = setTimeout(() => {
+        setShowTooltip(false);
+      }, 5000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [route.params?.fromDiscover]);
+
+  // Effet pour récupérer les activités selon la date sélectionnée
+  useEffect(() => {
+    if (selectedDate) {
+      fetchActivitiesByDate(selectedDate);
+    }
+  }, [selectedDate]);
+
+  // Effet pour récupérer les activités selon la catégorie sélectionnée et le filtre actif
+  useEffect(() => {
+    if (filter === 'activity') {
+      fetchActivities(selectedCategory);
+    }
+  }, [selectedCategory, filter]);
+
+  // Effet lors du focus de l'écran pour gérer la navigation et les filtres selon les paramètres de route
+  useFocusEffect(
+    useCallback(() => {
+      const currentFilter = route.params?.filter;
+      const currentCategory = route.params?.category;
+      const currentSelectedDate = route.params?.selectedDate;
+      
+      setSelectedActivity(null);
+      
+      const isTabNavigation = !currentFilter;
+      
+      if (isTabNavigation || currentFilter === 'aroundMe') {
+        setShowInput(false);
+        setSelectedCategory(null);
+        getUserLocation().then(() => {
+          fetchActivities();
+        });
+      } 
+      else if (currentFilter === 'activity') {
+        setShowInput(false);
+        const categoryToUse = currentCategory || 'Sport';
+        setSelectedCategory(categoryToUse);
+        fetchActivities(categoryToUse);
+      } 
+      else if (currentFilter === 'byLocality') {
+        setShowInput(true);
+        handleByLocality();
+        fetchActivities();
+      } 
+      else if (currentFilter === 'createActivity') {
+        setShowInput(false);
+        handleCreateActivityMode();
+      }
+      else if (currentFilter === 'date' && currentSelectedDate) {
+        setShowInput(false);
+        fetchActivitiesByDate(currentSelectedDate);
+      }
+    }, [route.params])
+  );
+
+  // Affichage d'un indicateur de chargement si l'application est en cours de chargement
   if (loading) {
     return <ActivityIndicator size="large" color="#2D2A6E" style={{ marginTop: 50 }} />;
   }
 
+  // Définition des icônes pour chaque catégorie d'activité
   const categoryIcons = {
     Sport: require('../../assets/Iconsport.png'),
     Culturel: require('../../assets/Iconculturel.png'),
@@ -679,30 +682,35 @@ useEffect(() => {
           style={styles.inputContainer}
         >
           <TextInput
-      style={styles.input}
-      placeholder="Nom de la ville"
-      value={cityInput}
-      onChangeText={setCityInput}
-    />
-    <TouchableOpacity style={styles.button} onPress={handleCitySearch}>
-      <Text style={styles.buttonText}>OK</Text>
-    </TouchableOpacity>
-  </KeyboardAvoidingView>
+            style={styles.input}
+            placeholder="Nom de la ville"
+            value={cityInput}
+            onChangeText={setCityInput}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleCitySearch}>
+            <Text style={styles.buttonText}>OK</Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
       )}
-{showTooltip && (
-  <View style={styles.tooltipContainer}>
-    <Text style={styles.tooltipText}>📌 Pour créer une activité, restez appuyé sur la carte.</Text>
-    <View style={styles.tooltipArrow} />
-  </View>
-)}
-      <MapView style={styles.map} region={region} onPress={handleMapPress} // ✅ Pression normale
-  onLongPress={(e) => { // ✅ Pression longue
-    const { coordinate } = e.nativeEvent;
-    setNewActivityCoords(coordinate);
-    setIsCreateModalVisible(true); // ✅ Ouvre la modale
-  }}
->
-        {allMarkers.map((act) => {
+      
+      {showTooltip && (
+        <View style={styles.tooltipContainer}>
+          <Text style={styles.tooltipText}>📌 Pour créer une activité, restez appuyé sur la carte.</Text>
+          <View style={styles.tooltipArrow} />
+        </View>
+      )}
+      
+      <MapView 
+        style={styles.map} 
+        region={region} 
+        onPress={handleMapPress}
+        onLongPress={(e) => {
+          const { coordinate } = e.nativeEvent;
+          setNewActivityCoords(coordinate);
+          setIsCreateModalVisible(true);
+        }}
+      >
+        {activities.map((act) => {
           if (!act.location) return null;
           const coords = parseLocation(act.location);
           if (!coords) return null;
@@ -721,6 +729,7 @@ useEffect(() => {
             </Marker>
           );
         })}
+        
         <Marker
           coordinate={{ latitude: region.latitude, longitude: region.longitude }}
           title={filter === 'byLocality' && locality ? locality.name : 'Position actuelle'}
@@ -952,5 +961,3 @@ const styles = StyleSheet.create({
   },
   
 });
-
-

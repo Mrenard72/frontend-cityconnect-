@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, use } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
@@ -7,12 +8,9 @@ import * as AuthSession from "expo-auth-session"
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 📌 Stockage local pour gérer le token utilisateur
 
-
 // Associe WebBrowser avec AuthSession pour éviter les erreurs
 WebBrowser.maybeCompleteAuthSession();
 const CLIENT_ID = "994283205046-ndm0i814m6c99gir9k3o4mjlm3qn1meb.apps.googleusercontent.com"; // Ton Client ID Web
-
-
 
 // 📌 Écran de connexion (Login)
 const LoginScreen = ({ navigation }) => {

@@ -107,7 +107,7 @@ const SortiesScreen = ({ navigation }) => {
                 style={styles.profileButton} 
                 onPress={() => navigateToGuideProfile(item.createdBy._id)}
               >
-                <Text style={styles.profileButtonText}>Profil du guide</Text>
+                <Text style={styles.profileButtonText}>Voir Profil</Text>
               </TouchableOpacity>
             </View>
           </View>

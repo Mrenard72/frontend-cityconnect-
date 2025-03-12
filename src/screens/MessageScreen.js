@@ -166,7 +166,7 @@ export default function MessageScreen() {
   
 
   // Bouton de retour
-  const handleGoBack = () => navigation.navigate(MessageBox);
+  const handleGoBack = () => navigation.navigate('MessageBox');
 
   /*********************************************************
    * Rendu
