@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   },
   textButton: { color: '#FFFFFF', fontSize: 20, fontFamily: 'FredokaOne' },
   icon: { marginLeft: 10 },
-  logoutButton: { backgroundColor: '#E53935', paddingVertical: 12, borderRadius: 8, width: '50%', alignItems: 'center', marginTop: 50 },
+  logoutButton: { backgroundColor: '#E53935', paddingVertical: 12, borderRadius: 8, width: '50%', alignItems: 'center', marginTop: 20 },
   logoutButtonText: { color: '#FFFFFF', fontSize: 20, fontFamily: 'FredokaOne' },
 });
 
