@@ -219,7 +219,7 @@ const UserProfileScreen = ({ route, navigation }) => {
               // Élément d'activité cliquable
               <TouchableOpacity 
                 style={styles.activityItem}
-                onPress={() => navigateToActivityDetails(item)}
+                //onPress={() => navigateToActivityDetails(item)}
               >
                 {/* Gestion conditionnelle de l'affichage des images d'activités */}
                 {item.image ? (

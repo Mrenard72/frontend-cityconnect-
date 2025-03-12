@@ -179,7 +179,7 @@ const MyPageScreen = ({ route, navigation }) => {
             renderItem={({ item }) => (
               <TouchableOpacity 
                 style={styles.activityItem}
-                onPress={() => navigateToActivityDetails(item)}
+                //onPress={() => navigateToActivityDetails(item)}
               >
                 {/* Affichage conditionnel de l'image de l'activité ou d'un placeholder */}
                 {item.image ? (
