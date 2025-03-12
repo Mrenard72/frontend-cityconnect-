@@ -221,69 +221,81 @@ return (
     dropDownContainerStyle={{ 
       backgroundColor: '#FFF',
       maxHeight: 150,
-      fontFamily: 'FredokaOne',
-      
+      ...Platform.select({
+        android: {
+          elevation: 5,
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+        },
+      }),
     }}
     textStyle={{
       fontSize: 15,
       color: '#2D2A6E',
-      fontFamily: 'FredokaOne', 
-      
     }}
-    listMode="SCROLLVIEW"
+    listMode={Platform.OS === 'android' ? 'MODAL' : 'SCROLLVIEW'}
     scrollViewProps={{ nestedScrollEnabled: true }}
     zIndex={3000}
     zIndexInverse={1000}
   />
-</View>
+</View> 
 
             
             {/* Dropdown pour "Max participants" */}
             <View style={{ marginBottom: 10, zIndex: 2000 }}>
-              <DropDownPicker
-                open={openMaxParticipants}
-                value={maxParticipants}
-                items={maxParticipantsItems}
-                setOpen={setOpenMaxParticipants}
-                setValue={setMaxParticipants}
-                setItems={() => {}}
-                placeholder="Nombre de participants"
-                style={styles.modalInput}
-                dropDownContainerStyle={{
-                  borderWidth: 1,
-                  borderColor: '#CCC',
-                  borderRadius: 8,
-                  backgroundColor: '#FFF',
-                  elevation: 5,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 4,
-                  maxHeight: 250,
-                  fontFamily: 'FredokaOne',
-                }}
-                textStyle={{
-                  fontSize: 15,
-                  color: '#2D2A6E',
-                  fontFamily: 'FredokaOne', 
-                  
-                }}
-                listItemContainerStyle={{
-                  padding: 10,
-                  borderBottomWidth: 1,
-                  borderBottomColor: '#EEE',
-                }}
-                
-                listItemLabelStyle={{
-                  fontSize: 16,
-                  color: '#000',
-                  textAlign: 'center',
-                }}
-                listMode="SCROLLVIEW"
-                zIndex={2000}
-                zIndexInverse={1000}
-              />
-            </View>
+  <DropDownPicker
+    open={openMaxParticipants}
+    value={maxParticipants}
+    items={maxParticipantsItems}
+    setOpen={setOpenMaxParticipants}
+    setValue={setMaxParticipants}
+    setItems={() => {}}
+    placeholder="Nombre de participants"
+    style={styles.modalInput}
+    dropDownContainerStyle={{
+      borderWidth: 1,
+      borderColor: '#CCC',
+      borderRadius: 8,
+      backgroundColor: '#FFF',
+      maxHeight: 250,
+      ...Platform.select({
+        android: {
+          elevation: 5,
+          // Évitez d'utiliser fontFamily ici si vous constatez des problèmes
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+        },
+      }),
+    }}
+    textStyle={{
+      fontSize: 15,
+      color: '#2D2A6E',
+      fontFamily: 'FredokaOne',
+    }}
+    listItemContainerStyle={{
+      padding: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: '#EEE',
+    }}
+    listItemLabelStyle={{
+      fontSize: 16,
+      color: '#000',
+      textAlign: 'center',
+      fontFamily: 'FredokaOne',
+    }}
+    listMode={Platform.OS === 'android' ? 'MODAL' : 'SCROLLVIEW'}
+    zIndex={2000}
+    zIndexInverse={1000}
+  />
+</View>
             
             <View style={styles.modalButtons}>
               <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
