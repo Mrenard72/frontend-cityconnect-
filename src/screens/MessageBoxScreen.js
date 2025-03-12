@@ -125,7 +125,10 @@ export default function MessageBoxScreen() {
               keyExtractor={(item) => item._id.toString()}
               renderItem={({ item }) => {
                 const lastMessage = item.messages?.[item.messages.length - 1];
-                const lastMessageText = lastMessage ? lastMessage.content : 'Aucun message';
+                const lastMessageText = lastMessage
+  ? (lastMessage.content.length > 10 ? `${lastMessage.content.slice(0, 15)}...` : lastMessage.content)
+  : 'Pas encore de message';
+
                 const lastTime = lastMessage
                   ? new Date(lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : '';
