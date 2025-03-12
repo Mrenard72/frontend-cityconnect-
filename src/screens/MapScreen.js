@@ -583,6 +583,9 @@ export default function MapScreen({ route, navigation }) {
       setIsCreateModalVisible(false);
       setNewActivityCoords(null);
       Alert.alert("Succès", "Activité créée !");
+      
+      // Rafraîchir la liste des activités pour afficher celle qui vient d'être créée
+      fetchActivities(selectedCategory);
     } catch (error) {
       console.error("Erreur lors de la création :", error);
       Alert.alert("Erreur", "Impossible de créer l'activité");
