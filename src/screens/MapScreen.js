@@ -167,7 +167,7 @@ return (
             <TextInput
               style={styles.modalInput}
               placeholder="Titre"
-              placeholderTextColor="#2D2A6E"
+              placeholderTextColor="lightgrey"
               value={title}
               onChangeText={setTitle}
             />
@@ -175,7 +175,7 @@ return (
               style={[styles.modalInput, { height: 70 }]}
               multiline
               placeholder="Description"
-              placeholderTextColor="#2D2A6E"
+              placeholderTextColor="lightgrey"
               value={description}
               onChangeText={setDescription}
             />
@@ -236,6 +236,7 @@ return (
     textStyle={{
       fontSize: 15,
       color: '#2D2A6E',
+      fontFamily: 'FredokaOne',
     }}
     listMode={Platform.OS === 'android' ? 'MODAL' : 'SCROLLVIEW'}
     scrollViewProps={{ nestedScrollEnabled: true }}
@@ -287,7 +288,7 @@ return (
     }}
     listItemLabelStyle={{
       fontSize: 16,
-      color: '#000',
+      color: '#2D2A6E',
       textAlign: 'center',
       fontFamily: 'FredokaOne',
     }}
@@ -908,7 +909,7 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContainer: { width: '90%', backgroundColor: '#FFF', padding: 20, borderRadius: 8, alignSelf: 'center', marginTop: 60 },
   modalTitle: { fontSize: 16, color: '#2D2A6E', marginBottom: 10,  fontFamily: 'FredokaOne', },
-  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5, fontFamily: 'FredokaOne', },
+  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginVertical: 5, fontFamily: 'FredokaOne', color: '#2D2A6E' },
   imagePickerButton: { backgroundColor: '#2D2A6E', padding: 12, borderRadius: 8, alignItems: 'center', fontFamily: 'FredokaOne', marginVertical: 5 },
   imagePreview: { width: '100%', height: 200, borderRadius: 8, marginVertical: 10 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
