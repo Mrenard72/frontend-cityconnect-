@@ -208,7 +208,9 @@ return (
               />
             )}
             
-            <View style={{ marginBottom: 10, zIndex: 3000 }}>
+            {/* Dropdown pour Catégorie */}
+
+<View style={{ marginBottom: 10, zIndex: 3000 }}>
   <DropDownPicker
     open={openCategory}
     value={category}
@@ -217,36 +219,71 @@ return (
     setValue={setCategory}
     setItems={setItems}
     placeholder="Sélectionner une catégorie"
-    style={{ borderColor: '#CCC' }}
-    dropDownContainerStyle={{ 
+    style={{ 
+      borderColor: '#CCC',
+      borderWidth: 1,
+      borderRadius: 10,
+      height: 50,
+      paddingHorizontal: 15
+    }}
+    dropDownContainerStyle={{
       backgroundColor: '#FFF',
       maxHeight: 150,
+      borderColor: '#CCC',
+      borderWidth: 1,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
       ...Platform.select({
         android: {
-          elevation: 5,
+          elevation: 6,
+          borderRadius: 10,
+          borderTopWidth: 1,
         },
         ios: {
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 5,
         },
       }),
     }}
     textStyle={{
       fontSize: 15,
       color: '#2D2A6E',
+      fontWeight: '500',
+    }}
+    placeholderStyle={{
+      color: '#777',
+    }}
+    selectedItemContainerStyle={{
+      backgroundColor: '#F0F4FF',
+    }}
+    selectedItemLabelStyle={{
+      color: '#2D2A6E',
+      fontWeight: '600',
+    }}
+    listItemContainerStyle={{
+      padding: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: '#EEE',
+    }}
+    listItemLabelStyle={{
+      fontSize: 15,
+      color: '#333',
     }}
     listMode={Platform.OS === 'android' ? 'MODAL' : 'SCROLLVIEW'}
     scrollViewProps={{ nestedScrollEnabled: true }}
     zIndex={3000}
     zIndexInverse={1000}
+    closeAfterSelecting={true}
   />
-</View> 
+</View>
 
-            
-            {/* Dropdown pour "Max participants" */}
-            <View style={{ marginBottom: 10, zIndex: 2000 }}>
+
+{/* Dropdown pour "Max participants" */}
+
+<View style={{ marginBottom: 10, zIndex: 2000 }}>
   <DropDownPicker
     open={openMaxParticipants}
     value={maxParticipants}
@@ -255,30 +292,42 @@ return (
     setValue={setMaxParticipants}
     setItems={() => {}}
     placeholder="Nombre de participants"
-    style={styles.modalInput}
+    style={{
+      ...styles.modalInput,
+      height: 50,
+      borderRadius: 10,
+      paddingHorizontal: 15
+    }}
     dropDownContainerStyle={{
       borderWidth: 1,
       borderColor: '#CCC',
       borderRadius: 8,
       backgroundColor: '#FFF',
       maxHeight: 250,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
       ...Platform.select({
         android: {
-          elevation: 5,
-          // Évitez d'utiliser fontFamily ici si vous constatez des problèmes
+          elevation: 6,
+          borderRadius: 10,
+          borderTopWidth: 1,
         },
         ios: {
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 5,
         },
       }),
     }}
     textStyle={{
       fontSize: 15,
       color: '#2D2A6E',
-      fontFamily: 'FredokaOne',
+      fontWeight: '500',
+    }}
+    placeholderStyle={{
+      color: '#777',
     }}
     listItemContainerStyle={{
       padding: 10,
@@ -289,13 +338,20 @@ return (
       fontSize: 16,
       color: '#000',
       textAlign: 'center',
-      fontFamily: 'FredokaOne',
+    }}
+    selectedItemContainerStyle={{
+      backgroundColor: '#F0F4FF',
+    }}
+    selectedItemLabelStyle={{
+      color: '#2D2A6E',
+      fontWeight: '600',
     }}
     listMode={Platform.OS === 'android' ? 'MODAL' : 'SCROLLVIEW'}
     zIndex={2000}
     zIndexInverse={1000}
+    closeAfterSelecting={true}
   />
-</View>
+</View> 
             
             <View style={styles.modalButtons}>
               <TouchableOpacity style={[styles.button, { backgroundColor: '#999', marginRight: 10 }]} onPress={onClose}>
